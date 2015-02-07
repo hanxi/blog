@@ -1,6 +1,13 @@
-<script>
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script type="text/javascript">
     var id = parseInt(location.pathname.substring(1));
-    var url = 'https://github.com/hanxi/blog/issues' + (id ? '/'+id : '');
-    location.replace(url);
+    if (id) {
+        $.getJSON("https://api.github.com/repos/hanxi/blog/issues", function( data ) {
+            var url = 'https://github.com/hanxi/blog/issues' + (id>data.length ? '' : '/'+id);
+            location.replace(url);
+        });
+    } else {
+        location.replace('https://github.com/hanxi/blog/issues');
+    }
 </script>
 
