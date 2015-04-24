@@ -6,40 +6,30 @@
         <link rel="Stylesheet" type="text/css" href="css/tango.css">
         <title>涵曦博客</title>
         <script src="util.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/4.2.0/markdown-it.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/highlight.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/emojify.js/0.9.5/emojify.min.js"></script>
-
     </head>
 
     <script type="text/javascript">
 	    var id = parseInt(location.pathname.substring(1));
-	    //id = 4;
+	    id = 1;
 	    if (id) {
+	        ajax(null,"https://api.github.com/repos/hanxi/blog/issues/"+id, function( data ) {
+	        	console.log(data);
+	        });
 	        getJSON("https://api.github.com/repos/hanxi/blog/issues/"+id, function( data ) {
 	        	var title = document.getElementById("title");
 	        	title.innerHTML = data.title;
 	        	//document.write(data);
 	        	console.log(data);
 
-				    
-				var languageOverrides = {
-      				js: 'javascript',
-      				html: 'xml'
-    			};
-				var md = markdownit({
-					highlight: function(code, lang){
-						if(languageOverrides[lang]) lang = languageOverrides[lang];
-						if(lang && hljs.getLanguage(lang)){
-							try {
-								return hljs.highlight(lang, code).value;
-							}catch(e){}
-						}
-						return '';
-					}
+	        	var post = {
+					"text": data.body,
+					"mode": "gfm",
+					"context": "github/hanxi"
+	        	};
+				ajax(post, "https://api.github.com/markdown", function(data) {
+					var content = document.getElementById("content");
+					content.innerHTML = data;
 				});
-				var content = document.getElementById("content");
-				content.innerHTML = md.render(data.body);
 	        });
 	    } else {
 	    	//location.replace('https://github.com/hanxi/blog/issues');
