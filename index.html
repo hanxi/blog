@@ -1,4 +1,43 @@
-<head>
-    <meta http-equiv="refresh" content="0;url=https://github.com/hanxi/blog/issues">
-</head>
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <title>涵曦博客</title>
+        <script src="util.js"></script>
+    </head>
 
+    <script type="text/javascript">
+        getJSON("https://api.github.com/repos/hanxi/blog/issues", function( data ) {
+            var postlist = document.getElementById("post_list");
+            for (var i=0; i<data.length; i++) {
+                var posttitle = document.createElement("li");
+                posttitle.class = "pagelist";
+                postlist.appendChild(posttitle);
+                var href = document.createElement("a");
+                posttitle.appendChild(href);
+                href.href = data[i].number;
+                href.innerHTML = data[i].title;
+            }
+        });
+
+    </script>
+
+    <body>
+        <div id="container">
+            <div id="blog_title">涵曦博客</div>
+            <div id="index">
+                <ul id="post_list">
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+        <div id="footer">
+            <span>
+                Copyright © 2015-2016 hanxi.
+                Powered by <a href="http://issues-blog.hanxi.info/" target="_blank">issues-blog</a>.
+            </span>
+        </div>
+    </body>
+</html>
