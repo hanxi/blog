@@ -4,31 +4,36 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="Stylesheet" type="text/css" href="css/style.css">
         <link rel="Stylesheet" type="text/css" href="css/tango.css">
-        <title>涵曦博客</title>
+        <title></title>
+        <script src="config.js"></script>
         <script src="util.js"></script>
     </head>
 
     <script type="text/javascript">
-        getJSON("https://api.github.com/repos/hanxi/blog/issues", function( data ) {
+        setTitle(config.blog_name);
+        getJSON(getPageUrl(), function( data ) {
             var postlist = document.getElementById("post_list");
+            cleanChild(postlist);
             for (var i=0; i<data.length; i++) {
                 var posttitle = document.createElement("li");
                 posttitle.className = "pagelist";
                 postlist.appendChild(posttitle);
                 var href = document.createElement("a");
-                posttitle.appendChild(href);
                 href.href = data[i].number;
-                href.innerHTML = data[i].title;
+                var txt =document.createTextNode(data[i].title);
+                href.appendChild(txt);
+                posttitle.appendChild(href);
             }
         });
 
     </script>
 
-    <body>
+    <body onload="setBlogName();">
         <div id="container">
-            <div id="blog_title">涵曦博客</div>
+            <div id="blog_title"></div>
             <div id="index">
                 <ul id="post_list">
+                    <image src="wait.gif"></image>
                 </ul>
                 <div class="clearfix"></div>
             </div>

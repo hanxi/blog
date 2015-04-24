@@ -4,43 +4,48 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="Stylesheet" type="text/css" href="css/style.css">
         <link rel="Stylesheet" type="text/css" href="css/tango.css">
-        <title>涵曦博客</title>
+        <title></title>
+        <script src="config.js"></script>
         <script src="util.js"></script>
     </head>
 
     <script type="text/javascript">
+    	setTitle(config.blog_name);
 	    var id = parseInt(location.pathname.substring(1));
-	    id = 1;
+	    //id = 1;
 	    if (id) {
-	        ajax(null,"https://api.github.com/repos/hanxi/blog/issues/"+id, function( data ) {
-	        	console.log(data);
-	        });
-	        getJSON("https://api.github.com/repos/hanxi/blog/issues/"+id, function( data ) {
+	        getJSON(getPageUrl()+"/"+id, function(data) {
+		    	setTitle(config.blog_name + " - " + data.title);
 	        	var title = document.getElementById("title");
-	        	title.innerHTML = data.title;
-	        	//document.write(data);
-	        	console.log(data);
-
-	        	var post = {
-					"text": data.body,
-					"mode": "gfm",
-					"context": "github/hanxi"
-	        	};
-				ajax(post, "https://api.github.com/markdown", function(data) {
-					var content = document.getElementById("content");
-					content.innerHTML = data;
-				});
+	        	var txt = document.createTextNode(data.title);
+	        	title.appendChild(txt);
+				var content = document.getElementById("content");
+	        	renderMarkdown(content, data.body);
+	        	var comment = document.getElementById("comment");
+                var href = document.createElement("a");
+                href.href = getIssuesUrl(id);
+                var txt = document.createTextNode("Click here to comments");
+                href.appendChild(txt);
+	        	comment.appendChild(href);
 	        });
 	    } else {
-	    	//location.replace('https://github.com/hanxi/blog/issues');
+	    	location.replace("/");
 		}
     </script>
 
     <body>
         <div id="container">
+        	<div id="header">
+  				<div id="post-nav">
+	  				<a href="/">Home</a>
+  				</div>
+			</div>
 	        <div class="clearfix"></div>
             <div id="title"></div>
             <div id="content">
+	            <image src="wait.gif"></image>
+            </div>
+            <div id="comment">
             </div>
         </div>
         <div id="footer">
