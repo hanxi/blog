@@ -16,6 +16,11 @@ getPageUrl = function(page)
 
 getIssuesUrl = function(id)
 {
+    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues/"+id;
+}
+
+getCommentUrl = function(id)
+{
     return "https://github.com/"+config.github_username+"/"+config.github_repo+"/issues/"+id+"#new_comment_field";
 }
 
