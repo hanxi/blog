@@ -42,12 +42,12 @@ renderMarkdown = function(content,text)
 
 getPageUrl = function()
 {
-    return "https://api.github.com/repos/"+config.github_repo+"/issues";
+    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues";
 }
 
 getIssuesUrl = function(id)
 {
-    return "https://github.com/"+config.github_repo+"/issues/"+id+"#new_comment_field";
+    return "https://github.com/"+config.github_username+"/"+config.github_repo+"/issues/"+id+"#new_comment_field";
 }
 
 setTitle = function(title)
@@ -74,7 +74,7 @@ setFooter = function()
 {
     var footer = document.getElementById("footer");
     footer.innerHTML = '<span>\
-        Copyright © 2015-2016 hanxi.\
+        Copyright © 2015-2016 <a href="http://github.com/'+config.github_username+'" target="_blank">'+config.github_username+'</a>.\
         Powered by <a href="http://github.com/hanxi/issues-blog" target="_blank">issues-blog</a>.\
         </span>';
 }
