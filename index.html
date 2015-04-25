@@ -52,24 +52,26 @@
                     posttitle.appendChild(href);
                 }
 
-                var linkArray = headers.Link.split(",");
-                for (var i=0; i<linkArray.length; i++) {
-                    var m = linkArray[i].match(/\?per_page=(\d+)&page=(\d+)>; rel="(\w+)"/);
-                    if (m) {
-                        link[m[3]] = {
-                            "per_page": m[1],
-                            "page": m[2]
+                if (headers.Link) {
+                    var linkArray = headers.Link.split(",");
+                    for (var i=0; i<linkArray.length; i++) {
+                        var m = linkArray[i].match(/\?per_page=(\d+)&page=(\d+)>; rel="(\w+)"/);
+                        if (m) {
+                            link[m[3]] = {
+                                "per_page": m[1],
+                                "page": m[2]
+                            }
                         }
                     }
-                }
-                var last = parseInt(link.last.page);
-                if (page<last) {
-                    var href = document.createElement("a");
-                    href.id = "more";
-                    href.href = "javascript:loadPage("+(page+1)+");";
-                    var txt = document.createTextNode("More");
-                    href.appendChild(txt);
-                    postlist.appendChild(href);
+                    var last = parseInt(link.last.page);
+                    if (page<last) {
+                        var href = document.createElement("a");
+                        href.id = "more";
+                        href.href = "javascript:loadPage("+(page+1)+");";
+                        var txt = document.createTextNode("More");
+                        href.appendChild(txt);
+                        postlist.appendChild(href);
+                    }
                 }
             });
         }
