@@ -257,3 +257,9 @@ table.hlcodetable {
     margin: 0;
     border: none;
 }
+
+.aligncenter {
+    clear: both;
+    display: block;
+    margin:auto;
+}

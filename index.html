@@ -6,6 +6,7 @@
         <link rel="Stylesheet" type="text/css" href="css/tango.css">
         <title></title>
         <script src="config.js"></script>
+        <script src="ajax.js"></script>
         <script src="util.js"></script>
     </head>
 
@@ -13,9 +14,8 @@
         <div id="container">
             <div id="blog_title"></div>
             <div id="index">
-                <ul id="post_list">
-                    <image src="wait.gif"></image>
-                </ul>
+                <image id="wait" src="wait.gif" class="aligncenter"></image>
+                <ul id="post_list"></ul>
                 <div class="clearfix"></div>
             </div>
         </div>
@@ -26,20 +26,54 @@
         setTitle(config.blog_name);
         setBlogName();
         setFooter();
-        getJSON(getPageUrl(), function( data ) {
-            var postlist = document.getElementById("post_list");
-            cleanChild(postlist);
-            for (var i=0; i<data.length; i++) {
-                var posttitle = document.createElement("li");
-                posttitle.className = "pagelist";
-                postlist.appendChild(posttitle);
-                var href = document.createElement("a");
-                href.href = data[i].number;
-                var txt =document.createTextNode(data[i].title);
-                href.appendChild(txt);
-                posttitle.appendChild(href);
+        var page = 1;
+        var link = {};
+        var postlist = document.getElementById("post_list");
+        function loadPage(page) {
+            var more = document.getElementById("more");
+            if (more) {
+                removeChildById(postlist, "more");
+                var newMore = document.createElement("img");
+                newMore.id = "more";
+                newMore.src = "littlewait.gif";
+                postlist.appendChild(newMore);
             }
-        });
+            getJSON(getPageUrl(page), function(data, headers) {
+                removeChildById(document.getElementById("index"), "wait");
+                removeChildById(postlist, "more");
+                for (var i=0; i<data.length; i++) {
+                    var posttitle = document.createElement("li");
+                    posttitle.className = "pagelist";
+                    postlist.appendChild(posttitle);
+                    var href = document.createElement("a");
+                    href.href = data[i].number;
+                    var txt = document.createTextNode(data[i].title);
+                    href.appendChild(txt);
+                    posttitle.appendChild(href);
+                }
+
+                var linkArray = headers.Link.split(",");
+                for (var i=0; i<linkArray.length; i++) {
+                    var m = linkArray[i].match(/\?per_page=(\d+)&page=(\d+)>; rel="(\w+)"/);
+                    if (m) {
+                        link[m[3]] = {
+                            "per_page": m[1],
+                            "page": m[2]
+                        }
+                    }
+                }
+                var last = parseInt(link.last.page);
+                if (page<last) {
+                    var href = document.createElement("a");
+                    href.id = "more";
+                    href.href = "javascript:loadPage("+(page+1)+");";
+                    var txt = document.createTextNode("More");
+                    href.appendChild(txt);
+                    postlist.appendChild(href);
+                }
+            });
+        }
+        loadPage(1);
     </script>
 
 </html>

@@ -1,34 +1,3 @@
-getJSON = function(url, callback)
-{
-    var xhr = new window.XMLHttpRequest();
-    xhr.open("get", url, true);
-    xhr.setRequestHeader("Accept", "application/json, text/javascript, */*; q=0.01");
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState==4 && xhr.status==200)
-        {
-            callback(JSON.parse(xhr.responseText));
-        }
-    }
-    xhr.send();
-}
-
-ajax = function(post, url, callback) {
-    var xhr = new window.XMLHttpRequest();
-    var method = "post";
-    if (post == null) {
-        method = "get";
-    }
-    xhr.open(method, url, true);
-    xhr.setRequestHeader("Accept", "application/json, text/javascript, */*; q=0.01");
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState==4 && xhr.status==200)
-        {
-            callback(xhr.responseText);
-        }
-    }
-    xhr.send(JSON.stringify(post));
-}
-
 renderMarkdown = function(content,text)
 {
     var post = {
@@ -40,9 +9,9 @@ renderMarkdown = function(content,text)
     });
 }
 
-getPageUrl = function()
+getPageUrl = function(page)
 {
-    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues";
+    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues?per_page="+config.per_page+"&page="+page;
 }
 
 getIssuesUrl = function(id)
@@ -67,6 +36,14 @@ cleanChild = function(node)
 {
     while (node.firstChild) {
         node.removeChild(node.firstChild);
+    }
+}
+
+removeChildById = function(node, id)
+{
+    var child = document.getElementById(id);
+    if (child) {
+        node.removeChild(child);
     }
 }
 
