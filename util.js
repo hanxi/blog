@@ -69,3 +69,12 @@ cleanChild = function(node)
         node.removeChild(node.firstChild);
     }
 }
+
+setFooter = function()
+{
+    var footer = document.getElementById("footer");
+    footer.innerHTML = '<span>\
+        Copyright © 2015-2016 hanxi.\
+        Powered by <a href="http://github.com/hanxi/issues-blog" target="_blank">issues-blog</a>.\
+        </span>';
+}

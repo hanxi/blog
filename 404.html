@@ -9,10 +9,29 @@
         <script src="util.js"></script>
     </head>
 
+    <body>
+        <div id="container">
+            <div id="header">
+                <div id="post-nav">
+                    <a href="/">Home</a>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <div id="title"></div>
+            <div id="content">
+                <image src="wait.gif"></image>
+            </div>
+            <div id="comment">
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+
     <script type="text/javascript">
         setTitle(config.blog_name);
+        setFooter();
         var id = parseInt(location.pathname.substring(1));
-        //id = 1;
+        // id = 1; // for local test.
         if (id) {
             getJSON(getPageUrl()+"/"+id, function(data) {
                 setTitle(config.blog_name + " - " + data.title);
@@ -33,26 +52,4 @@
         }
     </script>
 
-    <body>
-        <div id="container">
-            <div id="header">
-                <div id="post-nav">
-                    <a href="/">Home</a>
-                </div>
-            </div>
-            <div class="clearfix"></div>
-            <div id="title"></div>
-            <div id="content">
-                <image src="wait.gif"></image>
-            </div>
-            <div id="comment">
-            </div>
-        </div>
-        <div id="footer">
-            <span>
-                Copyright © 2015-2016 hanxi.
-                Powered by <a href="http://issues-blog.hanxi.info/" target="_blank">issues-blog</a>.
-            </span>
-        </div>
-    </body>
 </html>

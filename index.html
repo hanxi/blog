@@ -9,8 +9,23 @@
         <script src="util.js"></script>
     </head>
 
+    <body>
+        <div id="container">
+            <div id="blog_title"></div>
+            <div id="index">
+                <ul id="post_list">
+                    <image src="wait.gif"></image>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+
     <script type="text/javascript">
         setTitle(config.blog_name);
+        setBlogName();
+        setFooter();
         getJSON(getPageUrl(), function( data ) {
             var postlist = document.getElementById("post_list");
             cleanChild(postlist);
@@ -25,24 +40,6 @@
                 posttitle.appendChild(href);
             }
         });
-
     </script>
 
-    <body onload="setBlogName();">
-        <div id="container">
-            <div id="blog_title"></div>
-            <div id="index">
-                <ul id="post_list">
-                    <image src="wait.gif"></image>
-                </ul>
-                <div class="clearfix"></div>
-            </div>
-        </div>
-        <div id="footer">
-            <span>
-                Copyright © 2015-2016 hanxi.
-                Powered by <a href="http://issues-blog.hanxi.info/" target="_blank">issues-blog</a>.
-            </span>
-        </div>
-    </body>
 </html>
