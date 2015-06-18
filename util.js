@@ -18,7 +18,7 @@ getPageUrl = function(page)
 {
     var preUrl = getIssuesPreUrl();
     var url = preUrl+"?per_page="+config.per_page+"&page="+page;
-    url += "&access_token="+config.access_token;
+    url += "&access_token="+config.access_token_1++config.access_token_2;
     return url;
 }
 
@@ -26,7 +26,7 @@ getIssuesUrl = function(id)
 {
     var preUrl = getIssuesPreUrl();
     var url = preUrl+"/"+id;
-    url += "?access_token="+config.access_token;
+    url += "?access_token="+config.access_token_1++config.access_token_2;
     return url
 }
 
