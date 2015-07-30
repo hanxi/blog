@@ -9,25 +9,14 @@ renderMarkdown = function(content,text)
     });
 }
 
-getIssuesPreUrl = function()
-{
-    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues";
-}
-
 getPageUrl = function(page)
 {
-    var preUrl = getIssuesPreUrl();
-    var url = preUrl+"?per_page="+config.per_page+"&page="+page;
-    url += "&access_token="+config.access_token;
-    return url;
+    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues?per_page="+config.per_page+"&page="+page;
 }
 
 getIssuesUrl = function(id)
 {
-    var preUrl = getIssuesPreUrl();
-    var url = preUrl+"/"+id;
-    url += "?access_token="+config.access_token;
-    return url
+    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues/"+id;
 }
 
 getCommentUrl = function(id)
@@ -70,4 +59,20 @@ setFooter = function()
         Copyright © 2015-2016 <a href="http://github.com/'+config.github_username+'" target="_blank">'+config.github_username+'</a>.\
         Powered by <a href="http://github.com/hanxi/issues-blog" target="_blank">issues-blog</a>.\
         </span>';
+}
+
+hideElement = function(id)
+{
+    var node = document.getElementById(id);
+    node.style.display="none";
+}
+
+showElement = function(id)
+{
+    var node = document.getElementById(id);
+    node.style.display="";
+}
+
+loadPageVar = function (sVar) {
+    return unescape(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + escape(sVar).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
 }
