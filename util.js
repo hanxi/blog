@@ -4,19 +4,32 @@ renderMarkdown = function(content,text)
         "text": text,
         "mode": "gfm",
     };
-    ajax(post, "https://api.github.com/markdown", function(data) {
+    var url ＝ "https://api.github.com/markdown";
+    url += "?access_token="+config.access_token;
+    ajax(post, url, function(data) {
         content.innerHTML = data;
     });
 }
 
+getIssuesPreUrl = function()
+{
+    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues";
+}
+
 getPageUrl = function(page)
 {
-    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues?per_page="+config.per_page+"&page="+page;
+    var preUrl = getIssuesPreUrl();
+    var url = preUrl+"?per_page="+config.per_page+"&page="+page;
+    url += "&access_token="+config.access_token;
+    return url;
 }
 
 getIssuesUrl = function(id)
 {
-    return "https://api.github.com/repos/"+config.github_username+"/"+config.github_repo+"/issues/"+id;
+    var preUrl = getIssuesPreUrl();
+    var url = preUrl+"/"+id;
+    url += "?access_token="+config.access_token;
+    return url
 }
 
 getCommentUrl = function(id)
