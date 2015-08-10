@@ -4,7 +4,7 @@ renderMarkdown = function(content,text)
         "text": text,
         "mode": "gfm",
     };
-    var url ＝ "https://api.github.com/markdown";
+    var url = "https://api.github.com/markdown";
     url += "?access_token="+config.access_token;
     ajax(post, url, function(data) {
         content.innerHTML = data;
