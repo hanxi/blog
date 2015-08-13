@@ -36,7 +36,7 @@ getJSON = function(url, callback)
 }
 
 ajax = function(post, url, callback) {
-    var xhr = new window.XMLHttpRequest();
+    var xhr = createHTTPRequestObject();
     var method = "post";
     if (post == null) {
         method = "get";
