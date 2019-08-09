@@ -41,14 +41,16 @@ function loadPage(page) {
                     }
                 }
             }
-            var last = parseInt(link.last.page);
-            if (page < last) {
-                var href = document.createElement("a");
-                href.id = "more";
-                href.href = "javascript:loadPage(" + (page + 1) + ");";
-                var txt = document.createTextNode("More");
-                href.appendChild(txt);
-                postlist.appendChild(href);
+            if (link.last) {
+                var last = parseInt(link.last.page);
+                if (page < last) {
+                    var href = document.createElement("a");
+                    href.id = "more";
+                    href.href = "javascript:loadPage(" + (page + 1) + ");";
+                    var txt = document.createTextNode("More");
+                    href.appendChild(txt);
+                    postlist.appendChild(href);
+                }
             }
         }
     });
