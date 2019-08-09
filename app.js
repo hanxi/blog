@@ -47,7 +47,7 @@ function loadPage(page) {
                     var href = document.createElement("a");
                     href.id = "more";
                     href.href = "javascript:loadPage(" + (page + 1) + ");";
-                    var txt = document.createTextNode("More");
+                    var txt = document.createTextNode("Read More ...");
                     href.appendChild(txt);
                     postlist.appendChild(href);
                 }
