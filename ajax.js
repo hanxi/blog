@@ -25,7 +25,8 @@ getJSON = function(url, callback)
                 for (var i=0; i<headersArray.length; i++) {
                     var kv = headersArray[i].split(": ");
                     if (kv.length==2) {
-                        headers[kv[0]] = kv[1];
+                        var k = kv[0].toLowerCase();
+                        headers[k] = kv[1];
                     }
                 }
             }
