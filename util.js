@@ -61,7 +61,9 @@ removeChildById = function(node, id)
 {
     var child = document.getElementById(id);
     if (child) {
-        node.removeChild(child);
+        try {
+            node.removeChild(child);
+        } catch {}
     }
 }
 
