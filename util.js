@@ -5,7 +5,6 @@ renderMarkdown = function(content,text)
         "mode": "gfm",
     };
     var url = "https://api.github.com/markdown";
-    url += "?access_token="+config.access_token;
     ajax(post, url, function(data) {
         content.innerHTML = data;
     });
@@ -20,7 +19,6 @@ getPageUrl = function(page)
 {
     var preUrl = getIssuesPreUrl();
     var url = preUrl+"?per_page="+config.per_page+"&page="+page;
-    url += "&access_token="+config.access_token;
     return url;
 }
 
@@ -28,7 +26,6 @@ getIssuesUrl = function(id)
 {
     var preUrl = getIssuesPreUrl();
     var url = preUrl+"/"+id;
-    url += "?access_token="+config.access_token;
     return url
 }
 
