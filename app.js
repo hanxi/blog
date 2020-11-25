@@ -47,7 +47,7 @@ function loadPage(page) {
                     var href = document.createElement("a");
                     href.id = "more";
                     href.href = "javascript:loadPage(" + (page + 1) + ");";
-                    var txt = document.createTextNode("Read More ...");
+                    var txt = document.createTextNode("加载更多 ...");
                     href.appendChild(txt);
                     postlist.appendChild(href);
                 }
@@ -69,8 +69,10 @@ function gotoPage(id) {
         var comment = document.getElementById("comment");
         var href = document.createElement("a");
         href.href = getCommentUrl(id);
-        var txt = document.createTextNode("Click here to comments");
+        var txt = document.createTextNode("点击进入评论 ...");
         href.appendChild(txt);
         comment.appendChild(href);
+    }, function () {
+        location.replace("/");
     });
 }
