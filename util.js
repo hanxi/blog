@@ -64,6 +64,12 @@ removeChildById = function(node, id)
     }
 }
 
+setHeader = function()
+{
+    var header = document.getElementById("header");
+    header.innerHTML = '<div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>';
+}
+
 setFooter = function()
 {
     var footer = document.getElementById("footer");

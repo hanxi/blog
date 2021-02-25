@@ -1,6 +1,7 @@
 function gotoHome() {
     setTitle(config.blog_name);
     setBlogName();
+    setHeader();
     setFooter();
     loadPage(1);
 }
@@ -58,6 +59,7 @@ function loadPage(page) {
 
 function gotoPage(id) {
     setTitle(config.blog_name);
+    setHeader();
     setFooter();
     getJSON(getIssuesUrl(id), function (data) {
         setTitle(config.blog_name + " - " + data.title);

@@ -25,11 +25,10 @@
     <body>
         <div id="header"></div>
         <div id="container">
-            <div id="title"></div>
-            <div id="content" class="markdown-body">
-                <image id="wait" src="wait.gif" class="aligncenter"></image>
-            </div>
-            <div id="comment">
+            <div id="content">
+                <h2>联系我</h2>
+                <p> email: <code> hanxi.info#gmail.com </code> </p>
+                <p> phone: <code> echo +$((16#7D5EC4F37C0)) </code> </p>
             </div>
         </div>
         <div id="footer"></div>
@@ -37,13 +36,8 @@
 
     <script type="text/javascript">
         setTitle(config.blog_name);
+        setHeader();
         setFooter();
-        var id = parseInt(location.pathname.substring(1));
-        if (id) {
-            gotoPage(id);
-        } else {
-            location.replace("/");
-        }
     </script>
 
 </html>
