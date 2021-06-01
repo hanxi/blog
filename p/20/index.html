@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">Markdown 输出 pdf 强制分页的方法</div>
+            <div id="content" class="markdown-body">
+                <p>其实就是 HTML 输出 PDF 插入分页的方法，在需要插入分页的地方插入这行代码。</p>
+<div class="highlight highlight-text-html-basic"><pre><span class="pl-kos">&lt;</span><span class="pl-ent">div</span> <span class="pl-c1">style</span>="<span class="pl-s">page-break-after: always;</span>"<span class="pl-kos">&gt;</span><span class="pl-kos">&lt;/</span><span class="pl-ent">div</span><span class="pl-kos">&gt;</span></pre></div>
+<p>Markdown 转 HTML 可以使用 <a href="https://dillinger.io/" rel="nofollow">https://dillinger.io/</a> 在线转，然后在用浏览器的打印功能，觉得哪里需要插入分页符就直接该 HTML 代码。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/20#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

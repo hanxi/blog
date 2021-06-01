@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】lua动态链接库之单个so文件包含多个模块（luaL_requiref函数的使用）</div>
+            <div id="content" class="markdown-body">
+                <p>在<a href="https://github.com/cloudwu/hive">hive</a>的hive.lua文件中，第一行就是local c = require "hive.core"。</p>
+<p>根据上一篇文章所说的，它是调用的hive文件夹下的core.so文件。</p>
+<p>然而在其他hive文件夹下的system.lua前两行是</p>
+<p>local cell = require "cell"，local system = require "cell.system"，</p>
+<p>但没有看到这两个so文件。</p>
+<p>这个是怎么回事呢？查看src下的hive_*_lib.c都含有luaL_Reg这样类似于hive.c中的用法。</p>
+<p>然后找到hive.start()函数对应的scheduler_start()，看到了和cell.system相关的一行代码luaL_requiref(sL, "cell.system", cell_system_lib, 0);</p>
+<p>接着去网上搜了下luaL_requiref()函数的作用，找到了lua源代码的实现，作用就是调用cell_system_lib然后把该模块绑定到cell.system模块名字下。</p>
+<p>下面我就实现了一个so库包含两个模块。</p>
+<p><a href="https://gist.github.com/hanxi/8299600">https://gist.github.com/hanxi/8299600</a></p>
+<p>lua动态链接库就到这里了，接下来会继续阅读<a href="https://github.com/cloudwu/hive">hive</a>代码</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/59#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

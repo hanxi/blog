@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">为小团队内部分享技术文档而生的一个 markdown 博客</div>
+            <div id="content" class="markdown-body">
+                <h2>起因</h2>
+<p>在网上找了一天的 markdown 博客，<a href="https://github.com/Circa75/dropplets">dropplets</a> 算是找到的一个不错的，支持上传markdown，但不支持在线编辑。折腾之后，决定自己动手写一个。</p>
+<h2>构思</h2>
+<p>决定主要操作都放在前端，服务端只做存储。于是就抽出了一个 <a href="https://github.com/hanxi/http-file-server">http-file-server</a> ，专门用来存储 markdown 文件和图片。前端做一个类似于 <a href="https://github.com/hanxi/issues-blog">issues-blog</a> 的来浏览文档，然后在加一个编辑器，以前写过一个简单的本地 <a href="https://github.com/hanxi/markdown">markdown</a> 编辑器。</p>
+<ul>
+<li>不打算做账号系统，小团队的话账号不重要，署名的话完全可以写到文档中去。</li>
+<li>一定要加的功能就是退拽上传图片，像 github 的编辑器一样。</li>
+<li>主页列出所有的文档列表，点击链接进入到文档详情，点击修改进入到编辑页面。</li>
+<li>还要来个新建文档的按钮放到主页。</li>
+<li>缓存编辑中的文件也很重要。</li>
+</ul>
+<h2>具体实现</h2>
+<h3>前端浏览</h3>
+<ul>
+<li>参考 <a href="https://github.com/hanxi/issues-blog">issues-blog</a> 使用 ajax 实现单页面浏览 markdown 文档</li>
+<li>采用 <a href="https://github.com/chjj/marked">marked</a> 实现本地解析 markdown 文档</li>
+<li>服务器只需要架设一个静态 HTTP Server 即可实现</li>
+<li>读取文件服务器 <code>/md</code> 路径下的所有文件列表，列表信息中包含文件的最后修改时间</li>
+<li>文件名是有规则的命名的：<code>time.titlename.md</code>，time 格式为：<code>2015.8.14.23.48.33.100</code></li>
+<li>由 time 唯一确定文档，time 相同的选取最新修改的文档</li>
+<li>根据上面的文件命名规则，可以只需要简单的文件服务器实现文档的改标题功能</li>
+<li>文件服务器需要设置跨域访问选项 <code>access-control-allow-origin</code></li>
+</ul>
+<h3>文档编辑</h3>
+<ul>
+<li>使用 <a href="https://codemirror.net" rel="nofollow">codemirror</a> 作为 markdown 的编辑器</li>
+<li>采用 <a href="https://github.com/chjj/marked">marked</a> 实现实时预览</li>
+<li>代码高亮是由 <a href="https://github.com/chjj/marked">marked</a> 和 <a href="https://highlightjs.org" rel="nofollow">highlight.js</a> 实现</li>
+<li>markdown 语法都选用 <a href="https://help.github.com/articles/github-flavored-markdown">GFM</a> 语法</li>
+<li>使用 localStorage 缓存正在编辑的未发布的文档</li>
+<li>同样是根据文件名的 time 前缀来确定载入哪个缓存，包括缓存的文档标题</li>
+<li>发布文档调用 ajax <code>POST</code> 保存文档到文件服务器</li>
+</ul>
+<h3>删除文档</h3>
+<ul>
+<li>不支持直接删除文档</li>
+<li>可以通过修改文档的标题和内容达到删除文档的目的</li>
+<li>多次修改一个文件的标题会导致文件服务器冗余很多旧文件</li>
+<li>可以在文件服务器上写一个脚本定时清除无效旧文件或者定时备份</li>
+</ul>
+<h3>上传图片</h3>
+<ul>
+<li>实现效果：拖拽上传图片并将地址插入到编辑器中</li>
+<li>给 <code>editor</code> 添加 <code>ondrop</code> 事件</li>
+<li>获取 <code>e.dataTransfer.files</code>，遍历每个文件，实现拖拽多张图片</li>
+<li>使用 <code>FileReader.readAsArrayBuffer</code> 读取文件的二进制格式</li>
+<li>使用 <code>postBinary</code> 异步上传图片，图片上传成功则在编辑器中插入图片地址</li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/10#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

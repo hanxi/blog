@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">再次推荐共享粘贴板 Lemonade</div>
+            <div id="content" class="markdown-body">
+                <h3>1. lemonade 使用场景</h3>
+<p>项目地址: <a href="https://github.com/hanxi/lemonade">https://github.com/hanxi/lemonade</a></p>
+<p>Windows/Linux/MacOS 桌面环境使用 SSH 远程连接服务器开发。无需鼠标 选择/拷贝/粘贴 文本。</p>
+<blockquote>
+<p>比如需要在 Vim 中拷贝一段文本，然后粘贴到桌面软件(QQ?微信？)。<br>
+比如需要拷贝的文本超出了一屏幕，用鼠标就不方便了。而且还需要把 Vim 行号临时取消才能用鼠标选择拷贝。</p>
+</blockquote>
+<p>lemonade 分为 client 和 server 。 桌面环境（本地）运行 server 端，远程环境运行 client 端。</p>
+<h3>2. 使用示例</h3>
+<p>下面配置环境以 Windows 下 Putty 连接 Linux 服务器开发为例。</p>
+<p>lemonade 下载地址 <a href="https://github.com/hanxi/lemonade/releases/tag/v2.0.0-pre">https://github.com/hanxi/lemonade/releases/tag/v2.0.0-pre</a></p>
+<h4>2.1 在 Windows 上配置 server 端</h4>
+<p>下载对应版本的 Windows 包，32位/64位。解压后得到 lemonade.exe 文件</p>
+<p>在 cmd.exe 里执行下面命令</p>
+<pre><code>lemonade.exe server --allow="127.0.0.1,::1" --port=2489 --line-ending="crlf"
+</code></pre>
+<p>这行命令的意思是用 server 方式启动 lemonade， 只允许本机连接，监听端口为 2489，换行符号为 '\r\n'</p>
+<ul>
+<li>
+<p>设置换行符可以解决 Linux 复制一段文本到 Windows 的 notepad 没有换行的问题。</p>
+</li>
+<li>
+<p>只允许本地连接会比较安全，然后使用 SSH 把本地的 2489 端口映射到 Linux 的 2489 端口。</p>
+</li>
+<li>
+<p>可以自己写 <code>start.bat</code> 文件，然后丢到系统启动项里面。后期有空会加个 system tray，对用户会比较友好。</p>
+</li>
+<li>
+<p>配置 Putty 端口转发:</p>
+<p>Connection -&gt; SSH -&gt; Tunnels</p>
+<pre><code>Add new forwarded port
+Source port 2489
+Destination localhost:2489
+Remote
+Auto
+</code></pre>
+<p>配出的结果这样显示的： R2489 localhost:2489</p>
+</li>
+</ul>
+<h4>2.2 在 Linux 上配置 client 端</h4>
+<p>下载对应版本的 Linux 包，拷贝到 <code>/usr/bin/</code> 或者其他 <code>PATH</code> 路径</p>
+<p>新建配置文件 <code>~/.config/lemonade.toml</code></p>
+<p>填入以下内容</p>
+<pre><code>port = 2489
+host = '127.0.0.1'
+line-ending = 'lf'
+trans-loopback = true
+trans-localfile = true
+</code></pre>
+<p>步骤 2.1 已经配置好了端口映射，所以这里填的 host 为 <code>127.0.0.1</code></p>
+<p>测试是否配置成功：</p>
+<ol>
+<li>在 Linux 上输入命令</li>
+</ol>
+<pre><code>echo "test" | lemonade copy
+</code></pre>
+<ol start="2">
+<li>在 Windows 上粘贴</li>
+</ol>
+<h4>2.3 配置 NeoVim 使用 lemonade</h4>
+<div class="highlight highlight-source-viml"><pre><span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>clipboard</span> <span class="pl-k">=</span> {
+            <span class="pl-cce">\'</span><span class="pl-c1">copy</span><span class="pl-s"><span class="pl-pds">'</span>: { <span class="pl-pds">'</span></span><span class="pl-k">+</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">copy</span><span class="pl-s"><span class="pl-pds">'</span>, <span class="pl-pds">'</span></span><span class="pl-k">*</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">copy</span>' },
+            <span class="pl-cce">\'</span><span class="pl-c1">paste</span><span class="pl-s"><span class="pl-pds">'</span>: { <span class="pl-pds">'</span></span><span class="pl-k">+</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">paste</span><span class="pl-s"><span class="pl-pds">'</span>, <span class="pl-pds">'</span></span><span class="pl-k">*</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">paste</span>' },
+            <span class="pl-cce">\'</span>name<span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade',
+            <span class="pl-cce">\}</span></pre></div>
+<p>这样就可以从 Vim 中用 <code>y</code> 拷贝文本到 Windows 了，也可以用 <code>p</code> 直接粘贴 Windows 上拷贝的文本了。</p>
+<h4>2.4 配置 Tmux 使用 lemonade</h4>
+<pre><code>setw -g mode-keys vi
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel "~/.local/bin/lemonade copy"
+bind-key ] run-shell "~/.local/bin/lemonade paste | tmux load-buffer -" \; paste-buffer ;
+</code></pre>
+<p>这样就可以从 Tmux 中用 <code>y</code> 拷贝文本到 Windows 了，也可以用 <code>Ctrl + b + ]</code> 直接粘贴 Windows 上拷贝的文本了。</p>
+<h3>3. 高级功能</h3>
+<h4>3.1 open url</h4>
+<p>在 Linux 打开 Windows 上的浏览器，并进入到指定的网址。比如在 Linux 上输入下面命令:</p>
+<pre><code>lemonade open https://github.com/hanxi/lemonade
+</code></pre>
+<p>这个功能配合 Vim 插件 <code>iamcco/markdown-preview.nvim</code> 非常好用，编辑 Markdown 实时预览。Vim 里这样配置即可:</p>
+<div class="highlight highlight-source-viml"><pre><span class="pl-c"><span class="pl-c">"</span>{markdown-preview</span>
+<span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_to_the_world</span> <span class="pl-k">=</span> <span class="pl-c1">1</span>
+<span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_ip</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>192.168.29.251<span class="pl-pds">'</span></span>
+<span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_port</span> <span class="pl-k">=</span> <span class="pl-c1">6060</span>
+<span class="pl-k">function</span><span class="pl-k">!</span> <span class="pl-en"><span class="pl-k">g:</span>Open_browser</span>(url)
+    <span class="pl-c1">silent</span> <span class="pl-c1">exe</span> <span class="pl-s"><span class="pl-pds">'</span>!lemonade open <span class="pl-pds">'</span></span><span class="pl-smi"><span class="pl-k">a:</span>url</span>
+<span class="pl-k">endfunction</span></pre></div>
+<p>当然，如果 Linux 的 ip 是不固定的，也可以用 Putty 的端口映射方法。把 Windows 的 6060 映射到 Linux 的 6060.</p>
+<p><code>L6060 localhost:6060</code></p>
+<p>vim 则需要这样配置</p>
+<div class="highlight highlight-source-viml"><pre><span class="pl-c"><span class="pl-c">"</span>{markdown-preview</span>
+<span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_to_the_world</span> <span class="pl-k">=</span> <span class="pl-c1">1</span>
+<span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_ip</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>localhost<span class="pl-pds">'</span></span>
+<span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_port</span> <span class="pl-k">=</span> <span class="pl-c1">6060</span>
+<span class="pl-k">function</span><span class="pl-k">!</span> <span class="pl-en"><span class="pl-k">g:</span>Open_browser</span>(url)
+    <span class="pl-c1">silent</span> <span class="pl-c1">exe</span> <span class="pl-s"><span class="pl-pds">'</span>!lemonade open <span class="pl-pds">'</span></span><span class="pl-smi"><span class="pl-k">a:</span>url</span>
+<span class="pl-k">endfunction</span></pre></div>
+<h4>3.2 upload file and open</h4>
+<p>上传 Linux 上的文件到 Windows，并用浏览器打开。</p>
+<pre><code>lemonade open ./test.html
+</code></pre>
+<h3>为何又一次推荐？</h3>
+<p>之前推荐过一次 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="378121849" data-permission-text="Title is private" data-url="https://github.com/hanxi/blog/issues/17" data-hovercard-type="issue" data-hovercard-url="/hanxi/blog/issues/17/hovercard" href="https://github.com/hanxi/blog/issues/17">hanxi/blog#17</a></p>
+<p>因为被我重写了 RPC 协议，采用 HTTP REST API。不安装 lemonade 客户端也能用 <code>curl</code> 或 <code>nc</code> 实现，比如就这么简单的实现了 client 的 <code>copy</code> 和 <code>paste</code> 功能</p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#!</span>/bin/sh</span>
+
+<span class="pl-k">if</span> [ <span class="pl-smi">$1</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>copy<span class="pl-pds">'</span></span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
+    curl -X POST --data <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$2</span><span class="pl-pds">"</span></span> http://127.0.0.1:2489/copy
+<span class="pl-k">fi</span>
+
+<span class="pl-k">if</span> [ <span class="pl-smi">$1</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>paste<span class="pl-pds">'</span></span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
+    curl http://127.0.0.1:2489/paste
+<span class="pl-k">fi</span></pre></div>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/26#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">JS 拷贝数据到系统粘贴板</div>
+            <div id="content" class="markdown-body">
+                <p>copy from <a href="https://juejin.im/post/5aefeb6e6fb9a07aa43c20af" rel="nofollow">https://juejin.im/post/5aefeb6e6fb9a07aa43c20af</a></p>
+<div class="highlight highlight-source-js"><pre>    <span class="pl-smi">window</span><span class="pl-kos">.</span><span class="pl-c1">Clipboard</span> <span class="pl-c1">=</span> <span class="pl-kos">(</span><span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">window</span><span class="pl-kos">,</span> <span class="pl-s1">document</span><span class="pl-kos">,</span> <span class="pl-s1">navigator</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-k">var</span> <span class="pl-s1">textArea</span><span class="pl-kos">,</span>
+            <span class="pl-s1">copy</span><span class="pl-kos">;</span>
+
+        <span class="pl-c">// 判断是不是ios端</span>
+        <span class="pl-k">function</span> <span class="pl-en">isOS</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-k">return</span> <span class="pl-s1">navigator</span><span class="pl-kos">.</span><span class="pl-c1">userAgent</span><span class="pl-kos">.</span><span class="pl-en">match</span><span class="pl-kos">(</span><span class="pl-pds"><span class="pl-c1">/</span>ipad<span class="pl-c1">|</span>iphone<span class="pl-c1">/</span>i</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+        <span class="pl-c">//创建文本元素</span>
+        <span class="pl-k">function</span> <span class="pl-en">createTextArea</span><span class="pl-kos">(</span><span class="pl-s1">text</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-s1">textArea</span> <span class="pl-c1">=</span> <span class="pl-s1">document</span><span class="pl-kos">.</span><span class="pl-en">createElement</span><span class="pl-kos">(</span><span class="pl-s">'textArea'</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-s1">textArea</span><span class="pl-kos">.</span><span class="pl-c1">value</span> <span class="pl-c1">=</span> <span class="pl-s1">text</span><span class="pl-kos">;</span>
+            <span class="pl-s1">document</span><span class="pl-kos">.</span><span class="pl-c1">body</span><span class="pl-kos">.</span><span class="pl-en">appendChild</span><span class="pl-kos">(</span><span class="pl-s1">textArea</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+        <span class="pl-c">//选择内容</span>
+        <span class="pl-k">function</span> <span class="pl-en">selectText</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-k">var</span> <span class="pl-s1">range</span><span class="pl-kos">,</span>
+                <span class="pl-s1">selection</span><span class="pl-kos">;</span>
+
+            <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-en">isOS</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+                <span class="pl-s1">range</span> <span class="pl-c1">=</span> <span class="pl-s1">document</span><span class="pl-kos">.</span><span class="pl-en">createRange</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">range</span><span class="pl-kos">.</span><span class="pl-en">selectNodeContents</span><span class="pl-kos">(</span><span class="pl-s1">textArea</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">selection</span> <span class="pl-c1">=</span> <span class="pl-s1">window</span><span class="pl-kos">.</span><span class="pl-en">getSelection</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">selection</span><span class="pl-kos">.</span><span class="pl-en">removeAllRanges</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">selection</span><span class="pl-kos">.</span><span class="pl-en">addRange</span><span class="pl-kos">(</span><span class="pl-s1">range</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">textArea</span><span class="pl-kos">.</span><span class="pl-en">setSelectionRange</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">,</span> <span class="pl-c1">999999</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-kos">}</span> <span class="pl-k">else</span> <span class="pl-kos">{</span>
+                <span class="pl-s1">textArea</span><span class="pl-kos">.</span><span class="pl-en">select</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-kos">}</span>
+        <span class="pl-kos">}</span>
+
+        <span class="pl-c">//复制到剪贴板</span>
+        <span class="pl-k">function</span> <span class="pl-en">copyToClipboard</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>        
+            <span class="pl-k">var</span> <span class="pl-s1">ret</span> <span class="pl-c1">=</span> <span class="pl-c1">false</span><span class="pl-kos">;</span>
+            <span class="pl-k">try</span><span class="pl-kos">{</span>
+                <span class="pl-k">if</span><span class="pl-kos">(</span><span class="pl-s1">document</span><span class="pl-kos">.</span><span class="pl-en">execCommand</span><span class="pl-kos">(</span><span class="pl-s">"Copy"</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">{</span>
+                    <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-s">"复制成功！"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>  
+                    <span class="pl-s1">ret</span> <span class="pl-c1">=</span> <span class="pl-c1">true</span><span class="pl-kos">;</span>
+                <span class="pl-kos">}</span><span class="pl-k">else</span><span class="pl-kos">{</span>
+                    <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-s">"复制失败！请手动复制！"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-kos">}</span>
+            <span class="pl-kos">}</span><span class="pl-k">catch</span><span class="pl-kos">(</span><span class="pl-s1">err</span><span class="pl-kos">)</span><span class="pl-kos">{</span>
+                <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span> <span class="pl-kos">(</span><span class="pl-s">"复制错误！请手动复制！"</span><span class="pl-kos">)</span>
+            <span class="pl-kos">}</span>
+            <span class="pl-s1">document</span><span class="pl-kos">.</span><span class="pl-c1">body</span><span class="pl-kos">.</span><span class="pl-en">removeChild</span><span class="pl-kos">(</span><span class="pl-s1">textArea</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-k">return</span> <span class="pl-s1">ret</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+
+        <span class="pl-s1">copy</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">text</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-en">createTextArea</span><span class="pl-kos">(</span><span class="pl-s1">text</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-en">selectText</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-en">copyToClipboard</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span><span class="pl-kos">;</span>
+
+        <span class="pl-k">return</span> <span class="pl-kos">{</span>
+            <span class="pl-c1">copy</span>: <span class="pl-s1">copy</span>
+        <span class="pl-kos">}</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-smi">window</span><span class="pl-kos">,</span> <span class="pl-smi">document</span><span class="pl-kos">,</span> <span class="pl-s1">navigator</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+    <span class="pl-v">Clipboard</span><span class="pl-kos">.</span><span class="pl-en">copy</span><span class="pl-kos">(</span><span class="pl-s">"hello world"</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/35#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">配置和使用 Lemonade 粘贴板（putty/vim/tmux）</div>
+            <div id="content" class="markdown-body">
+                <h2>1. Lemonade 是啥？</h2>
+<blockquote>
+<p>Lemonade is a remote utility tool. (copy, paste and open browser) over TCP.</p>
+</blockquote>
+<p><a href="https://github.com/pocke/lemonade">https://github.com/pocke/lemonade</a></p>
+<p>就是支持远程的粘贴板</p>
+<h2>2. 有啥用？</h2>
+<p>比如在 Windows 下使用 Putty 等终端工具连接 Linux 服务的时候，从 Windows 下拷贝文字到 Linux 可以使用鼠标右键或者 Shift + Insert，但是从 Linux 拷贝文字到 Windows 怎么办？只能鼠标选中文本再复制。</p>
+<p>在比如从 Vim 中拷贝文字到 Tmux 呢？从 Tmux 拷贝文字到 Vim 呢？怎么办？各种粘贴板不能共享，只能依赖鼠标？</p>
+<p>为了摆脱鼠标，需要借助第三方粘贴板来做为共享的粘贴板，这里选择的就是 Lemonade。</p>
+<h2>3. 如何配置？</h2>
+<h3>a. Windows 配置（作为服务器）</h3>
+<ul>
+<li>在这里下载 <a href="https://github.com/pocke/lemonade/releases">Windows 版本的 Lemonad</a></li>
+<li>解压后得到可执行文件 lemonade.exe</li>
+<li>在 lemonade.exe 目录下新建一个批处理文件 lamonade.bat ，内容如下：</li>
+</ul>
+<pre><code>lemonade.exe --port=2489 --line-ending="cr" --allow="192.168.0.0/24" server
+</code></pre>
+<ul>
+<li>上面一行命令的意思就是监听 2489 端口，允许局域网的机子访问你的 Windows 粘贴板</li>
+<li>如果远程 Linux 在公网，而自己的 Windows 机器又没有公网 IP 的话，那就需要借助公网来反向代理端口实现内网穿透了，比如使用 frp/ngork/ssh 等</li>
+</ul>
+<h3>b. Linux 配置（作为客户端）</h3>
+<ul>
+<li>在这里下载 <a href="https://github.com/pocke/lemonade/releases">Linux 版本的 Lemonad</a></li>
+<li>把可执行文件 lemonade 放到 PATH 路径，比如 /usr/bin</li>
+<li>新建配置文件 .config/lemonade.toml ，内容如下：</li>
+</ul>
+<pre><code>port = 2489
+host = '192.168.16.12'
+trans-loopback = true
+trans-localfile = true
+line-ending = 'cr'
+</code></pre>
+<ul>
+<li>接下来就可以像下面这样使用 lemonade copy / lemonade pasete 跟 Windows 下共享粘贴了</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> You want to copy a text</span>
+$ cat file.txt <span class="pl-k">|</span> lemonade copy
+
+<span class="pl-c"><span class="pl-c">#</span> You want to paste a text from the clipboard of Windows</span>
+$ lemonade paste
+
+<span class="pl-c"><span class="pl-c">#</span> You want to open an URL to a browser on Windows.</span>
+$ lemonade open <span class="pl-s"><span class="pl-pds">'</span>http://google.com<span class="pl-pds">'</span></span></pre></div>
+<h4>I. 配置 Vim</h4>
+<ul>
+<li>没啥好配置的，装个支持 Lemonade 的插件就行，比如： <a href="https://github.com/kana/vim-fakeclip">kana/vim-fakeclip</a></li>
+<li>如果使用的是 NeoVim 就不用装插件了，本身就自动支持第三方粘贴板插件</li>
+</ul>
+<h4>II. 配置 Tmux</h4>
+<p>为了实现 Tmux 选择和 Vim 一致，需要修改快捷键，比如选中模式下按 <code>v</code> 开始选择，按 <code>y</code> 拷贝并结束选择。进入选中模式的快捷键为 <code>Ctrl + [</code> ，粘贴的快捷键为 <code>Ctrl + ]</code> 。如下配置 Tmux:</p>
+<p>我的 lemonade 的路径是在 <code>~/local/bin/lemonade</code></p>
+<pre><code># tmux 2.4 以上版本
+setw -g mode-keys vi
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel "~/local/bin/lemonade copy"
+bind-key ] run-shell "~/local/bin/lemonade paste | tmux load-buffer -" \; paste-buffer ;
+</code></pre>
+<pre><code># tmux 旧版本
+bind-key -t vi-copy 'v' begin-selection
+bind-key -t vi-copy 'y' copy-pipe "~/local/bin/lemonade copy"
+bind-key ] run-shell "~/local/bin/lemonade paste | tmux load-buffer -" \; paste-buffer ;
+</code></pre>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/17#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

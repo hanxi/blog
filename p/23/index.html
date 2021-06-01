@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">一切因 TrueColor 导致终端配色出问题</div>
+            <div id="content" class="markdown-body">
+                <p>关于 TrueColor 的讨论见这里 <a href="https://gist.github.com/XVilka/8346728">https://gist.github.com/XVilka/8346728</a></p>
+<p>当我发现某个喜欢的主题颜色没有Putty格式时，我找到了这个工具。颜色主题格式转换 <a href="https://terminal.sexy/" rel="nofollow">https://terminal.sexy/</a></p>
+<p>Putty 为了支持 TrueColor 需要下载最新的测试版本 <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/snapshot.html" rel="nofollow">https://www.chiark.greenend.org.uk/~sgtatham/putty/snapshot.html</a></p>
+<p>再推荐一个好工具，支持 Putty 多标签页管理的，支持使用 Putty 的设置，不改变默认的 Putty 习惯。<a href="https://winsshterm.blogspot.com/" rel="nofollow">WinSSHTerm</a></p>
+<p>测试自己的终端是否支持 TrueColor 可以用这个脚本 <a href="https://github.com/hanxi/dotfiles/blob/master/bin/truecolor.sh">https://github.com/hanxi/dotfiles/blob/master/bin/truecolor.sh</a></p>
+<p>输出结果是这样的就是支持 TrueColor<br>
+<a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/51359870-806da800-1b04-11e9-9cb2-a0195dc2faf5.png"><img src="https://user-images.githubusercontent.com/1185757/51359870-806da800-1b04-11e9-9cb2-a0195dc2faf5.png" alt="image" style="max-width:100%;"></a></p>
+<p>另外最近发现 vim 启动太慢了，可以这样调试输出哪一步比较卡。</p>
+<pre><code>vim --startuptime timefile .
+</code></pre>
+<pre><code>" https://stackoverflow.com/a/12216578/3025050
+
+:profile start ~/vim_profile.log
+:profile func *
+:profile file *
+" At this point do slow actions
+:profile pause
+:noautocmd qall!
+
+" unlike quitting `noautocmd` is not really required, it just makes vim quit faster.
+</code></pre>
+<p>继续深挖 <a href="https://liyang85.com/how-to-see-which-plugins-are-making-vim-slow" rel="nofollow">https://liyang85.com/how-to-see-which-plugins-are-making-vim-slow</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/23#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

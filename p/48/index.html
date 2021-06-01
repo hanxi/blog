@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">分布式唯一ID生成算法实现</div>
+            <div id="content" class="markdown-body">
+                <blockquote>
+<p>分布式唯一 ID 生成算法也就那么几种，我也不过多解释，想了解可以看美团的这篇文章 <a href="https://tech.meituan.com/2017/04/21/mt-leaf.html" rel="nofollow">https://tech.meituan.com/2017/04/21/mt-leaf.html</a></p>
+</blockquote>
+<p>我今天要讲的算法类似美团的 Leaf-segment 的数据库方案，简要说就是各个节点都去唯一的数据库取一个 ID 段，然后自己分配。</p>
+<p>这套算法在老东家的时候就见过，没啥稀奇的，之前是用于生成游戏玩家 ID 的。现在分享的这个实现也是参考现在老大写的代码（其实就是抄的）。</p>
+<p>如果不做预生成处理，同样也会出现 Leaf-segment 里说的 TP999 指标问题（TP999 就是满足千分之九百九十九的网络请求所需要的最低耗时），所以也做了快要消耗完 ID 段时就去申请一个新的 ID 出来。</p>
+<h3>数据库结构</h3>
+<p>数据库的表结构是这样的，给 idtype 设置唯一索引：</p>
+<table role="table">
+<thead>
+<tr>
+<th align="center">idtype</th>
+<th align="center">nextid</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">uid</td>
+<td align="center">1000</td>
+</tr>
+<tr>
+<td align="center">teamid</td>
+<td align="center">2000</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>idtype 用来区分业务的，比如我这里的 uid 用来表示角色 ID 申请的号段，teamid 用来表示队伍 ID 申请的号段。</li>
+<li>nextid 用来表示下一次申请的 ID 的最小值。</li>
+</ul>
+<p>数据库是单点，所以需要做集群，比如 MySQL 的主从， MongoDB 的分片集群。</p>
+<p>为啥只需要一个 nextid 就可以了？不用保存 step 吗？因为 step 配置到代码里就行了的，就没必要入库了。</p>
+<h3>预生产池子</h3>
+<p>直接贴 Lua 的数据结构吧，就不画图了。</p>
+<div class="highlight highlight-source-lua"><pre>{
+   [idtype] <span class="pl-k">=</span> {
+     blocks <span class="pl-k">=</span> {
+        [start_idx] <span class="pl-k">=</span> len,  <span class="pl-c"><span class="pl-c">--</span> 有效数据, 表示从某段开始, 长度为len, 使用时段内自减</span>
+     },
+     cur_idx <span class="pl-k">=</span> <span class="pl-c1">0</span>,  <span class="pl-c"><span class="pl-c">--</span> 记录当前在使用的段ID, 优先使用低段位</span>
+     step <span class="pl-k">=</span> step,  <span class="pl-c"><span class="pl-c">--</span> 每次从 db 取的 id 数量</span>
+     ids_cnt <span class="pl-k">=</span> <span class="pl-c1">0</span>,  <span class="pl-c"><span class="pl-c">--</span> 当前ID总数，当总数不足 step/10 时, 自动申请</span>
+   }
+}</pre></div>
+<ul>
+<li><code>start_idx</code>表示分段的起点，对应的 <code>len</code> 就是这个段的长度，<code>len</code> 是逐步递减到 1 就删除这个号段的，所以分配的第一个 ID 是 <code>start_idx + len</code>，最后分配的一个是 <code>start_idx + 1</code>。</li>
+<li><code>cur_idx</code> 记录的是当前使用的段ID，是 blocks 里最小的 <code>start_idx</code>。</li>
+<li><code>step</code> 是一个配置的每次从 db 取的 id 数量</li>
+<li><code>ids_cnt</code> 用来维护池子的大小</li>
+</ul>
+<h3>从 db 取一段 ID</h3>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">new_db_id</span>(<span class="pl-smi">idtype</span>, <span class="pl-smi">step</span>)
+    <span class="pl-k">local</span> ret <span class="pl-k">=</span> tbl_guid:<span class="pl-c1">findAndModify</span>({query <span class="pl-k">=</span> {idtype <span class="pl-k">=</span> idtype}, update <span class="pl-k">=</span> {[<span class="pl-s"><span class="pl-pds">"</span>$inc<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> {nextid <span class="pl-k">=</span> step}}, upsert <span class="pl-k">=</span> <span class="pl-c1">true</span>})
+
+    <span class="pl-k">local</span> result <span class="pl-k">=</span> <span class="pl-c1">math.floor</span>(ret.<span class="pl-smi">ok</span>)
+    <span class="pl-k">if</span> result <span class="pl-k">~=</span> <span class="pl-c1">1</span> <span class="pl-k">then</span>
+        skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>new_db_id not ret. idtype:<span class="pl-pds">"</span></span>, idtype, <span class="pl-s"><span class="pl-pds">"</span>,step:<span class="pl-pds">"</span></span>, step, <span class="pl-s"><span class="pl-pds">"</span>,msg:<span class="pl-pds">"</span></span>, ret.<span class="pl-smi">errmsg</span>)
+        <span class="pl-k">return</span>
+    <span class="pl-k">end</span>
+
+    <span class="pl-k">if</span> <span class="pl-k">not</span> ret.<span class="pl-smi">value</span>.<span class="pl-smi">nextid</span> <span class="pl-k">then</span>
+        skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>new_db_id failed. ignore first step. idtype:<span class="pl-pds">"</span></span>, idtype, <span class="pl-s"><span class="pl-pds">"</span>,step:<span class="pl-pds">"</span></span>, step)
+        <span class="pl-k">return</span>
+    <span class="pl-k">end</span>
+
+    <span class="pl-k">return</span> ret.<span class="pl-smi">value</span>.<span class="pl-smi">nextid</span>
+<span class="pl-k">end</span></pre></div>
+<p>用了 MongoDB 数据库的 <code>findAndModify</code> 和 <code>$inc</code> 指令。这里有个取巧，首次初始化数据库时会进入 "new_db_id failed" 逻辑，从而达到忽略第一段 ID，相当于 step 是步长也是最小值。</p>
+<p>为了实现这个初始化目的，还用了个取巧的地方，进程启动的时候，如果是首次初始化数据库，会执行 2 次生成函数，从而达到调用 2 次 <code>new_db_id</code> 函数。</p>
+<p>我这样做的目的就是因为 MongoDB 的 <code>upsert</code> 不能做指定的初始值。当然也有其他方法实现，就是不用 <code>upsert</code>，手动 <code>insert</code>。</p>
+<p>算法用到的理论点到这就讲完了，具体的实现就去看代码吧。这个库是专门给 <a href="https://github.com/cloudwu/skynet">skynet</a> 使用的，所以用到了许多 skynet 特有的接口。</p>
+<p>忘记贴代码地址了，代码在这里 <a href="https://github.com/hanxi/skynet-demo/blob/master/service/guidd.lua">https://github.com/hanxi/skynet-demo/blob/master/service/guidd.lua</a></p>
+<p><em>鉴于有些时候还是需要用到时间是大致递增的情况，可以考虑配合时间戳来生成 ID</em></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/48#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

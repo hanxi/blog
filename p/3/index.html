@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">我的终端开发环境 PuTTYTray+Tmux+Neovim</div>
+            <div id="content" class="markdown-body">
+                <p>我的配置在这里： <a href="https://github.com/hanxi/dotfiles">https://github.com/hanxi/dotfiles</a></p>
+<h2><a href="https://puttytray.goeswhere.com/" rel="nofollow">PuTTYTray</a></h2>
+<ul>
+<li>下载 PuTTYTray 后，建一个目录存放 putty.exe<br>
+<a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/28321698-7b7ebaae-6c06-11e7-977d-31738af37467.png"><img src="https://user-images.githubusercontent.com/1185757/28321698-7b7ebaae-6c06-11e7-977d-31738af37467.png" alt="image" style="max-width:100%;"></a></li>
+<li>打开 putty.exe (可以发送快捷方式到桌面)</li>
+<li>选择 Sessions from file<br>
+<a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/28321552-18e6cfd0-6c06-11e7-84b2-98fa04607ae2.png"><img src="https://user-images.githubusercontent.com/1185757/28321552-18e6cfd0-6c06-11e7-84b2-98fa04607ae2.png" alt="image" style="max-width:100%;"></a></li>
+<li>随便配置一个 session 并保存，将会在 putty.exe 同级目录下产生一个 sessions 目录</li>
+<li>用编辑器打开上一步保存的 sessions/127.0.0.1 配置文件，拷贝 <a href="https://github.com/hanxi/dotfiles/blob/master/.putty-tray.session">.putty-tray.session</a> 文件内容覆盖过去</li>
+<li>然后再 Load ，可能有报错，弹出报错时点忽略即可，然后再 Save</li>
+<li>配置字体 Windows -&gt; Appearance -&gt; Font settings 我用的字体是 <a href="https://adobe-fonts.github.io/source-code-pro" rel="nofollow">Source Code Pro</a></li>
+<li>配置登录帐号 Connection -&gt; Data -&gt; Auto-login username 填入服务器的用户名</li>
+<li>配置私钥路径 Connection -&gt; SSH -&gt; Auth -&gt; Private key file for authentication</li>
+<li>私钥文件是 ppk 格式的，可以用 PuTTYTray 的 Keygen 工具 id_rsa 转成 ppk 格式的</li>
+<li>配置完后不要着急点 Open ，先回到 Session 点 Save</li>
+</ul>
+<h2><a href="https://github.com/tmux/tmux/wiki">Tmux</a></h2>
+<blockquote>
+<p><a href="https://github.com/hanxi/dotfiles/blob/master/.tmux.conf">https://github.com/hanxi/dotfiles/blob/master/.tmux.conf</a><br>
+自动保存 session <a href="https://github.com/hanxi/dotfiles/blob/master/.tmux/tmux-autosave.sh">https://github.com/hanxi/dotfiles/blob/master/.tmux/tmux-autosave.sh</a></p>
+</blockquote>
+<h2><a href="https://neovim.io/" rel="nofollow">Neovim</a></h2>
+<ul>
+<li><a href="https://github.com/neovim/neovim/wiki/FAQ">如何安装</a></li>
+<li>拷贝 .vim .vimrc .config 到 ~ 目录</li>
+<li>在 vim 中执行 <code>:PluginInstall</code> 命令</li>
+<li>nvim 的 <code>:CheckHealth</code> 命令很有用，可以检测出颜色问题</li>
+</ul>
+<blockquote>
+<p><a href="https://github.com/hanxi/dotfiles/blob/master/.vimrc">https://github.com/hanxi/dotfiles/blob/master/.vimrc</a></p>
+</blockquote>
+<h2>bash</h2>
+<ul>
+<li>以前遇到过终端颜色问题，这行配置很重要 <code>export TERM=screen-256color</code></li>
+</ul>
+<blockquote>
+<p>配置 tmux 自动加载 session <a href="https://github.com/hanxi/dotfiles/blob/master/.bash_profile">https://github.com/hanxi/dotfiles/blob/master/.bash_profile</a></p>
+</blockquote>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/3#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

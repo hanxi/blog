@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】lua嵌入C中实例</div>
+            <div id="content" class="markdown-body">
+                <h3>目录结构</h3>
+<p>编译出来为我所需的文件,以及代码文件</p>
+<pre>├── bin
+│   ├── test
+│   └── test.lua
+├── build
+├── CMakeLists.txt
+├── lua
+│   ├── include
+│   │   ├── lauxlib.h
+│   │   ├── lua.h
+│   │   ├── lua.hpp
+│   │   ├── luaconf.h
+│   │   └── lualib.h
+│   └── lib
+│       └── liblua.a
+└── src
+    └── main.cpp
+</pre>
+<h3>源代码</h3>
+<pre>//main.cpp
+#include &lt;stdio.h&gt;
+
+extern "C"{
+#include &lt;lua.h&gt;
+#include &lt;lualib.h&gt;
+#include &lt;lauxlib.h&gt;
+}
+
+int main(int argc, char ** argv) {
+    lua_State * L = luaL_newstate() ;        //创建lua运行环境
+    if (!L) {
+        printf("error for luaL_newstate\n");
+    }
+    luaopen_base(L);                         // 加载Lua基本库
+    luaL_openlibs(L);                        // 加载Lua通用扩展库
+
+    int ret = luaL_loadfile(L,"test.lua") ;  //加载lua脚本文件
+    if (ret) {
+        printf("error for luaL_loadfile\n");
+    }
+    ret = lua_pcall(L,0,0,0) ;
+    if (ret) {
+        printf("error for lua_pcall\n");
+    }
+    lua_getglobal(L,"printmsg");
+    ret = lua_pcall(L,0,0,0);
+    if (ret) {
+        printf("error for lua_pcall\n");
+    }
+
+    return 0;
+}
+</pre>
+<pre>-- test.lua
+
+function printmsg()
+    print("hello word")
+end
+</pre>
+<pre>#CMakeLists.txt
+PROJECT(test)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+set(EXECUTABLE_OUTPUT_PATH ../bin)
+
+## libs
+link_directories(/usr/local/lib)
+link_directories(/usr/lib)
+
+## includes
+include_directories(/usr/local/include)
+include_directories(./src SRC_DIR)
+include_directories(./lua/include)
+
+aux_source_directory(./src SRC_DIR)
+
+## apps
+add_executable(test
+    ${SRC_DIR}
+)
+
+## link libs
+target_link_libraries(test lua m dl)
+</pre>
+<h3>编译运行</h3>
+<pre>    $ cd build
+    $ cmake ..
+    $ make
+    $ cd ../bin
+    $ ./test
+</pre>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/53#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

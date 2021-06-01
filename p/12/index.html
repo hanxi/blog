@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">gentoo 配置自己的 overlay</div>
+            <div id="content" class="markdown-body">
+                <h2>配置本地 overlay</h2>
+<ul>
+<li>新建 <code>/etc/portage/repos.conf/my.conf</code> 文件，并添加如下配置</li>
+</ul>
+<pre><code>[NameOfYourOverlay]
+location = /usr/local/portage
+masters = gentoo
+auto-sync = no
+</code></pre>
+<ul>
+<li><code>NameOfYourOverlay</code> 改成自己喜欢的名字</li>
+<li>添加本地 ebuild 文件 （以 <code>x11-terms/st</code> 添加 <code>solarized</code> 主题为例）</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre>root# mkdir -p /usr/local/portage/x11-terms/st
+root# <span class="pl-c1">cd</span> /usr/local/portage/x11-terms/st
+root# cp /usr/portage/x11-terms/st/st-0.6.ebuild st-0.6-r2.ebuild
+root# mkdir files
+root# <span class="pl-c1">cd</span> files
+root# wget http://st.suckless.org/patches/st-no_bold_colors-0.6.diff
+root# wget http://st.suckless.org/patches/st-solarized-dark-0.6.diff</pre></div>
+<ul>
+<li>修改 <code>st-0.6-r2.ebuild</code> 文件，添加 <code>epath</code></li>
+</ul>
+<pre><code>src_prepare(){
+ ...
+
+ for i in ${FILESDIR}/*.diff;do
+    epatch "$i"    
+ done
+}
+</code></pre>
+<ul>
+<li>生成 <code>Manifest</code> 文件</li>
+</ul>
+<pre><code>root# chown -R portage:portage /usr/local/portage
+root# pushd /usr/local/portage/x11-terms/st/
+root# repoman manifest
+root# popd
+</code></pre>
+<blockquote>
+<p>为什么文件名带上 <code>-r2</code> ？ gentoo 官方库里的 <code>x11-terms/st</code> 已经有了一个 <code>-r1</code>，<br>
+只要你喜欢，后面带上 <code>-r100</code> 都行。</p>
+</blockquote>
+<ul>
+<li>安装带有 <code>patch</code> 的 <code>x11-terms/st</code></li>
+</ul>
+<pre><code>emerge -av =x11-terms/st-0.6-r2
+</code></pre>
+<h2>使用 layman 添加非官方的 overlay</h2>
+<ul>
+<li>安装 <code>&gt;=layman-2.3.0</code></li>
+<li>编辑 <code>/etc/layman/layman.cfg</code> ，添加如下配置</li>
+</ul>
+<pre><code># Repository config types used by layman
+# (repos.conf, make.conf)
+conf_type : repos.conf
+</code></pre>
+<ul>
+<li>新建 <code>repos.conf/layman.conf</code> 文件</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre>mkdir -p /etc/portage/repos.conf
+layman-updater -R</pre></div>
+<h2>其他</h2>
+<ul>
+<li>使用 <code>emerge</code> 安装指定版本的软件<br>
+<code>emerge -av =app-portage/layman-2.4.1-r1</code></li>
+<li>当执行 <code>emerge</code> 出现下面提示信息时，执行 <code>etc-update</code> ，然后输入 <code>-3</code> 。</li>
+</ul>
+<pre><code>IMPORTANT: config file '/etc/portage/package.accept_keywords' needs updating
+</code></pre>
+<blockquote>
+<p><a href="https://wiki.gentoo.org/wiki/Dwm#patches_in_your_local_overlay" rel="nofollow">patches in your local overlay</a></p>
+<p><a href="https://wiki.gentoo.org/wiki/Project:Portage/Sync#Layman_configuration" rel="nofollow">Layman_configuration</a></p>
+</blockquote>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/12#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

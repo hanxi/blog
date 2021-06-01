@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">GTags 错误排查</div>
+            <div id="content" class="markdown-body">
+                <p><a href="https://zhuanlan.zhihu.com/p/36279445" rel="nofollow">https://zhuanlan.zhihu.com/p/36279445</a></p>
+<p>错误排查：<code>gutentags: gutentags: gtags-cscope job failed, returned: 1</code></p>
+<p>这说明 gtags 在生成数据时出错了</p>
+<p>第一步：判断 gtags 为何失败，需进一步打开日志，查看 gtags 的错误输出：</p>
+<pre><code>let g:gutentags_define_advanced_commands = 1
+</code></pre>
+<p>先在 vimrc 中添加上面这一句话，允许 gutentags 打开一些高级命令和选项。然后打开你出错的源文件，运行 “:GutentagsToggleTrace”命令打开日志，它会将 ctags/gtags 命令的输出记录在 Vim 的 message 记录里。接着保存一下当前文件，触发 gtags 数据库更新，稍等片刻你应该能看到一些讨厌的日志输出，然后当你碰到问题时在 vim 里调用 ":messages" 命令列出所有消息记录，即可看到 gtags 的错误输出，方便你定位。</p>
+<p>第二步：禁用 pygments，将环境变量改为：</p>
+<pre><code>let $GTAGSLABEL='native'
+</code></pre>
+<p>然后调试纯 C/C++ 项目看是否工作。</p>
+<p>第三步：恢复 pygments 设置，并在项目根目录命令行运行：</p>
+<pre><code>$ export GTAGSLABEL=native-pygments
+$ gtags
+</code></pre>
+<p>另：</p>
+<pre><code>let g:gen_tags#verbose = 1
+</code></pre>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/19#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

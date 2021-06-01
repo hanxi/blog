@@ -1,0 +1,196 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">回合制战斗架构</div>
+            <div id="content" class="markdown-body">
+                <p>实现回合制战斗的特点就是，战斗过程按照回合为单位来处理逻辑。处理好一个回合的逻辑，整场战斗也就差不多实现完了。</p>
+<p>回合制战斗也分两种类型，自动释放技能类型和手动释放技能类型。自动释放技能类型不用玩家选择技能，手动释放技能类型需要玩家每回合选择技能来释放。这里我只介绍自动释放技能类型的，因为手动释放技能只是在每回合加个超时等待玩家输入技能。</p>
+<p>下面把战斗执行单元成为英雄，也就是卡牌游戏里的卡牌。</p>
+<p>首先，一场战斗的流程如下：</p>
+<ol>
+<li>双方英雄入场，比如 5v5，按照某种顺序排好位置</li>
+<li>按照某种出手顺序，逐个英雄出手攻击</li>
+<li>回合结束处理每个英雄身上的特殊状态</li>
+<li>回合到最大值或者某一方全部死亡则战斗结束</li>
+<li>发送战报给客户端播放战斗效果</li>
+</ol>
+<p>战斗主要逻辑就是上面的2，3步骤。</p>
+<p>技能分两种技能，主动技能和被动技能。英雄出手攻击的过程就是释放一个主动技能，被动技能是在某些特殊情况下自动释放的技能。主动技能和被动技能的区别只是触发时机不同，下面先说说主动技能如何实现。</p>
+<p>举个例子：</p>
+<blockquote>
+<p>对随机2名敌方单位造成90%伤害，并给自身增加15%的伤害</p>
+</blockquote>
+<p>这里我们根据行动目标的不同，把这个技能拆分两个操作。第一个操作是随机找到敌方2个英雄，第二个是对自己操作。伪代码如下：</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-c"><span class="pl-c">--</span> 随机 2 名敌方单位造成 90% 伤害</span>
+<span class="pl-k">local</span> targets <span class="pl-k">=</span> <span class="pl-c1">random_target</span>(heros, OTHER_SIDE, <span class="pl-c1">2</span>)
+<span class="pl-k">for</span> target <span class="pl-k">in</span> <span class="pl-c1">pairs</span>(targets) <span class="pl-k">do</span>
+    <span class="pl-k">local</span> hurt <span class="pl-k">=</span> <span class="pl-c1">0.9</span> <span class="pl-k">*</span> my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span>
+    target.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">=</span> target.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">-</span> hurt
+<span class="pl-k">end</span>
+
+<span class="pl-c"><span class="pl-c">--</span> 自身伤害属性增加 15%</span>
+my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class="pl-k">=</span> my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class="pl-k">*</span> <span class="pl-c1">1.15</span></pre></div>
+<p>直接这样把代码写死的话，需求变化，代码就需要频繁的变。所有我们要抽出不变的东西写成代码，把变化的东西做成配置 Excel 表格。不变的是什么呢？行动流程是不变的，可以这样写行动流程：</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-c"><span class="pl-c">--</span> 每回合的逻辑</span>
+<span class="pl-k">for</span> round<span class="pl-k">=</span><span class="pl-c1">1</span>,cfg.<span class="pl-smi">MAX_ROUND</span> <span class="pl-k">do</span>
+    <span class="pl-c"><span class="pl-c">--</span> 每个英雄轮流出手</span>
+    <span class="pl-k">for</span> heros <span class="pl-k">in</span> <span class="pl-c1">ipairs</span>(heros) <span class="pl-k">do</span>
+        <span class="pl-c"><span class="pl-c">--</span> 1. 处理行动前状态</span>
+        <span class="pl-k">if</span> hero.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span> <span class="pl-k">then</span>
+            <span class="pl-c1">process_round_status</span>(fid, hero)
+        <span class="pl-k">end</span>
+        <span class="pl-c"><span class="pl-c">--</span> 2. 出手逻辑</span>
+        <span class="pl-k">if</span> hero.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span> <span class="pl-k">then</span>
+            <span class="pl-c1">process_action</span>(fid, hero)
+        <span class="pl-k">end</span>
+
+        <span class="pl-c"><span class="pl-c">--</span> 检查是否结束战斗</span>
+        <span class="pl-k">if</span> <span class="pl-c1">check_fight_end</span>(fid) <span class="pl-k">then</span>
+            is_end <span class="pl-k">=</span> <span class="pl-c1">true</span>
+            <span class="pl-k">break</span>
+        <span class="pl-k">end</span>
+    <span class="pl-k">end</span>
+    <span class="pl-k">if</span> is_end <span class="pl-k">then</span>
+        <span class="pl-k">break</span>
+    <span class="pl-k">end</span>
+<span class="pl-k">end</span>
+<span class="pl-c"><span class="pl-c">--</span> 上面的变量 f_id 是用来定位这场战斗的，打印日志和读取某些数据的时候用的。</span></pre></div>
+<p>先说下处理行动前状态是用来做什么的，这段逻辑用用来处理某些特殊 buffer 的。buffer 是用状态机实现的，英雄身上会挂着一堆状态，状态有回合数限制的。比如英雄身上有个持续两回合的状态，两回合到了就要把这个状态删掉。这个删状态的触发逻辑就在 <code>process_round_status</code> 里实现。</p>
+<p>接下来主要实现上面的出手逻辑，执行技能操作区1 -&gt; 执行技能操作区2 ...</p>
+<p>技能操作区的划分就是按照技能目标的不同来区分，比如上面的例子：“对随机2名敌方单位造成90%伤害，并给自身增加15%的伤害”，操作区1就是 <code>对随机2名敌方单位造成90%伤害</code>， 操作区2就是 <code>给自身增加15%的伤害</code> 。</p>
+<p>这样，一个技能的行动逻辑就主要是实现一个技能的操作区的逻辑了，递归或者循环处理完所有的操作区就行了。下面就以操作区1为例子讲下如何配 Excel 表。</p>
+<p>技能配表可以这样配，先是配选目标</p>
+<table role="table">
+<thead>
+<tr>
+<th>技能ID</th>
+<th>目标选择范围</th>
+<th>目标排序方法</th>
+<th>目标选择基础数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JN101</td>
+<td>敌方</td>
+<td>血量最低</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>上面这样配的是操作区1的目标选择参数，目标选择范围可以是我方，敌方，全员，上操作区的目标等等其他能想到的目标。目标排序方法就是来配置是选血量低的还是其他属性低或者高的。选择数量这里直接配的数字，也可以配成函数，就能支持技能等级的不同设置不同的目标数量了。</p>
+<p>选完目标后，就是命中率和操作区的处理过程了，处理过程要配置成函数的，可以这样配：</p>
+<table role="table">
+<thead>
+<tr>
+<th>命中率公式</th>
+<th>附加状态</th>
+<th>状态回合数</th>
+<th>处理过程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>500</td>
+<td>att</td>
+<td>1</td>
+<td>扣除气血=伤害值*1/3</td>
+</tr>
+</tbody>
+</table>
+<p>命中率可以配成函数，结果大于等于 1000 就是100% 命中， 500 就是 50% 的命中率。</p>
+<p>附加状态就是这个状态就是给目标挂的一个状态，状态回合数就是状态的生存时间。</p>
+<p>处理过程就是要执行的行动逻辑，比如这里配的扣除气血为伤害值的三分之一。</p>
+<p>下面还需要一个配置表来配置状态和状态的触发时机，状态的触发时机是战斗逻辑的关键，先这样配状态表：</p>
+<table role="table">
+<thead>
+<tr>
+<th>状态ID</th>
+<th>状态名</th>
+<th>触发时机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>att</td>
+<td>攻击</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>die</td>
+<td>死亡</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>miankong_up</td>
+<td>增加免控</td>
+<td>SUBHP_ATTACK</td>
+</tr>
+</tbody>
+</table>
+<p>触发时机一般有这几种，扣血时，被扣血时，死亡时等等。</p>
+<p>总体来看，一个回合的战斗过程就是，释放技能，给目标加上某些状态，并执行处理过程改变某些属性，再在某些时机执行状态的效果。</p>
+<p>上面配置 Excel 的过程中，支持直接配置中文的表达式，这里的导表工具是 Python 写的，表头是这样定义的 <code>op3_att(xfun)(f_id,atk,target,status,damage)(技能变量)</code></p>
+<p>这个表示第三个操作区的处理过程，类型是 <code>xfun</code> 支持中文的函数，<code>f_id,atk,target,status,damage</code> 是函数的参数， <code>(技能变量)</code> 是用来替换中文的 Sheet。技能变量表大概是这样的：</p>
+<table role="table">
+<thead>
+<tr>
+<th>策划用名（不用翻译）</th>
+<th>程序变量获取</th>
+<th>程序变量设置</th>
+<th>变量名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id(str)</td>
+<td>get(str)</td>
+<td>set(str)</td>
+<td>var(str)</td>
+</tr>
+<tr>
+<td>A气血</td>
+<td>fightd.get_attr_v(f_id, atk, 'hp')</td>
+<td>fightd.set_attr_tmp_v(f_id, atk, status, 'hp', $value)</td>
+<td>a_hp</td>
+</tr>
+</tbody>
+</table>
+<p>解析表达式就是先用<code>=</code>切割表达式，有等号就是替换成 <code>set</code> 操作。比如 <code>A气血=100</code> 转成代码就是 <code>fightd.set_attr_tmp_v(f_id, atk, status, 'hp', 100)</code></p>
+<p>还可以用分号 <code>;</code> 来切割支持多个表达式。具体如何实现就不贴代码了。</p>
+<p>其实画点图可能更有助于理解，后续再补充吧。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/45#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

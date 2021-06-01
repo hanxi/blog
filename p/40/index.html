@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">Deepin 安装和使用 anbox</div>
+            <div id="content" class="markdown-body">
+                <h2>1. 安装 anbox</h2>
+<div class="highlight highlight-source-shell"><pre>sudo add-apt-repository ppa:morphis/anbox-support
+sudo apt update
+sudo apt install anbox-modules-dkms
+sudo modprobe ashmem_linux
+sudo modprobe binder_linux
+sudo snap install --edge --devmode anbox</pre></div>
+<h3>问题1: 遇到添加 ppa 失败</h3>
+<pre><code>Error: could not find a distribution template for Deepin/stable
+</code></pre>
+<blockquote>
+<p>参考这里的解决方法 <a href="https://unix.stackexchange.com/questions/520715/deepin-15-10-error-could-not-find-a-distribution-template-for-deepin-stable" rel="nofollow">https://unix.stackexchange.com/questions/520715/deepin-15-10-error-could-not-find-a-distribution-template-for-deepin-stable</a></p>
+</blockquote>
+<div class="highlight highlight-source-shell"><pre>sudo vim /usr/share/python-apt/templates/Deepin.info</pre></div>
+<p>修改这个</p>
+<pre><code>Suite: unstable
+</code></pre>
+<p>为</p>
+<pre><code>Suite: stable
+</code></pre>
+<h3>问题2: sudo apt update 报错</h3>
+<pre><code>sudo vim /etc/apt/sources.list.d/morphis-ubuntu-anbox-support-eoan.list
+</code></pre>
+<p>修改这个</p>
+<pre><code>deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu eoan main
+</code></pre>
+<p>为</p>
+<pre><code>deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu disco main
+</code></pre>
+<h3>问题3: sudo snap install --edge --devmode anbox 下载超级慢</h3>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> 开始设置代理</span>
+$ sudo systemctl edit snapd
+加上：
+[Service]
+Environment=<span class="pl-s"><span class="pl-pds">"</span>http_proxy=http://127.0.0.1:port<span class="pl-pds">"</span></span>
+Environment=<span class="pl-s"><span class="pl-pds">"</span>https_proxy=http://127.0.0.1:port<span class="pl-pds">"</span></span>
+
+<span class="pl-c"><span class="pl-c">#</span>保存退出。</span>
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart snapd</pre></div>
+<h2>2. 安装 arm 环境和 google play store</h2>
+<blockquote>
+<p>下载这里的脚本 <a href="https://github.com/geeks-r-us/anbox-playstore-installer">https://github.com/geeks-r-us/anbox-playstore-installer</a></p>
+</blockquote>
+<div class="highlight highlight-source-shell"><pre>sudo bash install-houdini-only.sh 
+sudo bash install-playstore.sh</pre></div>
+<h3>问题4: 上不了 google? 如何配置代理呢？</h3>
+<blockquote>
+<p>解决方法来自这里 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="247914225" data-permission-text="Title is private" data-url="https://github.com/anbox/anbox/issues/398" data-hovercard-type="issue" data-hovercard-url="/anbox/anbox/issues/398/hovercard" href="https://github.com/anbox/anbox/issues/398">anbox/anbox#398</a></p>
+</blockquote>
+<div class="highlight highlight-source-shell"><pre>adb shell settings put global http_proxy 192.168.2.2:8080</pre></div>
+<p>自测目前可以正常使用 GooglePlay Store 里的微信。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/40#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

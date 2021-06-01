@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">JS ArrayBuff to Base64 and Python Base64 to Binary</div>
+            <div id="content" class="markdown-body">
+                <h3>JS ArrayBuff to Base64</h3>
+<div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">_arrayBufferToBase64</span><span class="pl-kos">(</span> <span class="pl-s1">buffer</span> <span class="pl-kos">)</span> <span class="pl-kos">{</span>
+    <span class="pl-k">var</span> <span class="pl-s1">binary</span> <span class="pl-c1">=</span> <span class="pl-s">''</span><span class="pl-kos">;</span>
+    <span class="pl-k">var</span> <span class="pl-s1">bytes</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">Uint8Array</span><span class="pl-kos">(</span> <span class="pl-s1">buffer</span> <span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-k">var</span> <span class="pl-s1">len</span> <span class="pl-c1">=</span> <span class="pl-s1">bytes</span><span class="pl-kos">.</span><span class="pl-c1">byteLength</span><span class="pl-kos">;</span>
+    <span class="pl-k">for</span> <span class="pl-kos">(</span><span class="pl-k">var</span> <span class="pl-s1">i</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span><span class="pl-kos">;</span> <span class="pl-s1">i</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">len</span><span class="pl-kos">;</span> <span class="pl-s1">i</span><span class="pl-c1">++</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-s1">binary</span> <span class="pl-c1">+=</span> <span class="pl-v">String</span><span class="pl-kos">.</span><span class="pl-en">fromCharCode</span><span class="pl-kos">(</span> <span class="pl-s1">bytes</span><span class="pl-kos">[</span> <span class="pl-s1">i</span> <span class="pl-kos">]</span> <span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+    <span class="pl-k">return</span> <span class="pl-smi">window</span><span class="pl-kos">.</span><span class="pl-en">btoa</span><span class="pl-kos">(</span> <span class="pl-s1">binary</span> <span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span>
+
+<span class="pl-c">// 读取文件并把文件内容转为 base64 格式</span>
+
+        <span class="pl-k">var</span> <span class="pl-s1">reader</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">FileReader</span><span class="pl-kos">(</span><span class="pl-kos">)</span>
+        <span class="pl-s1">reader</span><span class="pl-kos">.</span><span class="pl-c1">onload</span> <span class="pl-c1">=</span> <span class="pl-kos">(</span><span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">theFile</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-k">return</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+                <span class="pl-k">var</span> <span class="pl-s1">name</span> <span class="pl-c1">=</span> <span class="pl-s1">theFile</span><span class="pl-kos">.</span><span class="pl-c1">name</span>
+                <span class="pl-k">var</span> <span class="pl-s1">arrayBuffer</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">Int8Array</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">.</span><span class="pl-c1">target</span><span class="pl-kos">.</span><span class="pl-c1">result</span><span class="pl-kos">)</span>
+                <span class="pl-k">var</span> <span class="pl-s1">content</span> <span class="pl-c1">=</span> <span class="pl-en">_arrayBufferToBase64</span><span class="pl-kos">(</span><span class="pl-s1">arrayBuffer</span><span class="pl-kos">)</span>
+                <span class="pl-en">upload_parse_send</span><span class="pl-kos">(</span><span class="pl-s1">name</span><span class="pl-kos">,</span> <span class="pl-s1">content</span><span class="pl-kos">)</span>
+            <span class="pl-kos">}</span>
+        <span class="pl-kos">}</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-s1">file</span><span class="pl-kos">)</span>
+        <span class="pl-s1">reader</span><span class="pl-kos">.</span><span class="pl-en">readAsArrayBuffer</span><span class="pl-kos">(</span><span class="pl-s1">file</span><span class="pl-kos">)</span>
+ </pre></div>
+<h3>Python Base64 to Binary</h3>
+<div class="highlight highlight-source-python"><pre>    <span class="pl-k">import</span> <span class="pl-s1">base64</span>
+    <span class="pl-k">with</span> <span class="pl-en">open</span>(<span class="pl-s1">fpath</span>, <span class="pl-s">'wb'</span>) <span class="pl-k">as</span> <span class="pl-s1">f</span>: 
+        <span class="pl-s1">bin_data</span> <span class="pl-c1">=</span> <span class="pl-s1">base64</span>.<span class="pl-en">b64decode</span>(<span class="pl-s1">fcontent</span>)
+        <span class="pl-s1">f</span>.<span class="pl-en">write</span>(<span class="pl-s1">bin_data</span>)</pre></div>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/31#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

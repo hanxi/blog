@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">给我的斐讯 K2 编译了个 padavan</div>
+            <div id="content" class="markdown-body">
+                <p>之前都是刷的别人编译的路由器固件，除了padavan ， 还试过 PandoraBox，Openwrt/LEDE 等其他 K2 能刷的固件。PandoraBox 已停止更新，LEDE用了一个月后 2.4G 网络基本废掉了。其他像高恪，不死鸟固件，刷了试试觉得不好用就立马删了。回想起以前刷的 padavan 除了功能少，但是很稳定，最终还是选择了 padavan。</p>
+<p>选择现成的 padavan 包觉得有的精简包确实 curl 和 openssl，选择功能多的包又担心不稳定，我需要 curl 和 openssl 的原因是因为要用 aliyun 的域名解析来实现 ddns。然后我就决定自己用源码编译一个，结果在网上找到<a href="https://bitbucket.org/padavan/rt-n56u/wiki/EN/HowToMakeFirmware" rel="nofollow">编译教程</a>，很简单的就编译出一个包了。</p>
+<p>今天尝试了用 dnspod 的 ddns 失败了（为啥选择 dnspod？ 因为 api 不需要 openssl），github 上找的 shell 脚本都有问题，大多是需要 bash，而我的固件只有 ash。最后还是用回了我的 <a href="https://github.com/hanxi/aliddns">aliddns</a>。</p>
+<p>汉化使用的是 <a href="https://github.com/livepu/padavan">livepu/padavan</a>，第一次源码用的是 <a href="https://bitbucket.org/padavan/rt-n56u" rel="nofollow">padavan/rt-n56u</a>。后面在恩山找了个对 K2 做了优化的，源码是 <a href="https://bitbucket.org/stevengan/padavan" rel="nofollow">stevengan/padavan</a>。</p>
+<p>最后发现编译出来的包没有 curl。但是有 openssl。为了能够编译出 curl，也在网上找了一些资料，自己也查看 Makefile 发现了其中的原理。编译出 openssl 的开关配置在 .config 文件，然后找到 libs/Makefile 文件，在里面看到配置是否编译 openssl 的。那如何配置编译出 curl 呢？</p>
+<ol>
+<li>在 .config 里新增配置</li>
+</ol>
+<pre><code>CONFIG_FIRMWARE_INCLUDE_CURL_EXE=y
+</code></pre>
+<ol start="2">
+<li>在 libs/Makefile 里新增配置</li>
+</ol>
+<pre><code>dir_$(CONFIG_FIRMWARE_INCLUDE_CURL_EXE)         += libcurl
+</code></pre>
+<ol start="3">
+<li>修改 libs/libcurl/Makefile 的配置</li>
+</ol>
+<pre><code>install:
+       $(MAKE) -C $(SRC_NAME) install DESTDIR="$(STAGEDIR)"
+
+romfs:
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_CURL_EXE),y)
+       $(ROMFSINST) $(SRC_NAME)/src/curl /usr/bin/curl
+endif
+</code></pre>
+<hr>
+<p>发现这个固件的 ssh 端口转发功能没开放，抽空建议一个自己的仓库，再把这段代码合并一下 <a href="https://bitbucket.org/remittor/rt-n56u/commits/3481dab7dc8c714e70cbaf659ade7b79ecf0ea13" rel="nofollow">https://bitbucket.org/remittor/rt-n56u/commits/3481dab7dc8c714e70cbaf659ade7b79ecf0ea13</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/15#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

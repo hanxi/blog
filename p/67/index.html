@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】py+js实现markdown编辑器</div>
+            <div id="content" class="markdown-body">
+                <h3>借用现成工具</h3>
+<p><a href="http://daringfireball.net/projects/markdown/" rel="nofollow">Markdown</a> 是由 John Gruber 和 Aaron Swartz 共同创建的一种轻量级标记语言</p>
+<p><a href="http://yanghao.org/tools/markdown.html" rel="nofollow">showdown.js</a> 是一个 javascript 写的 markdown 渲染库</p>
+<p><a href="http://codemirror.net" rel="nofollow">codemirror</a>  是一款“Online Source Editor”，基于Javascript，短小精悍，实时在线代码高亮显示，他不是某个富文本编辑器的附属产品，他是许多大名鼎鼎的在线代码编辑器的基础库。</p>
+<p><a href="http://my.oschina.net/leejun2005/blog/71444" rel="nofollow">python接收上传文件</a> 解析http POST form</p>
+<h3>python 所做的事情</h3>
+<ul>
+<li>
+<p>httpd服务器，主要是用于接收ajax请求，做相应的处理，特别是上传图片</p>
+</li>
+<li>
+<p>tohtml.py 批量将md文件转成html，采用Markdown.pl</p>
+</li>
+</ul>
+<h3>js 所做的事情</h3>
+<ul>
+<li>
+<p>md编辑区使用codemirror</p>
+</li>
+<li>
+<p>ajax请求</p>
+</li>
+<li>
+<p>md实时预览使用showdown.js</p>
+</li>
+<li>
+<p>图片上传插件</p>
+</li>
+</ul>
+<h3>源码</h3>
+<ul>
+<li><a href="https://github.com/hanxi/markdown">https://github.com/hanxi/markdown</a></li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/67#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

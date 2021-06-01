@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">搭建自己的音乐库</div>
+            <div id="content" class="markdown-body">
+                <blockquote>
+<p>大家都知道现在音乐版权问题，想听几首歌还要下载各个音乐APP，所以就有下面这个办法。</p>
+</blockquote>
+<ol>
+<li>使用 <a href="https://jellyfin.org/" rel="nofollow">jellyfin </a> 搭建在线听歌平台</li>
+<li>使用 <a href="https://github.com/hanxi/AriaNg">AriaNg</a> 音乐搜索插件下载音乐</li>
+</ol>
+<p>jellyfin 和 AriaNg 都可以采用 Docker 安装。</p>
+<p>其中 AriaNg 用到了 <a href="https://jsososo.github.io/QQMusicApi/" rel="nofollow">QQMusicApi</a> 和 <a href="https://jsososo.github.io/MiguMusicApi/#/" rel="nofollow">MiguMusicApi</a> 作为后台接口，可以自己搭建后台或者直接配置反向代理这两个 Api 的测试地址。</p>
+<p>效果图</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/77658644-f051ab00-6fb1-11ea-80b7-e20653886e4f.png"><img src="https://user-images.githubusercontent.com/1185757/77658644-f051ab00-6fb1-11ea-80b7-e20653886e4f.png" alt="深度截图_选择区域_20200326223413" style="max-width:100%;"></a></p>
+<p>jellyfin 作为音乐播放器有一段时间了，用起来也不错，我的 docker-compose 配置如下，主要是把开放端口和挂载目录。</p>
+<div class="highlight highlight-source-yaml"><pre><span class="pl-ent">version</span>: <span class="pl-s"><span class="pl-pds">'</span>2<span class="pl-pds">'</span></span>
+
+<span class="pl-ent">services</span>:
+    <span class="pl-ent">jellyfin</span>:
+        <span class="pl-ent">image</span>: <span class="pl-s">jellyfin/jellyfin</span>
+        <span class="pl-ent">restart</span>: <span class="pl-s">always</span>
+        <span class="pl-ent">container_name</span>: <span class="pl-s">jellyfin</span>
+        <span class="pl-ent">network_mode</span>: <span class="pl-s">bridge</span>
+        <span class="pl-ent">ports</span>:
+            - <span class="pl-s"><span class="pl-pds">"</span>8096:8096<span class="pl-pds">"</span></span>
+            - <span class="pl-s"><span class="pl-pds">"</span>8920:8920<span class="pl-pds">"</span></span>
+        <span class="pl-ent">volumes</span>:
+            - <span class="pl-s">./conf/jellyfin/config:/config</span>
+            - <span class="pl-s">./conf/jellyfin/cache:/cache</span>
+            - <span class="pl-s">./data/files/music:/music</span>
+            - <span class="pl-s">./data/files/download:/media</span></pre></div>
+<p>开个 caddy 反向代理接口（如果用Nginx可以自行网上搜教程如何反代）， Caddyfile 如下：</p>
+<pre><code>{$DOMAIN}/qq {
+  log stdout
+  proxy / https://api.qq.jsososo.com {
+    header_downstream Access-Control-Allow-Origin "*"
+  }
+}
+
+{$DOMAIN}/migu {
+  log stdout
+  proxy / http://api.migu.jsososo.com {
+    header_downstream Access-Control-Allow-Origin "*"
+  }
+}
+</code></pre>
+<p>aria2 可以参考这个 <a href="https://github.com/hanxi/aria2-ariang-docker">https://github.com/hanxi/aria2-ariang-docker</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/47#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

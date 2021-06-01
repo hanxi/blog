@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">域名的作用</div>
+            <div id="content" class="markdown-body">
+                <h2>域名 + github</h2>
+<ul>
+<li>在一年前我就尝试了使用jekyll来创建个人博客，但jekyll实在是太笨重了。现在已经放弃使用jekyll了，以前的文章还存在<a href="http://www.hanxi.info/archive.html" rel="nofollow">http://www.hanxi.info/archive.html</a></li>
+<li>今天尝试着用github的issues来写博客，并且使用<a href="https://github.com/tankywoo">@tankywoo</a>开发的<a href="http://simiki.org/" rel="nofollow">simiki</a>来写Wiki。</li>
+<li>下文中的<code>usename</code>是指github的用户名</li>
+<li>如何设置个人主页？
+<ul>
+<li>使用github创建一个名为<code>username.github.com</code>的repository</li>
+<li>在<code>Settings-&gt;Update your site</code>里面点击按钮<code>Automatic page generator</code></li>
+<li>然后用<a href="https://help.github.com/articles/github-flavored-markdown/">markdown语法</a>写主页，写完后可以选择主题</li>
+<li>如果自动生成的index.html不喜欢可以自己手动修改index.html</li>
+<li>现在可以使用<code>username.github.io</code>访问刚才创建的index.html了</li>
+<li>在项目中添加CNAME文件，CNAME填自己的域名，比如我的是<code>www.hanxi.info</code></li>
+</ul>
+</li>
+<li>如何设置域名指向个人主页？
+<ul>
+<li>我用的是godaddy的域名，域名为<code>hanxi.info</code></li>
+<li>登录godaddy，进入<code>Home-&gt;Zone File Editor</code>，在CNAME(Alias)中添加一条记录，Host填www（对应于CNAME文件中的www），Points to填<code>username.github.com</code></li>
+<li>现在就可以使用自己的域名访问自己的主页了。</li>
+</ul>
+</li>
+<li>今天使用<a href="http://simiki.org/" rel="nofollow">simiki</a>才发现，只要有自己的域名，可以建立多个站点。比如我还用github建了<a href="http://wiki.hanxi.info" rel="nofollow">mywiki</a>和<a href="http://blog.hanxi.info" rel="nofollow">myblog</a></li>
+<li>参照github的<a href="https://help.github.com/articles/user-organization-and-project-pages/">官方教程</a>可以设置</li>
+<li>home-page使用master分之的CNAME和index.html</li>
+<li>project-pages使用gh-pages分之的CNAME和index.html</li>
+<li>project-pages设置方法和设置个人主页类似</li>
+<li>如何设置CNAME？见<a href="https://help.github.com/articles/adding-a-cname-file-to-your-repository/">Adding a CNAME file to your repository</a></li>
+<li>如何使用github的issues写博客？
+<ul>
+<li>我的新blog是使用github的issues来写的，但是域名只能指向项目的index.html</li>
+<li>所以想到了使用页面跳转来把blog.hanxi.info跳转到blog项目的issues界面</li>
+<li>blog项目的index.html内容见<a href="https://github.com/hanxi/blog/blob/gh-pages/index.html">https://github.com/hanxi/blog/blob/gh-pages/index.html</a></li>
+</ul>
+</li>
+</ul>
+<h2>域名 + QQ邮箱</h2>
+<ul>
+<li>今天才知道域名有这个功能，用自己的域名做邮箱名字</li>
+<li>我是照着别人的教程弄的，很详细，几分钟就搞定了</li>
+<li>教程网址<a href="http://www.cmhello.com/domain-mail-qq-com.html" rel="nofollow">domain-qqmail</a>, 担心网页打不开，我做了个快照放在评论区。</li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/1#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

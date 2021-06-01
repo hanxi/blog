@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">Bash 脚本杂项</div>
+            <div id="content" class="markdown-body">
+                <h2>读取配置文件</h2>
+<p>比如配置文件是这样的：</p>
+<pre><code>token=abcd
+enckey=xyz
+</code></pre>
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">function</span> <span class="pl-en">get_config()</span> {
+    <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">$(</span>awk -F <span class="pl-s"><span class="pl-pds">"</span>=<span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">'</span>/^<span class="pl-pds">'</span></span><span class="pl-smi">$1</span><span class="pl-s"><span class="pl-pds">'</span>/ {print $2}<span class="pl-pds">'</span></span> <span class="pl-smi">$config</span><span class="pl-pds">)</span></span>
+}
+
+token=<span class="pl-s"><span class="pl-pds">$(</span>get_config token<span class="pl-pds">)</span></span>
+enckey=<span class="pl-s"><span class="pl-pds">$(</span>get_config enckey<span class="pl-pds">)</span></span></pre></div>
+<h2>输出多行字符串</h2>
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">function</span> <span class="pl-en">usage()</span> {
+    cat <span class="pl-s"><span class="pl-k">&lt;&lt;</span> <span class="pl-k">EOF</span></span>
+<span class="pl-s">Usage: xclip [OPTION] [FILE]...</span>
+<span class="pl-s">Access an X server selection for reading or writing.</span>
+<span class="pl-s"></span>
+<span class="pl-s">  -i, -in          read text into X selection from standard input or files</span>
+<span class="pl-s">                   (default)</span>
+<span class="pl-s">  -o, -out         prints the selection to standard out (generally for</span>
+<span class="pl-s">                   piping to a file or program)</span>
+<span class="pl-s">  -l, -loops       number of selection requests to wait for before exiting</span>
+<span class="pl-s">  -d, -display     X display to connect to (eg localhost:0")</span>
+<span class="pl-s">  -h, -help        usage information</span>
+<span class="pl-s">      -selection   selection to access ("primary", "secondary", "clipboard" or "buffer-cut")</span>
+<span class="pl-s">      -noutf8      don't treat text as utf-8, use old unicode</span>
+<span class="pl-s">      -target      use the given target atom</span>
+<span class="pl-s">      -version     version information</span>
+<span class="pl-s">      -silent      errors only, run in background (default)</span>
+<span class="pl-s">      -quiet       run in foreground, show what's happening</span>
+<span class="pl-s">      -verbose     running commentary</span>
+<span class="pl-s"></span>
+<span class="pl-s">Report bugs to &lt;astrand@lysator.liu.se&gt;</span>
+<span class="pl-s"><span class="pl-k">EOF</span></span>
+    <span class="pl-c1">exit</span> 0
+}
+
+<span class="pl-c"><span class="pl-c">#</span># 输出多行字符串到文件</span>
+
+<span class="pl-s"><span class="pl-pds">`</span><span class="pl-pds">`</span><span class="pl-pds">`</span>bash</span>
+<span class="pl-s">cat <span class="pl-k">&gt;</span> <span class="pl-smi">$config</span> <span class="pl-s"><span class="pl-k">&lt;&lt;</span> <span class="pl-k">EOF</span></span></span>
+<span class="pl-s"><span class="pl-s">token=$1</span></span>
+<span class="pl-s"><span class="pl-s">enckey=$2</span></span>
+<span class="pl-s"><span class="pl-s"><span class="pl-k">EOF</span></span></span></pre></div>
+<h2>加密解密字符串</h2>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">echo</span> -e <span class="pl-s"><span class="pl-pds">"</span>Hello World<span class="pl-pds">"</span></span> <span class="pl-k">|</span> openssl enc -e -aes-256-cbc -k enckey <span class="pl-k">&gt;</span> enc.tmp
+cat enc.tmp <span class="pl-k">|</span> openssl enc -d -aes-256-cbc -k enckey</pre></div>
+<h2>读取命令行参数</h2>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> xxx.sh [-i file] [-o]</span>
+oclip_type=copy
+input_file=<span class="pl-s"><span class="pl-pds">'</span>-<span class="pl-pds">'</span></span>
+<span class="pl-k">while</span> <span class="pl-c1">getopts</span> <span class="pl-s"><span class="pl-pds">"</span>:i:o<span class="pl-pds">"</span></span> o<span class="pl-k">;</span> <span class="pl-k">do</span>
+    <span class="pl-k">case</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">${o}</span><span class="pl-pds">"</span></span> <span class="pl-k">in</span>
+        i)
+            input_file=<span class="pl-smi">${OPTARG}</span>
+            ;;
+        o)
+            oclip_type=paste
+            ;;
+        <span class="pl-k">*</span>)
+            usage
+            ;;
+    <span class="pl-k">esac</span>
+<span class="pl-k">done</span></pre></div>
+<h2>插入路径到 PATH 环境变量</h2>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span>insert ~/.local/bin into $PATH</span>
+old_path_len=<span class="pl-smi">${<span class="pl-k">#</span>PATH}</span>
+sub_path=<span class="pl-smi">${PATH<span class="pl-k">#</span><span class="pl-smi">$bin</span>}</span>
+new_path_len=<span class="pl-smi">${<span class="pl-k">#</span>sub_path}</span>
+<span class="pl-c"><span class="pl-c">#</span>echo $old_path_len</span>
+<span class="pl-c"><span class="pl-c">#</span>echo $new_path_len</span>
+<span class="pl-k">if</span> [ <span class="pl-smi">$old_path_len</span> <span class="pl-k">-eq</span> <span class="pl-smi">$new_path_len</span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
+    profile=<span class="pl-smi">$HOME</span>/.bashrc
+    touch <span class="pl-smi">$profile</span>
+    bin=<span class="pl-s"><span class="pl-pds">'</span>$HOME/.local/bin<span class="pl-pds">'</span></span>
+    sed -i <span class="pl-s"><span class="pl-pds">"</span>\:export PATH=<span class="pl-cce">\$</span>PATH\:<span class="pl-smi">$bin</span>:d<span class="pl-pds">"</span></span> <span class="pl-smi">$profile</span>
+    <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>export PATH=<span class="pl-cce">\$</span>PATH:<span class="pl-smi">$bin</span><span class="pl-pds">"</span></span> <span class="pl-k">&gt;&gt;</span> <span class="pl-smi">$profile</span>
+    <span class="pl-c1">.</span> <span class="pl-smi">$profile</span>
+<span class="pl-k">fi</span></pre></div>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/33#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">下载电子工业出版社开放出来的电子书</div>
+            <div id="content" class="markdown-body">
+                <p>下载 《电子工业出版社》 开放的 pdf 电子书</p>
+<p>用 chome dev tools 调试了下，找到 pdf 是用 AES 加密过的。主要是在这个文件里断点：</p>
+<p><a href="https://yd.51zhy.cn/ebook/reader/static/js/0.f4c9028886a7b391c0df.1574068669001.js" rel="nofollow">https://yd.51zhy.cn/ebook/reader/static/js/0.f4c9028886a7b391c0df.1574068669001.js</a></p>
+<p>搜索 <code>AES.decrypt</code> 跟踪到 pdf 解密流程是根据 <code>this.v.authorKey</code> 来解密的。如何计算 <code>this.v.authorKey</code> 呢？</p>
+<p>继续搜索 <code>authorKey </code>  找到</p>
+<div class="highlight highlight-source-js"><pre><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">authorKey</span> <span class="pl-c1">=</span> <span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-en">makeKey</span><span class="pl-kos">(</span><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">readData</span><span class="pl-kos">.</span><span class="pl-c1">devicekey</span><span class="pl-kos">,</span> <span class="pl-s1">e</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">)</span></pre></div>
+<p>断点调试得到 <code>devicekey</code> 为： <code>LQBhm1oQvo2pDGBO</code></p>
+<p><code>Data.Key</code> 为 <code>9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=</code></p>
+<p>查看 <code>makeKey</code> 的实现如下：</p>
+<div class="highlight highlight-source-js"><pre><span class="pl-s1">makeKey</span>: <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">,</span> <span class="pl-s1">t</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+    <span class="pl-s1">e</span> <span class="pl-c1">=</span> <span class="pl-s1">e</span><span class="pl-kos">;</span>
+    <span class="pl-k">var</span> <span class="pl-s1">n</span> <span class="pl-c1">=</span> <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">enc</span><span class="pl-kos">.</span><span class="pl-c1">Utf8</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-k">return</span> <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">AES</span><span class="pl-kos">.</span><span class="pl-en">decrypt</span><span class="pl-kos">(</span><span class="pl-s1">t</span><span class="pl-kos">,</span> <span class="pl-s1">n</span><span class="pl-kos">,</span> <span class="pl-kos">{</span>
+        <span class="pl-c1">mode</span>: <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">mode</span><span class="pl-kos">.</span><span class="pl-c1">ECB</span><span class="pl-kos">,</span>
+        <span class="pl-c1">padding</span>: <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">pad</span><span class="pl-kos">.</span><span class="pl-c1">Pkcs7</span>
+    <span class="pl-kos">}</span><span class="pl-kos">)</span>
+<span class="pl-kos">}</span><span class="pl-kos">,</span></pre></div>
+<p>用 openssl 命令就是这样的：</p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">'</span>9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=<span class="pl-pds">'</span></span> <span class="pl-k">|</span> openssl enc -d -aes-128-ecb -a -K 4c5142686d316f51766f32704447424f</pre></div>
+<p>其中 <code>4c5142686d316f51766f32704447424f</code> 是 <code>LQBhm1oQvo2pDGBO</code> 的 hex 形式。</p>
+<p>算出结果为 <code>DzglNMjfYapT9XGy</code>, 再算出对应的 hex 为 <code>447a676c4e4d6a665961705439584779</code></p>
+<p>然后再从 chrome dev tools 的 network 里找到 pdf 的下载链接，右键拷贝出 curl 命令，然后把页码换成下面的变量 <code>$i</code>，批量下载。最后用 pdf 工具合并搞定，合并工具我选的 <a href="http://community.coherentpdf.com/" rel="nofollow">cpdf</a>。</p>
+<div class="highlight highlight-source-shell"><pre>for<span class="pl-s"><span class="pl-pds">((</span>i<span class="pl-k">=</span><span class="pl-c1">1</span>;i<span class="pl-k">&lt;=</span><span class="pl-c1">432</span>;i<span class="pl-k">++</span><span class="pl-pds">))</span></span><span class="pl-k">;</span><span class="pl-k">do</span>
+    <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$i</span><span class="pl-pds">"</span></span>.pdf
+
+    <span class="pl-c"><span class="pl-c">#</span> 下载 pdf</span>
+    curl <span class="pl-s"><span class="pl-pds">"</span>https://file.51zhy.cn/files/encryptfiles/b2a/....../<span class="pl-pds">"</span></span><span class="pl-smi">$i</span><span class="pl-s"><span class="pl-pds">"</span>.pdf ... -o <span class="pl-pds">"</span></span><span class="pl-smi">$i</span><span class="pl-s"><span class="pl-pds">"</span>.pdf.aes</span>
+<span class="pl-s"></span>
+<span class="pl-s">    # 解密 pdf</span>
+<span class="pl-s">    openssl enc -d -aes-128-ecb -K 447a676c4e4d6a665961705439584779 -in <span class="pl-pds">"</span></span><span class="pl-smi">$i</span><span class="pl-s"><span class="pl-pds">"</span>.pdf.aes -out <span class="pl-pds">"</span></span><span class="pl-smi">$i</span><span class="pl-s"><span class="pl-pds">"</span>.pdf</span>
+<span class="pl-s"></span>
+<span class="pl-s">done</span>
+<span class="pl-s"></span>
+<span class="pl-s"># 合并 pdf</span>
+<span class="pl-s">cpdf *.pdf -o ../out.pdf</span></pre></div>
+<p>上面的方法仅用于学习目的，强烈建议不要用来做爬虫。</p>
+<p>20200206更新：<br>
+上面走了点弯路，用下面的 tampermonkey 脚本方法更方便。</p>
+<div class="highlight highlight-source-js"><pre><span class="pl-c">// ==UserScript==</span>
+<span class="pl-c">// <span class="pl-k">@name</span>         bridge.51zhy.cn</span>
+<span class="pl-c">// <span class="pl-k">@namespace</span>    http://tampermonkey.net/</span>
+<span class="pl-c">// <span class="pl-k">@version</span>      0.1</span>
+<span class="pl-c">// <span class="pl-k">@grant</span>    GM_xmlhttpRequest</span>
+<span class="pl-c">// <span class="pl-k">@description</span>  try to take over the world!</span>
+<span class="pl-c">// <span class="pl-k">@author</span>       You</span>
+<span class="pl-c">// <span class="pl-k">@match</span>        yd.51zhy.cn/*</span>
+<span class="pl-c">// <span class="pl-k">@grant</span>    GM_setClipboard</span>
+<span class="pl-c">// ==/UserScript==</span>
+
+<span class="pl-k">let</span> <span class="pl-s1">allText</span> <span class="pl-c1">=</span> <span class="pl-kos">{</span><span class="pl-kos">}</span><span class="pl-kos">;</span>
+
+<span class="pl-kos">(</span><span class="pl-k">function</span> <span class="pl-kos">(</span><span class="pl-s1">open</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+    <span class="pl-v">XMLHttpRequest</span><span class="pl-kos">.</span><span class="pl-c1">prototype</span><span class="pl-kos">.</span><span class="pl-en">open</span> <span class="pl-c1">=</span> <span class="pl-k">function</span> <span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-smi">arguments</span><span class="pl-kos">[</span><span class="pl-c1">1</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-en">includes</span><span class="pl-kos">(</span><span class="pl-s">"/content/authorize"</span><span class="pl-kos">)</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-smi">this</span><span class="pl-kos">.</span><span class="pl-en">addEventListener</span><span class="pl-kos">(</span><span class="pl-s">"load"</span><span class="pl-kos">,</span> <span class="pl-k">function</span> <span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+                <span class="pl-k">let</span> <span class="pl-s1">responseOBJ</span> <span class="pl-c1">=</span> <span class="pl-c1">JSON</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-smi">this</span><span class="pl-kos">.</span><span class="pl-c1">responseText</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Key</span> <span class="pl-c1">=</span> <span class="pl-s1">responseOBJ</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">;</span>
+                <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Url</span> <span class="pl-c1">=</span> <span class="pl-s1">responseOBJ</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Url</span><span class="pl-kos">;</span>
+                <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">deviceKey</span> <span class="pl-c1">=</span> <span class="pl-s1">localStorage</span><span class="pl-kos">.</span><span class="pl-c1">deviceKey</span><span class="pl-kos">;</span>
+                <span class="pl-k">let</span> <span class="pl-s1">keybase</span> <span class="pl-c1">=</span> <span class="pl-v">CryptoJS</span><span class="pl-kos">.</span><span class="pl-c1">enc</span><span class="pl-kos">.</span><span class="pl-c1">Utf8</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">deviceKey</span><span class="pl-kos">)</span>
+                <span class="pl-k">let</span> <span class="pl-s1">authorKey</span> <span class="pl-c1">=</span> <span class="pl-v">CryptoJS</span><span class="pl-kos">.</span><span class="pl-c1">AES</span><span class="pl-kos">.</span><span class="pl-en">decrypt</span><span class="pl-kos">(</span><span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">,</span> <span class="pl-s1">keybase</span><span class="pl-kos">,</span> <span class="pl-kos">{</span>
+                    <span class="pl-c1">mode</span>: <span class="pl-v">CryptoJS</span><span class="pl-kos">.</span><span class="pl-c1">mode</span><span class="pl-kos">.</span><span class="pl-c1">ECB</span><span class="pl-kos">,</span>
+                    <span class="pl-c1">padding</span>: <span class="pl-v">CryptoJS</span><span class="pl-kos">.</span><span class="pl-c1">pad</span><span class="pl-kos">.</span><span class="pl-c1">Pkcs7</span>
+                <span class="pl-kos">}</span><span class="pl-kos">)</span><span class="pl-kos">.</span><span class="pl-en">toString</span><span class="pl-kos">(</span><span class="pl-v">CryptoJS</span><span class="pl-kos">.</span><span class="pl-c1">enc</span><span class="pl-kos">.</span><span class="pl-c1">Hex</span><span class="pl-kos">)</span>
+                <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">authorKey</span> <span class="pl-c1">=</span> <span class="pl-s1">authorKey</span><span class="pl-kos">;</span>
+                <span class="pl-k">delete</span> <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">;</span>
+                <span class="pl-k">delete</span> <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">deviceKey</span><span class="pl-kos">;</span>
+                <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-s1">allText</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-k">let</span> <span class="pl-s1">ret</span> <span class="pl-c1">=</span> <span class="pl-s">"authorKey='"</span><span class="pl-c1">+</span><span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">authorKey</span><span class="pl-c1">+</span><span class="pl-s">"'\n"</span>
+                  <span class="pl-c1">+</span> <span class="pl-s">"url='"</span><span class="pl-c1">+</span><span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Url</span><span class="pl-c1">+</span><span class="pl-s">"'\n"</span>
+                  <span class="pl-c1">+</span> <span class="pl-s">"isbn='"</span><span class="pl-c1">+</span><span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Isbn</span><span class="pl-c1">+</span><span class="pl-s">"'\n"</span>
+                  <span class="pl-c1">+</span> <span class="pl-s">"title='"</span><span class="pl-c1">+</span><span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Title</span><span class="pl-c1">+</span><span class="pl-s">"'\n"</span><span class="pl-kos">;</span>
+                <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-s1">ret</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-v">GM_setClipboard</span><span class="pl-kos">(</span><span class="pl-s1">ret</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-en">alert</span><span class="pl-kos">(</span><span class="pl-s">"Url copy to clipboard OK!"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+            <span class="pl-kos">}</span><span class="pl-kos">,</span> <span class="pl-c1">false</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span> <span class="pl-k">else</span> <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-smi">arguments</span><span class="pl-kos">[</span><span class="pl-c1">1</span><span class="pl-kos">]</span><span class="pl-kos">.</span><span class="pl-en">includes</span><span class="pl-kos">(</span><span class="pl-s">"Content/Detail"</span><span class="pl-kos">)</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-smi">this</span><span class="pl-kos">.</span><span class="pl-en">addEventListener</span><span class="pl-kos">(</span><span class="pl-s">"load"</span><span class="pl-kos">,</span> <span class="pl-k">function</span> <span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+                <span class="pl-k">let</span> <span class="pl-s1">responseOBJ</span> <span class="pl-c1">=</span> <span class="pl-c1">JSON</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-smi">this</span><span class="pl-kos">.</span><span class="pl-c1">responseText</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+                <span class="pl-s1">allText</span> <span class="pl-c1">=</span> <span class="pl-kos">{</span><span class="pl-kos">}</span><span class="pl-kos">;</span>
+                <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Isbn</span> <span class="pl-c1">=</span> <span class="pl-s1">responseOBJ</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">ExtendData</span><span class="pl-kos">.</span><span class="pl-c1">Isbn</span><span class="pl-kos">;</span>
+                <span class="pl-s1">allText</span><span class="pl-kos">.</span><span class="pl-c1">Title</span> <span class="pl-c1">=</span> <span class="pl-s1">responseOBJ</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Title</span><span class="pl-kos">;</span>
+            <span class="pl-kos">}</span><span class="pl-kos">,</span> <span class="pl-c1">false</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+        <span class="pl-s1">open</span><span class="pl-kos">.</span><span class="pl-en">apply</span><span class="pl-kos">(</span><span class="pl-smi">this</span><span class="pl-kos">,</span> <span class="pl-smi">arguments</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-v">XMLHttpRequest</span><span class="pl-kos">.</span><span class="pl-c1">prototype</span><span class="pl-kos">.</span><span class="pl-c1">open</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>然后粘贴到脚本下载和解密</p>
+<div class="highlight highlight-source-shell"><pre>authorKey=<span class="pl-s"><span class="pl-pds">'</span>594c4528626731776a79304867436243<span class="pl-pds">'</span></span>
+url=<span class="pl-s"><span class="pl-pds">'</span>https://file.51zhy.cn/files/encryptfiles/59c/40181f28a7f5e76f2974cdb747fec68598844e26.pdf<span class="pl-pds">'</span></span>
+isbn=<span class="pl-s"><span class="pl-pds">'</span>978-7-121-27637-8<span class="pl-pds">'</span></span>
+title=<span class="pl-s"><span class="pl-pds">'</span>游戏中的数学<span class="pl-pds">'</span></span>
+
+curl <span class="pl-smi">$url</span> --compressed -o <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$title</span><span class="pl-pds">"</span></span>.pdf.aes
+openssl enc -d -aes-128-ecb -K <span class="pl-smi">$authorKey</span> -in <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$title</span><span class="pl-pds">"</span></span>.pdf.aes -out <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$title</span><span class="pl-pds">"</span></span>.pdf</pre></div>
+<p>202002061714 更新：<br>
+这东西见光就死了，现在 js 代码里的字符串被转正 hex 格式了，解密算法应该也修改了，断点调试还是一样的，只是搜索字符串麻烦了点，需要先转成字符串看看要搜的东西是啥，比如下面这个脚本是将 hex 转成字符串的：</p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> tostr.sh</span>
+TESTDATA=<span class="pl-s"><span class="pl-pds">$(</span>echo <span class="pl-smi">$1</span> <span class="pl-k">|</span> tr <span class="pl-s"><span class="pl-pds">'</span>\\x<span class="pl-pds">'</span></span> <span class="pl-s"><span class="pl-pds">'</span>0x <span class="pl-pds">'</span></span><span class="pl-pds">)</span></span>
+<span class="pl-c1">echo</span> <span class="pl-smi">$TESTDATA</span>
+<span class="pl-k">for</span> <span class="pl-smi">c</span> <span class="pl-k">in</span> <span class="pl-smi">$TESTDATA</span><span class="pl-k">;</span> <span class="pl-k">do</span>
+    <span class="pl-c1">echo</span> <span class="pl-smi">$c</span> <span class="pl-k">|</span> xxd -r
+<span class="pl-k">done</span></pre></div>
+<pre><code>sh tostr.sh '\x6d\x6f\x64\x65'
+</code></pre>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/44#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

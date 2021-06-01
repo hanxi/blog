@@ -1,0 +1,218 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">GitLab CI 应用</div>
+            <div id="content" class="markdown-body">
+                <h2>GitLab CI 是什么</h2>
+<ul>
+<li>CI - 持续集成 (Continuous Integration)</li>
+<li>DevOps 工具</li>
+<li>用通俗的话讲，就是帮我们自动做事情的工具</li>
+</ul>
+<blockquote>
+<p>持续整合，又译为持续集成，是一种软件工程流程，是将所有软件工程师对于软件的工作副本持续集成到共享主线的一种举措。该名称最早由葛来迪·布区在他的布区方法中提出，在测试驱动开发的作法中，通常还会搭配自动单元测试。持续集成的提出主要是为解决软件进行系统集成时面临的各项问题，极限编程称这些问题为集成地狱。</p>
+</blockquote>
+<blockquote>
+<p>DevOps（Development 和 Operations 的组合词）是一种重视“软件开发人员（Dev）”和“IT 运维技术人员（Ops）”之间沟通合作的文化、运动或惯例。透过自动化“软件交付”和“架构变更”的流程，来使得构建、测试、发布软件能够更加地快捷、频繁和可靠。</p>
+</blockquote>
+<p>类似产品：</p>
+<ul>
+<li>Jenkins</li>
+<li>Travis CI</li>
+<li>GitHub Actions</li>
+</ul>
+<blockquote>
+<p>Jenkins 大家都很熟悉，维基百科这样介绍的：<br>
+Jenkins 是一款由 Java 编写的开源的持续集成工具。在与 Oracle 发生争执后，项目从 Hudson 项目复刻。 Jenkins 提供了软件开发的持续集成服务。它运行在 Servlet 容器中。</p>
+</blockquote>
+<blockquote>
+<p>在 GitHub Actions 出来之前，Travis CI 是 GitHub 上最火的持续集成服务。<br>
+Travis CI 是在软件开发领域中的一个在线的，分布式的持续集成服务，用来构建及测试在 GitHub 托管的代码。这个软件的代码同时也是开源的，可以在 GitHub 上下载到，尽管开发者当前并不推荐在闭源项目中单独使用它。</p>
+</blockquote>
+<blockquote>
+<p>GitHub Actions 旨在帮助您建立强大而动态的自动化。 本指南说明如何创建包括环境变量、定制化脚本等的 GitHub Actions 工作流程。</p>
+</blockquote>
+<h2>GitLab CI 能干什么？</h2>
+<p>比如这些事情:</p>
+<ul>
+<li>每次提交完代码后，执行代码检查</li>
+<li>每天定时打出一个包</li>
+<li>点个按钮触发打包</li>
+</ul>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabcicd%E6%B5%81%E7%A8%8B.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabcicd%E6%B5%81%E7%A8%8B.png" alt="gitlabcicd流程.png" style="max-width:100%;"></a></p>
+<p>功能限制：</p>
+<p>目前我们用的版本为 11.6.3 ，还不支持在 pipeline 时输入参数，版本 13.7 已经支持在网页里输入相关参数再执行流程。</p>
+<p>因为我们打 patch 是需要输入版本号的，所以打 patch 现在是手动在命令行里运行脚本的。</p>
+<h2>GitLab Runner 安装</h2>
+<p>GitLab Runner 安装是用来执行 CI 脚本的载体，至少需要安装一个 Runner 来执行 CI 脚本。</p>
+<p>GitLab Runner 支持多种运行模式，我们项目选用的运行模式是基于 Docker 容器，架构图如下：</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E8%BF%90%E8%A1%8C%E6%9E%B6%E6%9E%84.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E8%BF%90%E8%A1%8C%E6%9E%B6%E6%9E%84.png" alt="gitlabci运行架构" style="max-width:100%;"></a></p>
+<h3>1. 安装 gitlab-runner</h3>
+<p>采用 Docker 的方式安装 gitlab-runner ，并且采用 Docker 的方式运行 Runner 。</p>
+<p>GitLab 官方给出的 Docker 方式安装 gitlab-runner 文档路径： <a href="https://docs.gitlab.com/runner/install/docker.html" rel="nofollow">https://docs.gitlab.com/runner/install/docker.html</a></p>
+<p>熟悉 docker-compose 的话，用 docker-compose 启动 gitlab-runner 更方便。</p>
+<p>docker-compose 文件路径在服务器代码目录： <code>tools/gitlab-runner/docker-compose.yml</code></p>
+<div class="highlight highlight-source-yaml"><pre><span class="pl-ent">gitlab-runner</span>:
+  <span class="pl-ent">container_name</span>: <span class="pl-s">gitlab-runner</span>
+  <span class="pl-ent">image</span>: <span class="pl-s"><span class="pl-pds">"</span>gitlab/gitlab-runner:latest<span class="pl-pds">"</span></span>
+  <span class="pl-ent">restart</span>: <span class="pl-s">always</span>
+  <span class="pl-ent">volumes</span>:
+    - <span class="pl-s"><span class="pl-pds">"</span>/etc/gitlab-runner:/etc/gitlab-runner<span class="pl-pds">"</span></span>
+    - <span class="pl-s"><span class="pl-pds">"</span>/var/run/docker.sock:/var/run/docker.sock<span class="pl-pds">"</span></span>
+  <span class="pl-ent">environment</span>:
+    - <span class="pl-s"><span class="pl-pds">"</span>SET_CONTAINER_TIMEZONE=true<span class="pl-pds">"</span></span>
+    - <span class="pl-s"><span class="pl-pds">"</span>CONTAINER_TIMEZONE=Asia/Shanghai<span class="pl-pds">"</span></span>
+    - <span class="pl-s"><span class="pl-pds">"</span>TZ=Asia/Shanghai<span class="pl-pds">"</span></span></pre></div>
+<p>在 <code>tools/gitlab-runner/</code> 目录执行 <code>docker-compose up -d</code> 命令即可启动容器。</p>
+<h3>2. 注册 runner</h3>
+<p>详细文档路径： <a href="https://docs.gitlab.com/runner/register/" rel="nofollow">https://docs.gitlab.com/runner/register/</a></p>
+<ol>
+<li>
+<p>首先进入到 GitLab CI/CD 设置界面：<br>
+<a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A41.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A41.png" alt="gitlabci配置步骤1.png" style="max-width:100%;"></a></p>
+</li>
+<li>
+<p>手动设置特殊 Runner 的界面，配置过程中将会使用到下面的 url 和 token :<br>
+<a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A42.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A42.png" alt="gitlabci配置步骤2.png" style="max-width:100%;"></a></p>
+</li>
+<li>
+<p>执行 <code>gitlab-runner register</code> 命令来注册。其中 url 和 registration-token 参数就是上面截图中的，docker-pull-policy 设置为 if-not-present 表示优先使用本地 docker 镜像，executor 设置运行方式为 docker ，docker-image 设置镜像名。</p>
+</li>
+</ol>
+<div class="highlight highlight-source-shell"><pre>docker <span class="pl-c1">exec</span> -it gitlab-runner gitlab-runner register --non-interactive \
+  --url <span class="pl-s"><span class="pl-pds">"</span>http://192.168.29.252/<span class="pl-pds">"</span></span> \
+  --registration-token <span class="pl-s"><span class="pl-pds">"</span>uGmnn6P3mxxxxxxxxx<span class="pl-pds">"</span></span> \
+  --docker-pull-policy <span class="pl-s"><span class="pl-pds">"</span>if-not-present<span class="pl-pds">"</span></span> \
+  --description <span class="pl-s"><span class="pl-pds">"</span>runner-sim-server-build<span class="pl-pds">"</span></span> \
+  --executor <span class="pl-s"><span class="pl-pds">"</span>docker<span class="pl-pds">"</span></span> \
+  --docker-image sim-server-build</pre></div>
+<h3>3. 准备好运行环境的 docker 镜像</h3>
+<p>这节是介绍我们的 sim-server-build 镜像是如何生成的。</p>
+<p>脚本在服务器代码目录下： <code>tools/docker-build/</code></p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">.</span>
+├── build.sh
+├── create.sh
+├── Dockerfile
+├── id_rsa
+└── id_rsa.pub</pre></div>
+<p><code>create.sh</code> 就是一行创建镜像的命令，表示创建镜像名字为 <code>sim-server-build</code> 的 docker 镜像，最后的 <code>.</code> 表示使用当前目录下的 Dockerfile 文件来生成镜像。</p>
+<div class="highlight highlight-source-shell"><pre>sudo docker build -t sim-server-build <span class="pl-c1">.</span></pre></div>
+<p><code>Dockerfile</code> 比较简单，主要就是执行 <code>build.sh</code> 文件来安装我们项目依赖的工具和库：</p>
+<div class="highlight highlight-source-dockerfile"><pre><span class="pl-k">FROM</span> centos:7.6.1810
+
+<span class="pl-k">COPY</span> build.sh /tmp/build.sh
+
+<span class="pl-k">RUN</span> /tmp/build.sh &amp;&amp; rm /tmp/build.sh
+
+<span class="pl-k">RUN</span> mkdir /root/.ssh
+<span class="pl-k">COPY</span> id_rsa /root/.ssh/id_rsa
+<span class="pl-k">COPY</span> id_rsa.pub /root/.ssh/id_rsa.pub
+<span class="pl-k">RUN</span> chmod 700 /root/.ssh
+<span class="pl-k">RUN</span> chmod 600 /root/.ssh/id_rsa
+<span class="pl-k">RUN</span> chmod 600 /root/.ssh/id_rsa.pub
+
+<span class="pl-k">RUN</span> luarocks install luacheck
+
+<span class="pl-k">ENV</span> SET_CONTAINER_TIMEZONE=true
+<span class="pl-k">ENV</span> CONTAINER_TIMEZONE=Asia/Shanghai
+<span class="pl-k">ENV</span> TZ=Asia/Shanghai</pre></div>
+<h2>如何写 .gitlab-ci.yml</h2>
+<p>通过配置 <code>.gitlab-ci.yml</code> 文件来告诉 CI 要对你的项目做什么，它位于仓库的根目录下。</p>
+<p>代码仓库一旦收到任何推送 (git push)，GitLab 将立即查找 <code>.gitlab-ci.yml</code> 文件，并根据文件的内容在 Runner 上启动作业。</p>
+<p>下面是我们服务器脚本代码的 ci 文件。</p>
+<div class="highlight highlight-source-yaml"><pre><span class="pl-ent">image</span>: <span class="pl-s">sim-server-build</span>
+
+<span class="pl-ent">variables</span>:
+  <span class="pl-ent">GIT_SUBMODULE_STRATEGY</span>: <span class="pl-s">recursive</span>
+
+<span class="pl-ent">stages</span>:
+  - <span class="pl-s">test</span>
+  - <span class="pl-s">deploy</span>
+
+<span class="pl-ent">job_test</span>:
+  <span class="pl-ent">stage</span>: <span class="pl-s">test</span>
+  <span class="pl-ent">script</span>:
+    - <span class="pl-s">make build</span>
+    - <span class="pl-s">make rpc</span>
+    - <span class="pl-s">make check</span>
+
+<span class="pl-ent">job_deploy</span>:
+  <span class="pl-ent">stage</span>: <span class="pl-s">deploy</span>
+  <span class="pl-ent">script</span>:
+    - <span class="pl-s">make deploy-debug</span>
+    - <span class="pl-s">make deploy-release</span>
+  <span class="pl-ent">when</span>: <span class="pl-s">manual</span></pre></div>
+<p><code>image</code> 定义了使用哪个 docker 镜像运行， <code>variables</code> 是用来配置环境变量的，这里配置了 <code>GIT_SUBMODULE_STRATEGY</code> 为 <code>recursive</code> 表示递归拉取 git submodule 。</p>
+<p><code>stages</code> 是用来定义有多少个执行阶段的，这里定义了 2 个阶段：</p>
+<ul>
+<li>test 测试阶段，用于执行 make check 检查代码语法错误</li>
+<li>deploy 打包阶段，用于打包代码给运维发布</li>
+</ul>
+<p><code>job_test</code> 和 <code>job_deploy</code> 定义了 2 个 job，<code>stage</code> 标记属于哪个阶段，<code>script</code> 就是该 job 执行的命令，<code>when</code> 为 manual 时表示需要手动在网页里点击按钮才执行 job 。</p>
+<p>这里只定义了 2 个 job，其实一个阶段里面可以执行多个 job 的。下图介绍了以某个 pipeline 为例解释 pipeline , stage , job 的含义：</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabcipipeline.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabcipipeline.png" alt="gitlabcipipeline" style="max-width:100%;"></a></p>
+<h3>在网页里查看执行日志</h3>
+<ol>
+<li>
+<p>进入到 pipeline 页面<br>
+<a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E6%97%A5%E5%BF%971.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E6%97%A5%E5%BF%971.png" alt="gitlabci查看运行日志1" style="max-width:100%;"></a></p>
+</li>
+<li>
+<p>点击一个 pipeline 详情界面<br>
+<a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E6%97%A5%E5%BF%972.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E6%97%A5%E5%BF%972.png" alt="gitlabci查看运行日志2" style="max-width:100%;"></a></p>
+</li>
+<li>
+<p>点击对应的任务<br>
+<a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E6%97%A5%E5%BF%973.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E6%97%A5%E5%BF%973.png" alt="gitlabci查看运行日志3" style="max-width:100%;"></a></p>
+</li>
+</ol>
+<h3>手动执行任务</h3>
+<p>点击任务上的播放按钮即可：<br>
+<a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%89%8B%E5%8A%A8%E6%89%A7%E8%A1%8C%E4%BB%BB%E5%8A%A1.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E6%89%8B%E5%8A%A8%E6%89%A7%E8%A1%8C%E4%BB%BB%E5%8A%A1.png" alt="gitlabci手动执行任务" style="max-width:100%;"></a></p>
+<h2>延伸学习</h2>
+<ul>
+<li>持续交付 (Continuous Delivery) 和 持续部署 (Continuous Deployment)</li>
+<li>GitLab CD</li>
+<li>Kubernetes (k8s)</li>
+</ul>
+<p>目前我们部署是交给运维处理的，如果是部署工作是我们研发这边做的话，可以使用 GitLab CD 自动部署到正式机器。</p>
+<blockquote>
+<p>持续交付就是自动地从仓库将最新的程序部署到测试环境里，持续部署就是自动地将稳定版本部署到生产环境里，<br>
+最后发布时持续交付是手动操作，持续部署是自动操作。</p>
+</blockquote>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/%E6%8C%81%E7%BB%AD%E4%BA%A4%E4%BB%98%E5%92%8C%E6%8C%81%E7%BB%AD%E9%83%A8%E7%BD%B2%E7%9A%84%E5%8C%BA%E5%88%AB.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/%E6%8C%81%E7%BB%AD%E4%BA%A4%E4%BB%98%E5%92%8C%E6%8C%81%E7%BB%AD%E9%83%A8%E7%BD%B2%E7%9A%84%E5%8C%BA%E5%88%AB.png" alt="持续交付和持续部署的区别" style="max-width:100%;"></a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/71#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

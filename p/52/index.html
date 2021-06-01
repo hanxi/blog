@@ -1,0 +1,324 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】构造函数的语意</div>
+            <div id="content" class="markdown-body">
+                <h3>默认构造函数</h3>
+<p>默认构造函数在编译器需要的时候被编译器产生出来。</p>
+<p>编译器会自动生成的四种有用的默认构造函数：</p>
+<h4>带有default constructor 的member class object（组合结构）</h4>
+<p>如果一个类没有任何构造函数，而它含有一个对象成员，且该成员有默认构造函数，那么编译器需要为该类合成一个默认构造函数，不过合成操作只在构造函数真正需要被调用的时候才会发生。<br>
+被合成的默认构造函数只满足编译器的需要，而不是程序的需要。如：</p>
+<pre>class Foo {public: Foo(), Foo(int) ...};
+class Bar {public: Foo foo; char* str;} // 组合
+
+void foo_bar()
+{
+    Bar bar; // Bar::foo成员必须在此处初始化
+    if (str) {} ...
+}
+</pre>
+<p>被合成的默认构造函数看起来可能时这样的：</p>
+<pre>inline
+Bar::Bar()
+{
+    //C++伪代码
+    foo.Foo:Foo();
+}
+</pre>
+<p>生成的代码中没有提供str的初始化操作，需要程序员自己完成。如果程序员定义构造函数如下：</p>
+<pre>Bar::Bar() { str=0;}
+</pre>
+<p>编译的做法是：如果类内含一个或多个对象成员，那么类的每一个构造函数必须调用每一个对象成员的默认构造函数。编译器会扩张已存在的构造函数，在user code之前安插一些代码。上面的构造函数会扩张成下面的样子：</p>
+<pre>Bar::Bar() {
+    foo.Foo:Foo();
+    str=0;
+}
+</pre>
+<p>如果有多个对象成员都要求构造初始化操作，C++语言要求以对象在类中的声明次序来调用各个构造函数。</p>
+<h4>带有default constructor 的base class</h4>
+<p>类似于第一种组合情形。如果基类含有默认构造函数，而派生类没有，则编译器会自动为派生类合成一个默认构造函数用于完成对基类的初始化。<br>
+如果派生自多个基类，则按声明次序依次调用。<br>
+如果派生类中包含其他类对象成员，则在所有的base class Constructor 都被调用之后调用类对象成员的构造函数。</p>
+<h4>带有一个virtual function 的 class</h4>
+<p>编译器会做下面两个扩张：</p>
+<ol>
+<li>
+<p>产生一个vtbl，里面存放类的所有虚函数的地址。</p>
+</li>
+<li>
+<p>在每个类对象中，添加一个额外的vptr指针，内含一个相关的类vtbl的地址。</p>
+</li>
+</ol>
+<h4>带有一个virtual base class 的 class</h4>
+<p>virtual base class 的实现法在不同的编译器之间有极大差异，然而，每种实现法的共通点是：必须让virtual base class在其每一个派生类对象中的位置能在执行期准备妥当。<br>
+一般在派生类对象中安插一个指向virtual base classes的指针，所有经由引用或指针来存取一个virtual base class 的操作都可以通过相关指针完成。</p>
+<p>总结：<br>
+在合成的默认构造函数中，只有base class subobjects和member class objects会被初始化，所以其他的非静态成员数据，如整数，整数指针，整数数组等等都不会被初始化，这些初始化操作需要程序员自己完成。</p>
+<h3>拷贝构造函数</h3>
+<p>有三种情况会以一个对象的内容作为另一个对象的初值：</p>
+<ol>
+<li>
+<p>对一个对象做明确的初始化操作</p>
+</li>
+<li>
+<p>当对象被当做参数交给某个函数时</p>
+</li>
+<li>
+<p>当函数传回一个类对象时</p>
+</li>
+</ol>
+<p>不使用逐位拷贝的情况</p>
+<h4>类中含有类对象成员，而该成员的类声明有一个拷贝构造函数</h4>
+<pre>class Word {
+public:
+    Word(const String&amp; );
+    ~Word();
+    // ...
+private:
+    int cnt;
+    String str;
+};
+
+class String {
+public:
+    String(const char*);
+    String(const String&amp;);
+    ~String();
+    // ...
+};
+
+Word noun("book");
+void foo()
+{
+    Word verb = noun;
+    // ...
+}
+</pre>
+<p>在这中情况下，编译器会合成出一个拷贝构造函数以便调用member class String object的拷贝构造函数：</p>
+<pre>inline Word:Word( const Word&amp; wd)
+{
+    str.String::String(wd.str);
+    cnt = wd.cnt;
+}
+</pre>
+<p>在这被合成出来的拷贝构造函数中，如整数，指针，数组等等的nonclass members 也都会被复制。</p>
+<h4>类继承子一个基类而基类存在一个拷贝构造函数</h4>
+<p>这里不举例了，和第一种情况类似。</p>
+<h4>类声明了一个或多个虚函数</h4>
+<pre>class ZooAnimal {
+public:
+    ZooAnimal();
+    virtual ~ZooAnimal();
+
+    virtual void animate();
+    // ..
+private:
+    // data ...
+};
+
+class Bear: public ZooAnimal {
+public:
+    Bear();
+    void animate();
+    virtual void dance();
+    // ...
+private:
+    // data ...
+};
+
+Bear yogi;
+ZooAnimal franny = yogi; // 切割行为
+</pre>
+<p>当一个基类对象以派生类的对象做初始化操作时，其bptr复制操作也必须保证安全，合成出来的 ZooAnimal 拷贝构造函数会明确设定对象的vptr指向 ZooAnimal 的 vtbl。</p>
+<h4>类派生子一个继承串链，其中有一个或多个虚基类</h4>
+<pre>class Raccoon : public virtual ZooAnimal {
+};
+class RedPanda : public Raccoon {
+};
+
+Raccoon rocky;
+Raccoon little_critter = rocky; // 简单的逐位拷贝足以完成
+
+RedPanda red;
+Raccoon little_critter = red; // 需要编译器完成vbcPtr(虚基类指针)的初始化
+</pre>
+<p>为了正确的完成 little_critter 的初值设定，编译器必须合成一个拷贝构造函数，安插一些代码以设定vbcPtr的处置。</p>
+<h3>程序转换</h3>
+<h4>明确的初始化操作</h4>
+<pre>X x0;
+void foo_bar() {
+    X x1(x0);
+    X x2=x0;
+    X x3 = X(x0);
+}
+
+// 可能的程序转换
+void foo_bar() {
+    X x1;
+    X x2;
+    X x3;
+
+    x1.X::X(x0);
+    x2.X::X(x0);
+    x3.X::X(x0);
+}
+</pre>
+<p>####参数的初始化</p>
+<pre>void foo(X x0);
+X xx;
+foo(xx);
+
+// 可能转换
+void foo(X&amp; x0);
+X _tmp0;
+_tmp0.X::X(xx);
+foo(_tmp0);
+</pre>
+<h4>返回值的初始化</h4>
+<pre>X bar()
+{
+    X xx;
+    // ...
+    return xx;
+}
+X xx = bar();
+
+bar().memfunc();
+
+X ( *pf )();
+pf = bar;
+
+// 有可能的转换
+void bar(X&amp; _ret)
+{
+    X xx;
+    xx.X::X();
+    // ...
+    _ret.X::X(xx);
+    return;
+}
+X xx;
+bar(xx);
+
+X _tmp0;
+(bar(_tmp0),_tmp0).memfunc();
+
+void ( *pf ) (X&amp;);
+pf=bar;
+
+</pre>
+<h4>在使用者层面做优化</h4>
+<pre>X bar(const T &amp;y, const T &amp;z)
+{
+    X xx;
+    // 以y和z来处理xx
+    return xx;
+}
+</pre>
+<p>定义另一个构造函数，可以直接计算xx的值：</p>
+<pre>X bar(const T &amp;y, const T &amp;z)
+{
+    return X(y,z);
+}
+</pre>
+<p>C++伪代码</p>
+<pre>void bar (X &amp; _ret,const T &amp;y, const T &amp;z) {
+    _ret.X::X(y,z);
+    return;
+}
+</pre>
+<h4>在编译器层面做优化(NRV-named return value)</h4>
+<pre>X bar()
+{
+    X xx;
+    // 处理xx
+    return xx;
+}
+
+void bar(X &amp; _ret)
+{
+    _ret.X:X();
+    // 直接处理_ret
+    return;
+}
+</pre>
+<p>总结：当一个函数以传值（by value）的方式返回一个类对象时，而该class有一个拷贝构造函数（不论时合成的还是明确定义的）时，这将导致深奥的程序转化（不论时函数定义还是使用），此外编译器也将拷贝构造函数的调用做优化，一个额外的第一参数（数值被直接存放其中）取代NRV。</p>
+<h3>成员初始化列表</h3>
+<p>什么情况下必须使用成员初始化列表：</p>
+<ol>
+<li>
+<p>当初始化一个引用成员时。</p>
+</li>
+<li>
+<p>当初始化一个const成员时。</p>
+</li>
+<li>
+<p>当调用一个基类的构造函数，而它拥有一组参数时。</p>
+</li>
+<li>
+<p>当调用一个成员对象的构造函数，而它拥有一组参数时。</p>
+</li>
+</ol>
+<p>编译器生成的初始化代码的次序不是按照成员初始化列表的顺序，而是有类中成员声明次序决定。编译器生成的初始化代码会放在user code之前。生成的基类构造函数的调用代码在生成的成员初始化代码之前。</p>
+<pre>class FooBar:public X {
+    int _fval;
+public:
+    int fval() {return _fval);
+    FooBar(int val):_fval(val),X(fval()){}
+};
+// 会生成如下代码：
+FooBar::FooBar(int val) {
+    X::X(this, this-&gt;fval());
+    _fval = val;
+}
+
+// 想要得到正确的结果，应该这样做：
+class FooBar:public X {
+    int _fval;
+public:
+    int fval() {return _fval);
+    FooBar(int val):_fval(val),X(val){}
+};
+// 会生成如下代码：
+FooBar::FooBar(int val) {
+    X::X(this,val);
+    _fval = val;
+}
+</pre>
+<p>简单的说，编译器会对初始化列表一一处理并可能重新排序，以反映出成员的声明次序，它会安插一些代码到构造函数体内，并置于任何user code之前。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/52#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

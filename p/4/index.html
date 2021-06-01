@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">学习alilua - 制作快餐点餐工具</div>
+            <div id="content" class="markdown-body">
+                <h2>一、搭建环境</h2>
+<p><em>参考： <a href="http://alilua.com/docs.html" rel="nofollow">http://alilua.com/docs.html</a></em></p>
+<h3>下载和编译alilua</h3>
+<div class="highlight highlight-source-shell"><pre>$ git clone https://github.com/oneoo/alilua.git
+$ <span class="pl-c1">cd</span> alilua
+$ make</pre></div>
+<h3>设定网站目录</h3>
+<p>这是调整后的目录，将alilua作为子工程放入工程目录。</p>
+<div class="highlight highlight-source-shell"><pre>project/
+├── alilua/             <span class="pl-c"><span class="pl-c">#</span> alilua源码目录</span>
+├── css/
+├── js/
+├── scripts/            <span class="pl-c"><span class="pl-c">#</span> lua脚本目录</span>
+│   ├── index.lua
+│   └── upload.lua
+├── template/           <span class="pl-c"><span class="pl-c">#</span> html模板目录</span>
+│   └── index.html
+├── restart.sh          <span class="pl-c"><span class="pl-c">#</span> 快速重启脚本</span>
+├── route.lua           <span class="pl-c"><span class="pl-c">#</span> alilua路由脚本</span>
+├── host-route.lua      <span class="pl-c"><span class="pl-c">#</span> alilua路由配置</span>
+└── uploaddir/          <span class="pl-c"><span class="pl-c">#</span> 上传文件目录</span></pre></div>
+<h3>快速重启脚本(方便快速调试)</h3>
+<ul>
+<li>试过把cache关闭，但是没起到效果，所以就写了个脚本快速重启</li>
+<li>启动alilua的命令：<code>./alilua process=4 bind=9999 daemon host-route=host-route.lua</code></li>
+<li>关闭alilua的函数：</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre><span class="pl-en">stop</span>()
+{
+    pid=<span class="pl-s"><span class="pl-pds">`</span>ps -ef<span class="pl-k">|</span> grep <span class="pl-s"><span class="pl-pds">"</span>alilua<span class="pl-pds">"</span></span> <span class="pl-k">|</span> grep -v grep <span class="pl-k">|</span> awk <span class="pl-s"><span class="pl-pds">'</span>{print $2}<span class="pl-pds">'</span></span> <span class="pl-pds">`</span></span>
+    <span class="pl-k">if</span> [ <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$pid</span><span class="pl-pds">"</span></span>x <span class="pl-k">!=</span> x ]<span class="pl-k">;</span> <span class="pl-k">then</span>
+        <span class="pl-c1">kill</span> -9 <span class="pl-smi">$pid</span>
+        <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>stop alilua<span class="pl-pds">"</span></span>
+    <span class="pl-k">fi</span>
+}</pre></div>
+<ul>
+<li>完整的<a href="https://github.com/hanxi/alilua-demo-ordering/blob/master/restart.sh">restart.sh</a></li>
+</ul>
+<h2>二、快餐点餐工具需求</h2>
+<ul>
+<li>上传图片，支持多张</li>
+<li>显示最新的菜单图片</li>
+<li>显示点餐人名单，并载入已经点餐人的数据</li>
+<li>提交订单(菜名和价格由点餐人输入)</li>
+<li>基本的权限管理，可以防止误操作帮他人点餐或者修改别人的订单
+<ul>
+<li>该功能留到以后完善时做</li>
+</ul>
+</li>
+</ul>
+<h2>三、开始编码</h2>
+<h3>index.lua和模板的使用</h3>
+<ul>
+<li>参考：<a href="http://alilua.com/docs.html#%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E" rel="nofollow">http://alilua.com/docs.html#模板引擎</a></li>
+<li>就一句话加载index.html：<code>rts, err = dotemplate("/template/index.html")</code></li>
+<li>这里说一下文件路径问题
+<ul>
+<li>alilua中定义了一个<code>__root</code>变量保存主路径，而<code>__root</code>来源于<code>host-rote.lua</code>中配置<code>host_route['*'] = '/home/hlm-devel/www/ordering/route.lua'</code>中<code>route.lua</code>的父目录路径。</li>
+<li><code>core.lua</code>中实现的函数参数涉及到文件时，都会加上<code>__root</code>前缀，所以在使用这些函数的时候不需要自己添加<code>__root</code>。</li>
+</ul>
+</li>
+<li><code>index.html</code>我就用到了模板中的include命令用来包含<code>header.html</code>和<code>footer.html</code></li>
+</ul>
+<h3>使用jsonrpc实现api请求</h3>
+<ul>
+<li>最新版本的alilua中没有了文档中所说的<code>jsonrpc_handle</code>函数，而且<code>get_post_body</code>函数的名字改成了<code>get_request_body</code>。</li>
+<li>通过查看老版本的alilua，我找出了<code>jsonrpc_handle</code>函数的实现，拷贝出来修改<code>get_post_body</code>，在新版本中依然可以使用。</li>
+<li>参考<code>http://alilua.com/docs.html#jsonrpc_handle</code>实现远程RPC</li>
+</ul>
+<h3>jsonrpc.js的实现</h3>
+<ul>
+<li>官网的客户端例子是使用jQuery实现的，小工具不想使用那么强大的库。</li>
+<li>网上找了一堆一些纯js的实现，在github上看到<a href="https://github.com/datagraph/jquery-jsonrpc">jquery-jsonrpc</a>的实现比较简单，因此参考这个库写了个纯js版本的jsonrpc库，已经上传到github了<a href="https://github.com/hanxi/jsonrpc.js">jsonrpc.js</a></li>
+</ul>
+<h3>MySQL数据库操作的封装(alilua的require和dofile)</h3>
+<ul>
+<li>单独建立<code>db.lua</code>文件封装用到的mysql操作</li>
+<li>如果直接在<code>db.lua</code>中执行<code>mysql</code>的<code>connect</code>函数，不能使用<code>require</code>包含文件，因为</li>
+</ul>
+<blockquote>
+<p>参考：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="59430680" data-permission-text="Title is private" data-url="https://github.com/oneoo/alilua/issues/27" data-hovercard-type="issue" data-hovercard-url="/oneoo/alilua/issues/27/hovercard" href="https://github.com/oneoo/alilua/issues/27">oneoo/alilua#27</a></p>
+<p>因为 require 过程中产生的 Lua 运行环境不是一个协程，所以会报 <code>attempt to yield across C-call boundary</code> 错误。</p>
+<p>你把 require 改为 dofile 就可以运行的。</p>
+</blockquote>
+<ul>
+<li>如果非要使用<code>require</code>，则需要在 <code>db.lua</code> 里面把数据库操作封装成 function ，再给调用者使用。我用的是这种方式。</li>
+</ul>
+<h3>文件上传的实现</h3>
+<ul>
+<li>不想用 alilua 示例中那个 form 的例子的实现方式（标准的 html post 请求方式）</li>
+<li>我采用 AJAX 实现 post 请求传文件内容， url 参数中传文件名的方式实现。</li>
+<li>AJAX 发送 post 请求遇到 <code>sendAsBinary</code> 函数在谷歌浏览器被移除的问题。
+<ul>
+<li>谷歌一搜就有解答</li>
+</ul>
+</li>
+</ul>
+<div class="highlight highlight-source-js"><pre><span class="pl-k">if</span><span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">sendAsBinary</span><span class="pl-kos">)</span><span class="pl-kos">{</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">sendAsBinary</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">datastr</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-k">function</span> <span class="pl-en">byteValue</span><span class="pl-kos">(</span><span class="pl-s1">x</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-k">return</span> <span class="pl-s1">x</span><span class="pl-kos">.</span><span class="pl-en">charCodeAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span> <span class="pl-c1">&amp;</span> <span class="pl-c1">0xff</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+        <span class="pl-k">var</span> <span class="pl-s1">ords</span> <span class="pl-c1">=</span> <span class="pl-v">Array</span><span class="pl-kos">.</span><span class="pl-c1">prototype</span><span class="pl-kos">.</span><span class="pl-c1">map</span><span class="pl-kos">.</span><span class="pl-en">call</span><span class="pl-kos">(</span><span class="pl-s1">datastr</span><span class="pl-kos">,</span> <span class="pl-s1">byteValue</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-k">var</span> <span class="pl-s1">ui8a</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">Uint8Array</span><span class="pl-kos">(</span><span class="pl-s1">ords</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-smi">this</span><span class="pl-kos">.</span><span class="pl-en">send</span><span class="pl-kos">(</span><span class="pl-s1">ui8a</span><span class="pl-kos">.</span><span class="pl-c1">buffer</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+<span class="pl-kos">}</span></pre></div>
+<ul>
+<li>post 内容全部存放文件内容，所以一次 post 只发一个文件。</li>
+<li>使用<code>read_request_body</code>循环读取 post 内容存入 <code>uploaddir</code>目录下面。</li>
+</ul>
+<h3>js实现下载csv数据</h3>
+<ul>
+<li>使用 html <code>&lt;a</code> 标签实现： <code>&lt;a href="data:text/csv;,xxxxxx"&gt;&lt;/a&gt;</code></li>
+<li>遇到编码问题
+<ul>
+<li>alilua 全部使用UTF-8编码，发送到客户端的数据因此也是UTF-8的数据</li>
+<li>使用 excel 打开UTF-8格式的 csv 文件会出现中文乱码，用 notepad++ 打开不乱码</li>
+<li>在字符串前面添加 BOM 头也不管用，参考: <a href="http://blog.csdn.net/oscar999/article/details/16342699" rel="nofollow">Web 端 js 导出csv文件(使用a标签)</a></li>
+<li>最后改用转成 gb2312 编码（只在客户端里面转码）搞定了，参考：<a href="http://blog.csdn.net/yimengqiannian/article/details/7016720" rel="nofollow">unicode与GB2312的相互转换（js）</a>)</li>
+</ul>
+</li>
+</ul>
+<h3>添加luapath到配置文件</h3>
+<ul>
+<li>参考 <code>code-cache-ttl</code> 的配置</li>
+<li>在 <code>host-route.lua</code> 文件中添加luapath的配置:<code>config['lua-path']='xxxx/?.lua;'</code></li>
+<li>在 <code>vhost.c</code> 文件中添加全局变量lua_path：<code>lua_path = get_string_in_table(L, "lua-path", &amp;tl);</code></li>
+<li>在 <code>worker.c</code> 中把 <code>lua_path</code> 加入到 <code>package.path</code> 中： <code>sprintf(buf_4096 + epd-&gt;vhost_root_len + 1, "?.lua;%s/lua-libs/?.lua;%s", process_chdir, lua_path);</code></li>
+<li>重新编译就搞定，已经修改好的代码在这里<a href="https://github.com/hanxi/alilua">hanxi/alilua</a></li>
+</ul>
+<p>源代码在这里：<a href="https://github.com/hanxi/alilua-demo-ordering">https://github.com/hanxi/alilua-demo-ordering</a></p>
+<p><strong>在此感谢alilua的作者<a href="http://oneoo.com/" rel="nofollow">oneoo</a>在百忙之中抽空帮助我解答疑问</strong></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/4#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

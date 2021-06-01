@@ -1,0 +1,153 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】android开发入门之luaIDE</div>
+            <div id="content" class="markdown-body">
+                <h2>1. TextView高亮关键字</h2>
+<p>可以使用<em>android.text.SpannableStringBuilder</em> 的 <em>setSpan(Object what, int start, int end, int flags)</em> 来实现高亮关键字。</p>
+<p>SpannableStringBuild用于经常变动的字符串，SpannableString则用于不变的字符串。例如：</p>
+<pre>    String str="SpannableStringBuilder class";
+    SpannableStringBuilder sp=new SpannableStringBuilder(str);
+    sp.setSpan(new ForegroundColorSpan(Color.RED), 1, 4, Spannable.SPAN_EXCLUSIVE_INCLUSIVE); //把str的前4个字符的前景色设置为红色
+</pre>
+<p>这个类还可以用来完成类似于QQ表情的功能。具体用法参考<a href="http://developer.android.com/reference/android/text/Spannable.html" rel="nofollow">android api</a>吧。我只用来修改颜色，用正则匹配关键字。可以浏览源代码：<a href="https://github.com/hanxi/lua_run/blob/master/src/com/hanxi/luarun/KeywordHighlight.java">KeywordHighlight.java</a>。根据<a href="https://github.com/jiro-aqua/Jota-Text-Editor">Jota</a>修改而来。</p>
+<h2>2. Activity界面跳转</h2>
+<p>界面跳转用到了<em>android.content.Intent</em>。</p>
+<pre>    // MainActivity 中这样写
+    btn.setOnClickListener(new View.OnClickListener() { // 点击按钮，从MainActivity跳转到ResultActivity
+        @Override
+        public void onClick(View arg0) {
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this,ResultActivity.class);
+            Bundle bundle = new Bundle();               // 跳转参数传递
+            bundle.putString("result", res);
+            intent.putExtras(bundle); 
+            startActivity(intent);
+        }
+    });
+    
+    // ResultActivity 中这样写
+    Bundle bunde = this.getIntent().getExtras();        // 取参数
+    String str=bunde.getString("result").toString();
+    btn.setOnClickListener(new View.OnClickListener(){  // 自定义返回按钮
+        @Override
+        public void onClick(View arg0) {
+            finish(); //停止当前的Activity,返回上一个Activity
+        }            
+    });
+</pre>
+<p>代码写完之后需要在AndroidManifest.xml中添加</p>
+<pre>    &lt;application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"&gt;
+        &lt;activity
+            android:name="com.hanxi.luarun.MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/MyTheme"&gt;
+             &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.MAIN" /&gt;
+                &lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+            &lt;/intent-filter&gt;
+        &lt;/activity&gt;
+        &lt;activity
+            android:name=".ResultActivity"
+            android:label="@string/app_name"
+            android:theme="@style/MyTheme"&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+</pre>
+<h2>3. luajava的使用</h2>
+<p>为了在安卓上解释lua，采用了现成的luajava库，编译luajava可以参考<a href="http://www.cnblogs.com/astin/archive/2011/07/26/2117590.html" rel="nofollow">http://www.cnblogs.com/astin/archive/2011/07/26/2117590.html</a>。</p>
+<p>luajava.h可以使用javah生成。后台我找到了现成<a href="https://github.com/mkottman/AndroLua">AndroLua</a>。直接把它集成到我的项目中的了。</p>
+<pre>    import org.keplerproject.luajava.*;
+    
+    LuaState L = LuaStateFactory.newLuaState();
+    L.openLibs();
+    L.LdoString("text = 'Hello Android, I am Lua.'");
+    L.getGlobal("text");
+    String text = L.toString(-1);
+</pre>
+<p>看上去和c与lua交互很类似的。</p>
+<h2>4. WebView的使用</h2>
+<p>最初以为高亮代码很难自己实现，就试着找现成的源码，结果没找到。就想着看看有没有js实现的代码编辑器，后面找到了一个不错的<a href="https://github.com/marijnh/CodeMirror">codemirror</a>。并且集成到我的项目中在android4.0以上设备显示还不错，但是在2.3的设备上不能滑动（webview不支持div的滑动），底层的硬伤，试过修改codemirror和使用iscroll都没搞定，最后才找到jota（2年前见过这玩意，用过一两次没注意到它是开源的），然后研究它的源代码，就有了现在的高亮了。</p>
+<p>WebView控件很简单的。js和java交互网上也找到很多教程<a href="http://blog.csdn.net/wangtingshuai/article/details/8631835" rel="nofollow">js和java交互</a>。</p>
+<pre>    WebView webView = new WebView(this); 
+    webView.getSettings().setJavaScriptEnabled(true);   // 开启js，不打开这个设置，就只能显示静态的html网页
+    webView.loadUrl("http://www.baidu.com/");           // 远程网页
+    //webView.loadUrl("file:///android_asset/demo.html"); // 本地assert目录下demo.html
+</pre>
+<p>差不多就这样子，我打算用这个来显示about.html的东西。</p>
+<h2>5. 文件浏览</h2>
+<p>这个功能一开始就不打算自己实现，现在开发安卓的这么多，一定能找到这种源码，结果一下子就找到了现成的文件选择对话框<a href="http://blog.csdn.net/trbbadboy/article/details/7899424" rel="nofollow">Android开发 打开文件 选择文件对话框</a>。已经集成到我的项目中了，我还模仿它完成了保存文件对话框的功能。</p>
+<p>实现保存文件对话框的时候难点就在于如何在静态的layout中添加动态的layout，<a href="http://blog.csdn.net/lzx_bupt/article/details/5600187" rel="nofollow">android: 静态XML和动态加载XML混合使用，以及重写Layout控件</a> 这篇文章对我帮助挺大的。</p>
+<p>封装静态的layout，其中预留动态layout的位置，方便添加动态layout的时候整理布局不变。</p>
+<pre>        static public class SaveDialogLayout extends LinearLayout{ 
+            public SaveDialogLayout(Context context) {
+                super(context);
+                ((Activity) getContext()).getLayoutInflater().inflate(R.layout.dialog, this); 
+            }        
+        }
+        
+        public static Dialog createSaveDialog(int id, Context context, ... ){
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            final SaveDialogLayout saveDialogLayout = new SaveDialogLayout(context);   
+            LinearLayout openLayout = (LinearLayout) saveDialogLayout.findViewById(R.id.openLayout); // 预留放文件列表
+            FileSelectView fileListView = new FileSelectView(context, id, callback, suffix, images,path); // 文件列表
+            openLayout.addView(fileListView); // 添加到预留位置
+            builder.setView(saveDialogLayout);
+            ...        
+        }    
+</pre>
+<h2>6. 添加设置</h2>
+<p>android提供了PreferenceActivity，所以添加设置是比较简单的。</p>
+<pre>    public class SetActivity extends PreferenceActivity {
+    	@Override
+    	public void onCreate(Bundle savedInstanceState) {
+    		super.onCreate(savedInstanceState);
+    		SysApplication.getInstance().addActivity(this); 
+    
+    		addPreferencesFromResource(R.xml.preferences);
+    	}
+    }
+</pre>
+<p>具体preferences.xml是什么样子的就参考代码吧。</p>
+<h2>7. 添加广告</h2>
+<p>我使用了有米广告，查看它的<a href="http://www.youmi.net/sdk/android/406/doc/doc.html?201306250000" rel="nofollow">sdk文档</a>就能搞定，非常简单的。我这里模拟器运行广告报错，但是实体机没问题。</p>
+<h2>8. 优化界面</h2>
+<p>最初一直再想去找别的应用中的ui元素，但是直接拿过来又有一堆的不搭配。最后找到了官方的ui编辑工具，超好用。网址：<a href="http://android-ui-utils.googlecode.com/hg/asset-studio/dist/index.html" rel="nofollow">http://android-ui-utils.googlecode.com/hg/asset-studio/dist/index.html</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/61#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

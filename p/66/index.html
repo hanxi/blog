@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】使用lua表设计简单RPC协议</div>
+            <div id="content" class="markdown-body">
+                <h2>协议设计</h2>
+<ul>
+<li>
+<p>协议类型：schema</p>
+</li>
+<li>
+<p>支持类型：int, string, array</p>
+</li>
+<li>
+<p>采用lua table定义协议</p>
+</li>
+</ul>
+<blockquote>
+<pre>   p = {
+       name = "hanxi",
+       tel = 1383838,
+       addresslist = {
+           address = "gz",
+           addtype = "work",
+       },
+   }
+</pre>
+</blockquote>
+<blockquote>
+<p>p 是定义一个协议格式，其中，addresslist是array类型，定义的内容表示array的元素的格式。协议的实际内容格式如下：</p>
+<pre>  p = {
+      name = "hanxi",
+      tel = 1383838,
+      addresslist = {
+          {
+              address = "gz",
+              addtype = "work",
+          },
+          { 
+              address = "jj",
+              addtype = "home", 
+          },
+  }
+</pre>
+</blockquote>
+<h2>协议打包</h2>
+<ul>
+<li>
+<p>只打包value，key不打包</p>
+</li>
+<li>
+<p>协议模板做预处理，把key排序，添加字段_keysort.</p>
+</li>
+</ul>
+<blockquote>
+<pre>p = {
+      _keysort = {"addresslist","name","tel"},
+      name = "hanxi",
+      tel = 1383838,
+      addresslist = {
+          _keysort = {"addtype","address"},
+          address = "gz",
+          addtype = "work",
+      },
+}
+</pre>
+</blockquote>
+<h2>协议解包</h2>
+<ul>
+<li>
+<p>根据协议模板，解析协议</p>
+</li>
+<li>
+<p>遍历顺序按照_keysort</p>
+</li>
+</ul>
+<h2>实现</h2>
+<p>在c中提供接口：</p>
+<pre>    luaL_Reg l[] ={
+        { "packinit", lpackinit },
+        { "write", lwrite },
+        { "getpack", lgetpack },
+        { "unpackinit", lunpackinit },
+        { "read", lread },
+        { NULL, NULL },
+    };
+</pre>
+<p>packinit, write, getpack三个函数用于打包协议</p>
+<p>unpackinit, read 两个函数用于解包协议</p>
+<ul>
+<li>
+<p>打包int时分64位，32位，16位，8位。第一个字节存储int位数和正负数标志</p>
+</li>
+<li>
+<p>打包sting时，先存储字符串长度，按int的方式打包，然后打包string</p>
+</li>
+</ul>
+<p>全部代码： <a href="https://github.com/hanxi/lproto">https://github.com/hanxi/lproto</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/66#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

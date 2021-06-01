@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】C++指向成员函数的函数指针随想</div>
+            <div id="content" class="markdown-body">
+                <h3>指向成员函数的函数指针</h3>
+<p>首先看一个指向成员函数的函数指针的例子,比较常用,代码如下:</p>
+<pre>    class A {
+    public:
+        void func() {
+            cout &lt;&lt; "func" &lt;&lt; endl;
+        }
+    };
+    int main(int argc, char * argv[]) {
+        void (A::pf)() = &amp;A::func;
+        A a;
+        (a.*pf)();
+        return 0;
+    }
+</pre>
+<p>可以看到,定义指向类A的成员函数A::func()的函数指针定义pf的格式必须带上A::,给pf赋值不能使用对象a的func赋值,而必须使用A::,且必须加上&amp;(普通的c函数是可以不加&amp;的).<br><br>
+使用&amp;a.func对pf赋值时,我使用g++编译,给出的错误提示很明确易懂:<br><br>
+错误： ISO C++ 不允许通过取已绑定的成员函数的地址来构造成员函数指针。请改用‘&amp;A::funcB’ [-fpermissive]<br></p>
+<p>ps: 网上有人说clang给出的提示更好,但现在测试出来clang给出的提示很模糊:<br><br>
+error: cannot create a non-constant pointer to member function<br><br>
+p = &amp;a.funcB;<br><br>
+^~~~~~~~<br><br>
+g++给出错误位置是多少行多少列,clang则是用波浪线标出来的.</p>
+<h3>类成员为函数指针</h3>
+<pre>    class A {
+    public:
+        void (*pq)();
+    };
+    void func() {
+        cout &lt;&lt; "func " &lt;&lt; endl;
+    }
+    int main(int argc, char * argv[]) {
+        A a;
+        a.pq = func;
+        a.pq();
+        return 0;
+    }
+</pre>
+<p>这个例子也验证了第一个例子所说的,c函数指针赋值是不用加&amp;的. 这个例子学习C语言的时候就见过了,写出来只是为了过度到第三个更加复杂例子的.</p>
+<h3>类成员函数指针指向类成员</h3>
+<pre>    class A {
+    public:
+        void func() {
+            cout &lt;&lt; "func " &lt;&lt; endl;
+        }
+        void (A::*p)();  //  必须加A::
+        A () { // 更加但痛的调用方式
+            p = &amp;A::func; // 必须加A::
+            (this-&gt;*p)();
+        }
+    };
+    int main(int argc, char * argv[]) {
+        A a;
+        a.p = &amp;A::func;
+        (a.*(a.p))(); // 和第一个例子有点像,使用a.p替换pf就是了.
+        return 0;
+    }
+</pre>
+<p>首先是函数指针的定义,指向自己所在类的成员函数,定义的时候必须加A::前缀.然后在给p赋值的时候必须和第一个例子一样加A::(成员函数内部使用也不例外).然后就是使用p的时候.在成员函数内部使用(this-&gt;<em>p)();.在A的对象中使用(a.</em>(a.p))();的方式.</p>
+<p>函数指针的作用就是为了实现多态吧.下面是我的全部测试代码.在gcc4.7,clang3.0测试通过.没在网上找啥资料,全靠编译器的错误提示完成这段代码,错误之处还望读者提出来.</p>
+<p><a href="https://gist.github.com/hanxi/6399464">https://gist.github.com/hanxi/6399464</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/55#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

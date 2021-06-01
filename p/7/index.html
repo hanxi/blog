@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">cocos2dx v3 添加 Linux 下的 EditBox</div>
+            <div id="content" class="markdown-body">
+                <h3>1. 调用其他输入框程序实现</h3>
+<p>调用 zenity 实现，使用 <code>popen</code> 系统调用，参考：<a href="http://sourceforge.net/projects/tinyfiledialogs/" rel="nofollow">tinyfiledialogs</a> 的实现。</p>
+<p>zenity 的文本输入框介绍在<a href="https://help.gnome.org/users/zenity/stable/entry.html.zh_CN" rel="nofollow">这里</a></p>
+<p>实现已经放到评论区：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85513342" data-permission-text="Title is private" data-url="https://github.com/hanxi/blog/issues/7" data-hovercard-type="issue" data-hovercard-url="/hanxi/blog/issues/7/hovercard?comment_id=109287336&amp;comment_type=issue_comment" href="https://github.com/hanxi/blog/issues/7#issuecomment-109287336">hanxi/blog#7 (comment)</a></p>
+<h3>2. 最后采用了 GTK+ 的 dialog 实现</h3>
+<p>这种实现更像 windows 下的 dialog。而且查了 <a href="http://www.glfw.org/" rel="nofollow">glfw</a> 的 <a href="http://www.glfw.org/faq.html#will-message-box-support-be-added-to-glfw" rel="nofollow">FAQ</a>，建议使用 GTK+ 实现 messge box。</p>
+<p>需要安装 gtk 库：<code>sudo apt-get install libgtk-3-dev</code></p>
+<p>主要代码是<a href="http://www.gtkforums.com/viewtopic.php?f=3&amp;t=178427" rel="nofollow">参考这里</a>的。还添加了下面两点：</p>
+<ul>
+<li>把 dialog 设置为置顶</li>
+</ul>
+<div class="highlight highlight-source-c++"><pre><span class="pl-en">gtk_window_set_keep_above</span>(GTK_WINDOW(dialog), true);</pre></div>
+<ul>
+<li>设置 dialog 失去焦点时就销毁</li>
+</ul>
+<div class="highlight highlight-source-c++"><pre><span class="pl-c"><span class="pl-c">//</span> desoty dialog when lost focus</span>
+<span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">dialogFocusOutCallback</span>(GtkWidget* widget, gpointer user_data)
+{
+    <span class="pl-c1">gtk_widget_destroy</span>(widget);
+}
+
+...
+<span class="pl-en">g_signal_connect</span>(dialog, <span class="pl-s"><span class="pl-pds">"</span>focus-out-event<span class="pl-pds">"</span></span>, G_CALLBACK(dialogFocusOutCallback), NULL);
+</pre></div>
+<p>我也是试过去找到 dialog 的父窗口，然后设置模态等等，使 dialog 为子窗口。可是没能成功的实现。现在我的这种实现也能满足基本的需求，代码在这里：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85717463" data-permission-text="Title is private" data-url="https://github.com/cocos2d/cocos2d-x/issues/12220" data-hovercard-type="pull_request" data-hovercard-url="/cocos2d/cocos2d-x/pull/12220/hovercard" href="https://github.com/cocos2d/cocos2d-x/pull/12220">cocos2d/cocos2d-x#12220</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/7#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

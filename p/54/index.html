@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】单消息多处理函数实现</div>
+            <div id="content" class="markdown-body">
+                <p>上星期跟同事讨论到现在的游戏框架的网络协议处理模块是只支持单消息单处理函数的.就是接受到一个协议只会进入一个处理函数.这对于服务端来说挺正常的.实现也是很简便的,只需要绑定协议Id和handler函数即可.可客户端就没有这么简单了.可能客户端收到一个消息后需要执行多个模块的处理.而各个模块又可能不是同一个人做的.所以就出现了经常需要在一个模块的处理函数中调用另一个模块的某些处理函数.比如我添加了一个新的功能,然后实现了之后需要告诉之前某些实现的人调用一下我的函数.这样就造成遗漏的情况和增加工作负担.</p>
+<p>实现单消息多处理函数后,我只需要知道需要添加一个处理函数,自己实现完后注册一下而不需要通知其他同事来调用我的接口.如果涉及到优先执行关系只需在注册的时候写好就行了.</p>
+<p><a href="https://gist.github.com/hanxi/6338589">https://gist.github.com/hanxi/6338589</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/54#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">总结最近配置透明代理的问题</div>
+            <div id="content" class="markdown-body">
+                <h3>1. 什么是透明代理？</h3>
+<p>百科上这样说的</p>
+<blockquote>
+<p>透明代理的意思是客户端根本不需要知道有代理服务器的存在，它改变你的request fields（报文），并会传送真实IP，多用于路由器的NAT转发中。注意，加密的透明代理则是属于匿名代理，意思是不用设置使用代理了。</p>
+</blockquote>
+<h3>2. 我想用透明代理实现什么需求？</h3>
+<p>让家里的设备自动走统一的代理配置，只要在一台机器上配置代理客户端。使用透明代理实现的话，局域网的其他想走自动代理的机器只需要把网关和DNS设置为代理机的ip即可，这一步可以在路由器的DHCP里自动设置。但是我实测失败了，原因可能是我选的方案奇葩，我选的方案是在docker 里面部署代理机，代理客户端选的 v2ray。</p>
+<p>用的方案就是这个 <a href="https://github.com/lisaac/tproxy-gateway">https://github.com/lisaac/tproxy-gateway</a></p>
+<p>遇到个 v2ray 的报错没有解决。</p>
+<p>其实还有其他方案可以尝试，比如用虚拟机的这套方案<br>
+<a href="https://github.com/icymind/VRouter">https://github.com/icymind/VRouter</a></p>
+<p>我不想再搞一套虚拟机，因为我的需求只是为了让局域网的机器可以方便的配置自动代理，然后我就换了一种方案。</p>
+<h3>3. 自动代理 PAC？</h3>
+<p>局域网的机器如果直接设置代理为 v2ray 客户端的端口 8080，就会全部走代理了。为了不需要在每台机器上都配置 PAC，就需要再加一层代理了，可以用 Privoxy 搭建。</p>
+<p>网络结构是这样的：</p>
+<pre><code>windows/linux/mac/android/ios 
+    -&gt; privoxy(192.168.2.2:8081)
+    -&gt; v2ray client(192.168.2.2:8080)
+    -&gt; v2ray server(xx.xx.com:443)
+</code></pre>
+<p>这样一来，局域网的机器只需要把代理配置为 192.168.2.2:8081 即可。</p>
+<p>v2ray server 安装在自己买的 VPS 上，安装方法网上教材很多很多。</p>
+<p><a href="https://hub.docker.com/r/v2ray/official" rel="nofollow">v2ray client</a> 和 <a href="https://hub.docker.com/r/vimagick/privoxy" rel="nofollow">privoxy</a> 我是安装在 docker 里面。privoxy 的配置用的这个工具 <a href="https://github.com/zfl9/gfwlist2privoxy">zfl9/gfwlist2privoxy</a> 把 gfwlist 转成 <code>gfwlist.action</code> 配置文件的。写了个脚本转完后重启 privoxy 容器，然后配置 crontab 自动每天做一次。</p>
+<p>可以参考我的 docker-compose.yml 配置：</p>
+<div class="highlight highlight-source-yaml"><pre><span class="pl-ent">version</span>: <span class="pl-s"><span class="pl-pds">'</span>2<span class="pl-pds">'</span></span>
+
+<span class="pl-ent">services</span>:
+
+    <span class="pl-ent">v2ray</span>:
+        <span class="pl-ent">image</span>: <span class="pl-s">v2ray/official</span>
+        <span class="pl-ent">restart</span>: <span class="pl-s">always</span>
+        <span class="pl-ent">container_name</span>: <span class="pl-s">v2ray</span>
+        <span class="pl-ent">ports</span>:
+            - <span class="pl-s"><span class="pl-pds">"</span>1080:1080<span class="pl-pds">"</span></span>
+            - <span class="pl-s"><span class="pl-pds">"</span>8080:8080<span class="pl-pds">"</span></span>
+        <span class="pl-ent">volumes</span>:
+            - <span class="pl-s">./data/v2ray:/etc/v2ray</span>
+        <span class="pl-ent">entrypoint</span>:
+            - <span class="pl-s">v2ray</span>
+            - <span class="pl-s">-config=/etc/v2ray/config.json</span>
+
+    <span class="pl-ent">privoxy</span>:
+        <span class="pl-ent">image</span>: <span class="pl-s">vimagick/privoxy</span>
+        <span class="pl-ent">restart</span>: <span class="pl-s">always</span>
+        <span class="pl-ent">container_name</span>: <span class="pl-s">privoxy</span>
+        <span class="pl-ent">ports</span>:
+            - <span class="pl-s"><span class="pl-pds">"</span>8081:8118<span class="pl-pds">"</span></span>
+        <span class="pl-ent">volumes</span>:
+            - <span class="pl-s">./data/privoxy/user.action:/etc/privoxy/user.action</span>
+        <span class="pl-ent">cap_add</span>:
+            - <span class="pl-s">NET_ADMIN</span></pre></div>
+<p>PS: 如果想要配置带认证的代理，Privoxy 好像还不支持，可以考虑用 Squid 替代 Privoxy.</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/25#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

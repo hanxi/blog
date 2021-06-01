@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">给 github issues 的个人博客定制主题</div>
+            <div id="content" class="markdown-body">
+                <p><a href="https://github.com/hanxi/blog/issues/1" data-hovercard-type="issue" data-hovercard-url="/hanxi/blog/issues/1/hovercard">这里</a>有介绍如何使用github issues作为个人博客。</p>
+<p>这次是给我的个人博客加件外衣（定制博客的主题），让博客界面更简洁更像一个真正的博客。</p>
+<p>最初使用这个 github issues 写一个主页和404页面跳转的时候就用到了使用 ajax 调用 github api。那时候就有想法要实现博客的外衣，只是一只没有空搞。昨天花了一天搞定了。</p>
+<h3>添加主页</h3>
+<ul>
+<li>调用接口 <code>GET /repos/:owner/:repo/issues</code> 获取所有的 issues</li>
+<li>api 参考 <a href="https://developer.github.com/v3/issues/#list-issues-for-a-repository">https://developer.github.com/v3/issues/#list-issues-for-a-repository</a></li>
+<li>将结果中的每篇文章的 title 提取出来，显示在 html 中即可</li>
+</ul>
+<h3>使用 404.html 页面做路由</h3>
+<ul>
+<li>这个方法是在 <a href="http://blog.hotoo.me/post/github-404-is-a-good-route" rel="nofollow">Github 的 404 页面是个好路由</a>学到的。</li>
+<li>从 url 中取出文章的 id</li>
+</ul>
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> <span class="pl-s1">id</span> <span class="pl-c1">=</span> <span class="pl-en">parseInt</span><span class="pl-kos">(</span><span class="pl-s1">location</span><span class="pl-kos">.</span><span class="pl-c1">pathname</span><span class="pl-kos">.</span><span class="pl-en">substring</span><span class="pl-kos">(</span><span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<ul>
+<li>调用接口 <code>GET /repos/:owner/:repo/issues/:number</code></li>
+<li>api 参考 <a href="https://developer.github.com/v3/issues/#get-a-single-issue">https://developer.github.com/v3/issues/#get-a-single-issue</a></li>
+<li>然后把 title 和 body 显示在页面上</li>
+<li>转换 markdown 最初是找的 <a href="https://github.com/markdown-it/markdown-it">markdown-it</a> 。但是解析和 github 的 <a href="">gfm</a> 显示效果不一样</li>
+<li>然后找到了 github 的 markdown 转换 api <code>POST /markdown</code></li>
+<li>api 参考 <a href="https://developer.github.com/v3/markdown/">https://developer.github.com/v3/markdown/</a></li>
+</ul>
+<h3>关于主题</h3>
+<p>看到<a href="https://github.com/tankywoo">@tankywoo</a>开发的simiki来所用的主题挺简洁的，所以就用上了。</p>
+<h3>关于 ajax</h3>
+<ul>
+<li>jQuery 封装了 ajax 和 好用的 getJSON，但是感觉这个小东西使用 jQuery 有点杀鸡用牛刀的感觉。</li>
+<li>然后自己封装了这两个接口</li>
+</ul>
+<div class="highlight highlight-source-js"><pre><span class="pl-en">getJSON</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-s1">callback</span><span class="pl-kos">)</span>
+<span class="pl-kos">{</span>
+    <span class="pl-k">var</span> <span class="pl-s1">xhr</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">window</span><span class="pl-kos">.</span><span class="pl-c1">XMLHttpRequest</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">open</span><span class="pl-kos">(</span><span class="pl-s">"get"</span><span class="pl-kos">,</span> <span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">setRequestHeader</span><span class="pl-kos">(</span><span class="pl-s">"Accept"</span><span class="pl-kos">,</span> <span class="pl-s">"application/json, text/javascript, */*; q=0.01"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">onreadystatechange</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">readyState</span><span class="pl-c1">==</span><span class="pl-c1">4</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">status</span><span class="pl-c1">==</span><span class="pl-c1">200</span><span class="pl-kos">)</span>
+        <span class="pl-kos">{</span>
+            <span class="pl-s1">callback</span><span class="pl-kos">(</span><span class="pl-c1">JSON</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">responseText</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+    <span class="pl-kos">}</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">send</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span>
+
+<span class="pl-en">ajax</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">post</span><span class="pl-kos">,</span> <span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-s1">callback</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+    <span class="pl-k">var</span> <span class="pl-s1">xhr</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">window</span><span class="pl-kos">.</span><span class="pl-c1">XMLHttpRequest</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-k">var</span> <span class="pl-s1">method</span> <span class="pl-c1">=</span> <span class="pl-s">"post"</span><span class="pl-kos">;</span>
+    <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">post</span> <span class="pl-c1">==</span> <span class="pl-c1">null</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-s1">method</span> <span class="pl-c1">=</span> <span class="pl-s">"get"</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">open</span><span class="pl-kos">(</span><span class="pl-s1">method</span><span class="pl-kos">,</span> <span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">setRequestHeader</span><span class="pl-kos">(</span><span class="pl-s">"Accept"</span><span class="pl-kos">,</span> <span class="pl-s">"application/json, text/javascript, */*; q=0.01"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">onreadystatechange</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+        <span class="pl-k">if</span> <span class="pl-kos">(</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">readyState</span><span class="pl-c1">==</span><span class="pl-c1">4</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">status</span><span class="pl-c1">==</span><span class="pl-c1">200</span><span class="pl-kos">)</span>
+        <span class="pl-kos">{</span>
+            <span class="pl-s1">callback</span><span class="pl-kos">(</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">responseText</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+    <span class="pl-kos">}</span>
+    <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">send</span><span class="pl-kos">(</span><span class="pl-c1">JSON</span><span class="pl-kos">.</span><span class="pl-en">stringify</span><span class="pl-kos">(</span><span class="pl-s1">post</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span></pre></div>
+<h3>如何使用？</h3>
+<p><a href="https://github.com/hanxi/issues-blog/blob/master/README.md">https://github.com/hanxi/issues-blog/blob/master/README.md</a></p>
+<h3>已弃用404页面</h3>
+<p>看到这个<a href="https://github.com/wuhaoworld/github-issues-blog">github-issues-blog</a><br>
+单页面的 issues 博客，我就打算改我这个实现了，一直不想动手是因为我这个还能用。就在昨天，<br>
+使用公司的 Wi-Fi 浏览的时候，404 页面竟然跳转到了 hao123 。对于这种情况我不能容忍，于是<br>
+今天动手改了，放弃使用 404 页面。全部实现放到 index.html 。使用 url 参数作为依据判断。<br>
+至于缓存这一块暂时没考虑做，毕竟博客文章不多。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/6#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

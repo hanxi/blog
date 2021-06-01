@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">Skynet 动态控制无状态服务的数量</div>
+            <div id="content" class="markdown-body">
+                <p>应用场景: 用于复杂计算的服务，可伸缩的控制服务的数量，比如高峰期到来时开启更多的服务，高峰过后需要回收的服务。</p>
+<p>这里只演示无状态的服务，有状态的服务处理更复杂。</p>
+<ol>
+<li>给一堆相同的无状态服务(calculate)用个管理器(calculate_mng)管理起来</li>
+<li>calculate_mng 作为入口供其他服务器调用</li>
+<li>calculate_mng 对 calculate 服务有生杀大权</li>
+</ol>
+<h3>如何正确的退出服务?</h3>
+<p>这里有讲到退出服务的接口 <a href="https://github.com/cloudwu/skynet/wiki/LuaAPI#%E6%9C%8D%E5%8A%A1%E7%9A%84%E5%90%AF%E5%8A%A8%E5%92%8C%E9%80%80%E5%87%BA">Skynet 服务的启动和退出</a></p>
+<blockquote>
+<p>skynet.exit() 用于退出当前的服务。skynet.exit 之后的代码都不会被运行。而且，当前服务被阻塞住的 coroutine 也会立刻中断退出。这些通常是一些 RPC 尚未收到回应。所以调用 skynet.exit() 请务必小心。<br>
+skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐这样做。因为对象会在任意一条消息处理完毕后，毫无征兆的退出。所以推荐的做法是，发送一条消息，让对方自己善后以及调用 skynet.exit 。注：skynet.kill(skynet.self()) 不完全等价于 skynet.exit() ，后者更安全。</p>
+</blockquote>
+<p>为了正确的退出服务，需要选用 <code>skynet.exit()</code>，而且要确保没有挂起的 RPC。</p>
+<p>我们这里的例子是无状态服务，服务也比较简单，只做复杂计算，不会再发起 RPC 去其他地方请求数据(比如去数据库读取数据)。所以只需要这样写退出函数就行了。</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">CMD.exit</span>()
+    skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>slave exit.<span class="pl-pds">"</span></span>)
+    skynet.<span class="pl-c1">ret</span>()
+    skynet.<span class="pl-c1">exit</span>()
+    <span class="pl-c"><span class="pl-c">--</span> exit() 之后的代码是不会执行的</span>
+<span class="pl-k">end</span></pre></div>
+<h3>负载均衡?</h3>
+<p>用数组 <code>slave</code> 把服务的地址存起来，然后在每调用一次计算接口 <code>calculate</code> 就换下一个服务。</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> slave <span class="pl-k">=</span> {}
+<span class="pl-k">local</span> balance <span class="pl-k">=</span> <span class="pl-c1">1</span>
+
+<span class="pl-c"><span class="pl-c">--</span> 找一个 slave 帮忙做点复杂的计算</span>
+<span class="pl-k">function</span> <span class="pl-en">CMD.calculate</span>(<span class="pl-smi">a</span>, <span class="pl-smi">b</span>)
+    <span class="pl-k">local</span> s <span class="pl-k">=</span> slave[balance]
+    balance <span class="pl-k">=</span> balance <span class="pl-k">+</span> <span class="pl-c1">1</span>
+    <span class="pl-k">if</span> balance <span class="pl-k">&gt;</span> <span class="pl-k">#</span>slave <span class="pl-k">then</span>
+        balance <span class="pl-k">=</span> <span class="pl-c1">1</span>
+    <span class="pl-k">end</span>
+    <span class="pl-k">return</span> skynet.<span class="pl-c1">call</span>(s, <span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>calculate<span class="pl-pds">"</span></span>, a, b)
+<span class="pl-k">end</span></pre></div>
+<h3>动态伸缩服务数量?</h3>
+<p>取当前服务的数量 <code>#slave</code>, 数量相同就跳过，服务数量不够就开启新的服务，服务数量多了就干掉多余的服务。</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">CMD.set_slave_count</span>(<span class="pl-smi">cnt</span>)
+    <span class="pl-k">local</span> now_cnt <span class="pl-k">=</span> <span class="pl-k">#</span>slave
+    <span class="pl-k">if</span> now_cnt <span class="pl-k">==</span> cnt <span class="pl-k">then</span>
+        skynet.<span class="pl-c1">error</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>slave count is:%d<span class="pl-pds">"</span></span>, now_cnt))
+        <span class="pl-k">return</span>
+    <span class="pl-k">end</span>
+
+    balance <span class="pl-k">=</span> <span class="pl-c1">1</span>
+    <span class="pl-k">if</span> now_cnt <span class="pl-k">&gt;</span> cnt <span class="pl-k">then</span>
+        <span class="pl-k">local</span> kill_cnt <span class="pl-k">=</span> now_cnt <span class="pl-k">-</span> cnt
+        <span class="pl-k">for</span> _<span class="pl-k">=</span><span class="pl-c1">1</span>,kill_cnt <span class="pl-k">do</span>
+            <span class="pl-k">local</span> s <span class="pl-k">=</span> slave[<span class="pl-k">#</span>slave]
+            skynet.<span class="pl-c1">call</span>(s, <span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>exit<span class="pl-pds">"</span></span>)
+            <span class="pl-c1">table.remove</span>(slave)
+        <span class="pl-k">end</span>
+        skynet.<span class="pl-c1">error</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>slave old_cnt:%d, new_cnt:%d<span class="pl-pds">"</span></span>, now_cnt, <span class="pl-k">#</span>slave))
+        <span class="pl-k">return</span>
+    <span class="pl-k">end</span>
+
+    <span class="pl-k">if</span> now_cnt <span class="pl-k">&lt;</span> cnt <span class="pl-k">then</span>
+        <span class="pl-k">local</span> add_cnt <span class="pl-k">=</span> cnt <span class="pl-k">-</span> now_cnt
+        <span class="pl-k">for</span> _<span class="pl-k">=</span><span class="pl-c1">1</span>,add_cnt <span class="pl-k">do</span>
+            <span class="pl-c1">table.insert</span>(slave, skynet.<span class="pl-c1">newservice</span>(SLAVE_SERVICE_NAME))
+        <span class="pl-k">end</span>
+        skynet.<span class="pl-c1">error</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>slave old_cnt:%d, new_cnt:%d<span class="pl-pds">"</span></span>, now_cnt, <span class="pl-k">#</span>slave))
+        <span class="pl-k">return</span>
+    <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+<h3>自动伸缩?</h3>
+<p>这个我就没写代码了，一般就是用启动心跳定时去监测服务的繁忙情况。</p>
+<p>完整代码在这里: <a href="https://gist.github.com/hanxi/05b9c1ba2d5829301336664588ca9538">Skynet 动态控制无状态服务的数量</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/27#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

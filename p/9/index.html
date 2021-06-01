@@ -1,0 +1,241 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">使用 nmake 编译 Lua 及扩展库</div>
+            <div id="content" class="markdown-body">
+                <h2>起因</h2>
+<p>本来一直没想过还会在 windows 下开发的，但是一想到我的处理 Excel 的转表工具可能需要提供给策划本地使用，我就想方设法了，安装 mingw 的话应该更好解决，但是不了解发布版需不需要安装 mingw，而且刚好电脑已经安装好了 vs。所以就有了这篇文章。其实不用  nmake ,完全用 cl 和 link 命令也是可以的。只不过 nmake 和 make 一样，更适合管理。</p>
+<h2>编译 Lua</h2>
+<p>为了能编译并使用扩展，需要在生成 <code>.dll</code> 的时候生成 <code>.lib</code> 文件。生成 DLL 使用 <code>/DLL</code> 参数。但是生成的 lib 文件有问题，编译扩展库的时候会出现 <code>unresolved xxx</code>。搜到这个 <a href="https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc" rel="nofollow">https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc</a> 。最有用了，虽然是用 CMake 生成的 Make 日志，但是都把编译命令输出来了。需要添加 <code>-DLUA_BUILD_AS_DLL</code> ，至于为什么的话可以去 <code>src/luaconf.h</code> 中搜就知道了。</p>
+<p>下面的 makefile 就是使用 nmake 执行的。生成 Lua.exe 比较简单。生成 Lua.lib 主要是要加上面提到的预定义。</p>
+<div class="highlight highlight-source-makefile"><pre><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\include" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\8.1\Include\um" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\8.1\Include\shared" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\8.1\Include\winrt"
+
+<span class="pl-smi">STD_LIB_PATH</span>=/LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\lib" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.10150.0\ucrt\x86" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\8.1\lib\winv6.3\um\x86" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86"
+
+<span class="pl-smi">SRC_DIR</span>=src
+<span class="pl-smi">OBJ_DIR</span>=objs
+
+<span class="pl-smi">LUA_INC</span>=/I <span class="pl-s">$(<span class="pl-smi">SRC_DIR</span>)</span>
+
+<span class="pl-smi">INCLUDE_DIR</span>=<span class="pl-s">$(<span class="pl-smi">STD_INC</span>)</span> <span class="pl-s">$(<span class="pl-smi">LUA_INC</span>)</span>
+<span class="pl-smi">LIB_PATH</span>=<span class="pl-s">$(<span class="pl-smi">STD_LIB_PATH</span>)</span>
+
+<span class="pl-smi">OBJS</span>=<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lapi.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lauxlib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lbaselib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lbitlib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lcode.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lcorolib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lctype.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ldblib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ldebug.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ldo.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ldump.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lfunc.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lgc.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\linit.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\liolib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\llex.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lmathlib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lmem.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\loadlib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lobject.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lopcodes.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\loslib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lparser.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lstate.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lstring.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lstrlib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ltable.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ltablib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ltm.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lundump.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lutf8lib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lvm.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lzio.obj
+
+<span class="pl-en">all</span>: Lua.dll Lua.exe Luac.exe
+
+<span class="pl-c"><span class="pl-c">#</span>compile</span>
+<span class="pl-en">{<span class="pl-s">$(<span class="pl-smi">SRC_DIR</span>)</span>}.c{<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>}.obj</span>::
+    @if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
+    $(CC) /nologo $(INCLUDE_DIR) /Fo$B /c -DLUA_BUILD_AS_DLL $&lt;
+    @move *.obj $(OBJ_DIR)
+
+<span class="pl-c"><span class="pl-c">#</span> link</span>
+<span class="pl-en">Lua.exe</span>: Lua.lib <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lua.obj
+    <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-c1">$?</span>
+
+<span class="pl-en">Luac.exe</span>: <span class="pl-s">$(<span class="pl-smi">OBJS</span>)</span> <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\luac.obj
+    <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-c1">$?</span>
+
+<span class="pl-en">Lua.dll</span>: <span class="pl-s">$(<span class="pl-smi">OBJS</span>)</span>
+    <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/DLL</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-c1">$?</span>
+
+<span class="pl-en">clean</span>:
+    rd /S /Q $(OBJ_DIR)
+    del *.exe
+    del *.dll
+    del *.exp
+    del *.lib</pre></div>
+<p>对应的 Lua 源码目录结构是这样的</p>
+<pre><code>E:\workspace\lua\
+                |
+                .---src\
+                |
+                .---objs\
+                |
+                .---Makefile
+</code></pre>
+<h2>编译 Lua 的扩展库</h2>
+<p>我主要是为了编译 <a href="https://github.com/hanxi/luaxlsx">xlsx</a> 库，所以就以这个为例子。<br>
+主要就是为了生成 <code>zip.so</code> 和 <code>base64.so</code>。 生成 base64.so 比较简单就一个文件，生成一个obj，<br>
+然后再 link 成 dll。主要关键点在引用 Lua.lib 和 两个预定义 <code>-DLUA_LIB -DLUA_BUILD_AS_DLL</code>。<br>
+Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个预定义的话还是要依据 <code>luaconf.h</code><br>
+也是根据而来。改了这么多还不够，还要改 <code>lbase64.c</code> 和 <code>luazip.c</code> 的 <code>xxx_open</code> 函数的定义，<br>
+需要在前面加上 <code>LUA_API</code>。<code>/MD</code> 需要改为 <code>/MT</code>，要不然移植到没有安装 vc++ 环境的机器上就跑不起来。历经N次尝试和谷歌搜索，就这样结束了。<code>luazip.c</code> 里面有行代码不兼容VC编译器：<code>char tmp[szfn];</code>，这是C99的用法，需要自行修改下。</p>
+<div class="highlight highlight-source-makefile"><pre><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\include" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\8.1\Include\um" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\8.1\Include\shared" <span class="pl-cce">\</span>
+/I "C:\Program Files (x86)\Windows Kits\8.1\Include\winrt"
+
+<span class="pl-smi">STD_LIB_PATH</span>=/LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\lib" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.10150.0\ucrt\x86" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\8.1\lib\winv6.3\um\x86" <span class="pl-cce">\</span>
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86"
+
+<span class="pl-smi">CFLAGS</span>=/nologo /MT /O2 /c
+
+<span class="pl-smi">LUA_INC</span>=/I "E:\workspace\lua\src"
+<span class="pl-smi">LUA_LIB</span>= E:\workspace\lua\Lua.lib
+<span class="pl-smi">LUA_LIB_PATH</span>=/LIBPATH:"E:\workspace\lua"
+
+<span class="pl-smi">ZLIB_SRC</span>=zlib
+<span class="pl-smi">MINIZIP_SRC</span>=minizip
+
+<span class="pl-smi">INCLUDE_DIR</span>=<span class="pl-s">$(<span class="pl-smi">STD_INC</span>)</span> <span class="pl-s">$(<span class="pl-smi">LUA_INC</span>)</span> /I <span class="pl-s">$(<span class="pl-smi">ZLIB_SRC</span>)</span> /I <span class="pl-s">$(<span class="pl-smi">MINIZIP_SRC</span>)</span>
+<span class="pl-smi">LIB_PATH</span>=<span class="pl-s">$(<span class="pl-smi">STD_LIB_PATH</span>)</span> <span class="pl-s">$(<span class="pl-smi">LUA_LIB_PATH</span>)</span>
+
+<span class="pl-smi">OBJ_DIR</span>=objs
+
+<span class="pl-smi">ZLIB_OBJS</span>=<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\adler32.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\compress.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\crc32.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\deflate.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\gzclose.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\gzlib.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\gzread.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\gzwrite.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\infback.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\inffast.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\inflate.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\inftrees.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\trees.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\uncompr.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\zutil.obj
+
+<span class="pl-smi">MINIZIP_OBJS</span>=<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\ioapi.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\iowin32.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\miniunz.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\mztools.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\unzip.obj <span class="pl-cce">\</span>
+<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\zip.obj
+
+<span class="pl-en">all</span>: base64.dll zip.dll
+
+<span class="pl-c"><span class="pl-c">#</span>compile</span>
+<span class="pl-en">.c{<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>}.obj</span>::
+    @if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
+    $(CC) $(CFLAGS) $(INCLUDE_DIR) /Fo$B -DLUA_LIB -DLUA_BUILD_AS_DLL $&lt;
+    @move *.obj $(OBJ_DIR)
+
+<span class="pl-en">{<span class="pl-s">$(<span class="pl-smi">MINIZIP_SRC</span>)</span>}.c{<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>}.obj</span>::
+    @if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
+    $(CC) $(CFLAGS) $(INCLUDE_DIR) /Fo$B -DLUA_LIB -DLUA_BUILD_AS_DLL $&lt;
+    @move *.obj $(OBJ_DIR)
+
+<span class="pl-en">{<span class="pl-s">$(<span class="pl-smi">ZLIB_SRC</span>)</span>}.c{<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>}.obj</span>::
+    @if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
+    $(CC) $(CFLAGS) $(INCLUDE_DIR) /Fo$B -DLUA_LIB -DLUA_BUILD_AS_DLL $&lt;
+    @move *.obj $(OBJ_DIR)
+
+
+<span class="pl-c"><span class="pl-c">#</span> link</span>
+<span class="pl-en">base64.dll</span>: <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lbase64.obj
+    <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/DLL</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-s">$(<span class="pl-smi">LUA_LIB</span>)</span> <span class="pl-c1">$?</span>
+
+<span class="pl-en">zip.dll</span>: <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\luazip.obj <span class="pl-s">$(<span class="pl-smi">ZLIB_OBJS</span>)</span> <span class="pl-s">$(<span class="pl-smi">MINIZIP_OBJS</span>)</span>
+    <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/DLL</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-s">$(<span class="pl-smi">LUA_LIB</span>)</span> <span class="pl-c1">$?</span>
+
+<span class="pl-en">clean</span>:
+    rd /S /Q $(OBJ_DIR)
+    del *.exe
+    del *.dll
+    del *.exp
+    del *.lib</pre></div>
+<p>目录结构</p>
+<pre><code>luaclib\
+       |
+       .---minizip\
+       |
+       .---zlib\
+       |
+       .---objs\
+       |
+       .---lbase64.c
+       |
+       .---luazip.c
+       |
+       .---Makefile
+
+</code></pre>
+<h2>编译 luasocket</h2>
+<p>makefile 见 <a href="https://github.com/hanxi/luasocket-nmake">https://github.com/hanxi/luasocket-nmake</a></p>
+<p>跟上面的不同的是 lua.exe 和 luac.exe 都为静态编译的方式</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/9#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

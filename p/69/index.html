@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】记录解决scp服务器配置不能使用的问题</div>
+            <div id="content" class="markdown-body">
+                <ol>
+<li>
+<p>ssh hlm-devel@192.168.16.234 可以进入服务器</p>
+</li>
+<li>
+<p>scp hlm-devel@192.168.16.234:~/t.lua t.lua 失败，无错误提示，无百分比输出。</p>
+</li>
+<li>
+<p>查看/var/log/secure 无明显错误</p>
+</li>
+<li>
+<p>scp root@192.168.16.234:~/t.lua t.lua 正常</p>
+</li>
+<li>
+<p>查看/etc/ssh/sshd_config 没异常配置，开始怀疑是sftp的问题</p>
+</li>
+<li>
+<p>执行 sftp hlm-devel@192.168.16.234。出现下面错误</p>
+</li>
+</ol>
+<pre><code>sftp Received message too long 458961715
+</code></pre>
+<p>搜到这个方案</p>
+<p><a href="http://prystash.blogspot.com/2009/12/sftp-message-received-message-too-long.html" rel="nofollow">http://prystash.blogspot.com/2009/12/sftp-message-received-message-too-long.html</a></p>
+<p>和这个方案</p>
+<p><a href="http://www.linuxquestions.org/questions/slackware-14/sftp-received-message-too-long-887856/" rel="nofollow">http://www.linuxquestions.org/questions/slackware-14/sftp-received-message-too-long-887856/</a></p>
+<p>文中提到~/.bashrc的问题。于是查看自己的配置看看。里面有一条命令：</p>
+<pre><code>sh /home/develop/2.log
+</code></pre>
+<p>注释该命令。一切正常。</p>
+<p>2.log 文件是用来登录时输出欢迎文字的。随后把该命令移到/etc/profile后一切正常。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/69#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

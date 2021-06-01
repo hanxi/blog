@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">使用 Emscripten 编译 C 函数为 JS 函数</div>
+            <div id="content" class="markdown-body">
+                <h2>1. 安装 Emscripten 环境</h2>
+<p>参考官方文档： <a href="http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html" rel="nofollow">http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html</a></p>
+<p>系统环境建议使用 Ubuntu18.04，我在 CentOS7 上因 glibcxx 的版本过低的问题搞不定 clang 报错的问题。</p>
+<ul>
+<li>下载SDK：</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> Get the emsdk repo</span>
+git clone https://github.com/juj/emsdk.git
+
+<span class="pl-c"><span class="pl-c">#</span> Enter that directory</span>
+<span class="pl-c1">cd</span> emsdk</pre></div>
+<ul>
+<li>下载依赖环境：</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> Fetch the latest version of the emsdk (not needed the first time you clone)</span>
+git pull
+
+<span class="pl-c"><span class="pl-c">#</span> Download and install the latest SDK tools.</span>
+./emsdk install latest
+
+<span class="pl-c"><span class="pl-c">#</span> Make the "latest" SDK "active" for the current user. (writes ~/.emscripten file)</span>
+./emsdk activate latest
+
+<span class="pl-c"><span class="pl-c">#</span> Activate PATH and other environment variables in the current terminal</span>
+<span class="pl-c1">source</span> ./emsdk_env.sh</pre></div>
+<p>执行这行命令 <code>./emsdk install latest</code>  时有概率会失败，建议使用代理。</p>
+<p>最后一行设置环境变量的命令 <code>source ./emsdk_env.sh</code> 每次重新开机需要重新执行。</p>
+<h2>2. 写个 Demo</h2>
+<p>参考了 <a href="http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html" rel="nofollow">http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html</a></p>
+<p>但是版本可能有点旧了，谷歌搜下报错也都能解决。</p>
+<p>新建 <code>t1.c</code> 文件，内容为：</p>
+<div class="highlight highlight-source-c"><pre><span class="pl-k">double</span> <span class="pl-en">SquareVal</span>(<span class="pl-k">double</span> val) {
+    <span class="pl-k">return</span> val * val;
+}</pre></div>
+<p>然后新建文件 <code>t1.html</code>，内容为：</p>
+<div class="highlight highlight-text-html-basic"><pre><span class="pl-c1">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"<span class="pl-kos">&gt;</span></span>
+
+<span class="pl-kos">&lt;</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span>
+    <span class="pl-kos">&lt;</span><span class="pl-ent">h1</span><span class="pl-kos">&gt;</span>Test File<span class="pl-kos">&lt;/</span><span class="pl-ent">h1</span><span class="pl-kos">&gt;</span>
+    <span class="pl-kos">&lt;</span><span class="pl-ent">script</span> <span class="pl-c1">type</span>="<span class="pl-s">text/javascript</span>" <span class="pl-c1">src</span>="<span class="pl-s">t1.js</span>"<span class="pl-kos">&gt;</span><span class="pl-kos">&lt;/</span><span class="pl-ent">script</span><span class="pl-kos">&gt;</span>
+
+    <span class="pl-kos">&lt;</span><span class="pl-ent">script</span><span class="pl-kos">&gt;</span>
+        <span class="pl-v">Module</span><span class="pl-kos">[</span><span class="pl-s">'onRuntimeInitialized'</span><span class="pl-kos">]</span> <span class="pl-c1">=</span> <span class="pl-s1">onRuntimeInitialized</span><span class="pl-kos">;</span>
+        <span class="pl-k">const</span> <span class="pl-v">SquareVal</span> <span class="pl-c1">=</span> <span class="pl-v">Module</span><span class="pl-kos">.</span><span class="pl-en">cwrap</span><span class="pl-kos">(</span><span class="pl-s">'SquareVal'</span><span class="pl-kos">,</span> <span class="pl-s">'number'</span><span class="pl-kos">,</span> <span class="pl-kos">[</span><span class="pl-s">'number'</span><span class="pl-kos">]</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+        <span class="pl-k">function</span> <span class="pl-en">onRuntimeInitialized</span><span class="pl-kos">(</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+            <span class="pl-smi">document</span><span class="pl-kos">.</span><span class="pl-en">write</span><span class="pl-kos">(</span><span class="pl-s">"result == "</span> <span class="pl-c1">+</span> <span class="pl-v">SquareVal</span><span class="pl-kos">(</span><span class="pl-c1">10</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-kos">}</span>
+    <span class="pl-kos">&lt;/</span><span class="pl-ent">script</span><span class="pl-kos">&gt;</span>
+
+<span class="pl-kos">&lt;/</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span></pre></div>
+<p>执行命令：</p>
+<div class="highlight highlight-source-shell"><pre>emcc -s EXTRA_EXPORTED_RUNTIME_METHODS=<span class="pl-s"><span class="pl-pds">'</span>["cwrap"]<span class="pl-pds">'</span></span>  -s EXPORTED_FUNCTIONS=<span class="pl-s"><span class="pl-pds">"</span>['_SquareVal']<span class="pl-pds">"</span></span> t1.c -o t1.js
+python -m SimpleHTTPServer 8080</pre></div>
+<p>然后在浏览器中打开 <a href="http://localhost:8080/t1.html" rel="nofollow">http://localhost:8080/t1.html</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/18#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

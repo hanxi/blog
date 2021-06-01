@@ -1,0 +1,157 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">重新尝试 WSL2 和 Windows Terminal 后感觉不错</div>
+            <div id="content" class="markdown-body">
+                <p>就不说怎么安装了，见 <a href="https://docs.microsoft.com/en-us/windows/wsl/wsl2-install" rel="nofollow">https://docs.microsoft.com/en-us/windows/wsl/wsl2-install</a></p>
+<p>下面的配置解决了我的几个问题：</p>
+<ul>
+<li>配置字体</li>
+<li>干掉黑框</li>
+<li>隐藏滚动条</li>
+<li>默认进入 <code>$HOME</code> 目录</li>
+</ul>
+<pre><code>            "fontFace":  "SauceCodePro Nerd Font Mono",
+            "cursorShape": "filledBox",
+            "padding" : "0, 0, 0, 0",
+            "scrollbarState": "hidden",
+            "commandline" : "wsl.exe ~",
+</code></pre>
+<p><a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/68737402-4be05500-061e-11ea-9f2d-179ec6a71568.png"><img src="https://user-images.githubusercontent.com/1185757/68737402-4be05500-061e-11ea-9f2d-179ec6a71568.png" alt="image" style="max-width:100%;"></a></p>
+<p>我的完整配置如下：</p>
+<pre><code>
+// To view the default settings, hold "alt" while clicking on the "Settings" button.
+// For documentation on these settings, see: https://aka.ms/terminal-documentation
+
+{
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+
+    "defaultProfile": "{c6eaf9f4-32a7-5fdc-b5cf-066e8a4b1e40}",
+
+    "profiles":
+    [
+        {
+            "guid": "{c6eaf9f4-32a7-5fdc-b5cf-066e8a4b1e40}",
+            "hidden": false,
+            "name": "Ubuntu-18.04",
+            "source": "Windows.Terminal.Wsl",
+            "fontFace":  "SauceCodePro Nerd Font Mono",
+            "cursorShape": "filledBox",
+            "padding" : "0, 0, 0, 0",
+            "scrollbarState": "hidden",
+            "commandline" : "wsl.exe ~",
+            "snapOnInput": true
+        },
+        {
+            // Make changes here to the powershell.exe profile
+            "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+            "name": "Windows PowerShell",
+            "commandline": "powershell.exe",
+            "hidden": false
+        },
+        {
+            // Make changes here to the cmd.exe profile
+            "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+            "name": "cmd",
+            "commandline": "cmd.exe",
+            "hidden": false
+        },
+        {
+            "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+            "hidden": false,
+            "name": "Azure Cloud Shell",
+            "source": "Windows.Terminal.Azure"
+        }
+    ],
+
+    // Add custom color schemes to this array
+    "schemes": [],
+
+    // Add any keybinding overrides to this array.
+    // To unbind a default keybinding, set the command to "unbound"
+    "keybindings": []
+}
+</code></pre>
+<p>PS： Windows Terminal 还不能用于生产工具，还存在以下问题没有解决：</p>
+<ul>
+<li>光标在 Vim 里面一直是白块状态，挡住当前字符</li>
+<li>不能输入中文</li>
+<li>鼠标点击不能切换 tmux 窗口</li>
+</ul>
+<p>更新到 0.7.3291.0 版本后可以输入中文了，但是会自动插入空格。光标在vim里可以变成竖线了，但是白块的时候还是挡住当前字符。再等他完善下吧。</p>
+<p>期待下一个版本更新，再试试 hyper 吧，hyper 速度不错，就是遇到两个小问题：</p>
+<ul>
+<li>nerd 字体显示有缺陷</li>
+<li>tmux 不支持鼠标</li>
+</ul>
+<p>缺陷特殊字体<br>
+<a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/68930550-98b45f00-07c9-11ea-8fb5-0e2319172f09.png"><img src="https://user-images.githubusercontent.com/1185757/68930550-98b45f00-07c9-11ea-8fb5-0e2319172f09.png" alt="image" style="max-width:100%;"></a></p>
+<p>最后又试了一下在 WSL 里装 xfce. 最终效果是这样的。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/68930713-f183f780-07c9-11ea-93a9-c41152123da1.png"><img src="https://user-images.githubusercontent.com/1185757/68930713-f183f780-07c9-11ea-93a9-c41152123da1.png" alt="image" style="max-width:100%;"></a></p>
+<p>配置 xfce 参考了：</p>
+<p><a href="https://token2shell.com/howto/x410/xidekick/" rel="nofollow">https://token2shell.com/howto/x410/xidekick/</a></p>
+<p><a href="https://www.robertmarkoski.net/wsl/nix/xfce4-on-wsl/" rel="nofollow">https://www.robertmarkoski.net/wsl/nix/xfce4-on-wsl/</a></p>
+<p><a href="https://www.lainme.com/doku.php/blog/2018/07/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E7%9A%84%E5%9C%A8windows_10%E4%B8%8A%E8%A3%85x" rel="nofollow">https://www.lainme.com/doku.php/blog/2018/07/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E7%9A%84%E5%9C%A8windows_10%E4%B8%8A%E8%A3%85x</a></p>
+<p><a href="https://github.com/QMonkey/wsl-tutorial">https://github.com/QMonkey/wsl-tutorial</a></p>
+<p><a href="https://autoize.com/xfce4-desktop-environment-and-x-server-for-ubuntu-on-wsl-2/" rel="nofollow">https://autoize.com/xfce4-desktop-environment-and-x-server-for-ubuntu-on-wsl-2/</a></p>
+<p>下面是我的快捷打开terminal的相关脚本和快捷方式</p>
+<p><a href="https://github.com/hanxi/blog/files/3850661/wsl.zip">wsl.zip</a></p>
+<p>上面的 zip 里 <code>vcxsrv.bat</code> 有个 bug, 用下面这句忽略报错</p>
+<pre><code>@echo off
+
+"C:\Program Files\VcXsrv\vcxsrv.exe" :0 -multiwindow -clipboard -wgl -ac -silent-dup-error
+</code></pre>
+<p>试了几个终端，都不合我意，安装个 deepin 终端：</p>
+<div class="highlight highlight-source-shell"><pre>sudo add-apt-repository ppa:leaeasy/dde
+sudo apt install -y deepin-terminal</pre></div>
+<p>这个 deepin-terminal 版本比较低，考虑再换个新版本的试试。编译了个最新版，没看出啥区别，暂时用旧版本吧。</p>
+<p>我又用回最新版本的 deepin-terminal 了，并修了一个 <a href="https://github.com/linuxdeepin/deepin-terminal/pull/207">bug</a>， 使其可以使用 VcXsrv 的窗口管理控制大小。</p>
+<pre><code>deepin-terminal -m tiling
+</code></pre>
+<p>上面 zip 包里的 terminal.bat 就需要改成下面这个了</p>
+<pre><code>@echo off
+
+start /B vcxsrv.bat
+rem bash -c "source ~/.bashrc;xfce4-terminal"
+
+bash -c "cd ~;export DISPLAY=$(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0;export LIBGL_ALWAYS_INDIRECT=1;export GTK_THEME=Adapta-Nokto;export XMODIFIERS=@im=fcitx;export GTK_IM_MODULE=fcitx;export QT_IM_MODULE=fcitx;fcitx-autostart;deepin-terminal -m tiling"
+</code></pre>
+<p>2020/04/02 更新：</p>
+<p>其实我已经放弃 deepin-terminal 这个办法了，感觉性能有问题，有卡顿的现象。而且 WLS2 和安卓模拟器冲突了，所以我就把 WSL2 卸载了。</p>
+<p>用了一阵子的 Mintty， 除了不支持标签页，其他都挺好的。</p>
+<p>现在又换到 Windows Terminal 了，采用这个方法 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="454817350" data-permission-text="Title is private" data-url="https://github.com/microsoft/terminal/issues/1203" data-hovercard-type="issue" data-hovercard-url="/microsoft/terminal/issues/1203/hovercard?comment_id=598002624&amp;comment_type=issue_comment" href="https://github.com/microsoft/terminal/issues/1203#issuecomment-598002624">microsoft/terminal#1203 (comment)</a> 解决了 Windows Terminal 光标覆盖字符的问题，但是官方要 1.0 版本才解决这个光标的问题，自己编译了一个自己先用着，况且 1.0 版本的时间也块出来了。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/43#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">使用 lsocket 实现 web jsonrpc 服务端</div>
+            <div id="content" class="markdown-body">
+                <p><a href="http://tset.de/lsocket/" rel="nofollow">lsocket</a> 很精简，使用它的 rshttp.lua 实现 httpserver 做一些小工具是个很不错的选择。<br>
+之前我使用 <a href="http://alilua.com/" rel="nofollow">alilua</a> 做了一个 web <a href="https://github.com/hanxi/alilua-demo-ordering">点餐工具</a>，然后又用 <a href="http://alilua.com/" rel="nofollow">alilua</a> 重写了公司的<br>
+Excel 转 Lua 的工具。看到 <a href="http://tset.de/lsocket/" rel="nofollow">lsocket</a> 之后觉得它非常适合做一些公司内部使用的 web 工具。</p>
+<p>所以我就拿着 <a href="http://tset.de/lsocket/" rel="nofollow">lsocket</a> 自带的 httpserver.lua 的例子稍微改一改就实现了 jsonrpc 的服务端。</p>
+<p>我把这个项目命名为 <a href="https://github.com/hanxi/jsonrpc.lua">jsonrpc.lua</a>，其实就是对 ajax 请求的封装，Excel 转 Lua 用到的<br>
+读取 Excel 文件的 Lua 库也开放出来了，具体你想把 Excel 转成什么样的 Lua 表格就自行<br>
+定夺，就是实现一个远程调用接口，用 js 发送 ajax 请求 ( <a href="https://github.com/hanxi/jsonrpc.js">jsonrpc.js</a> 已经封装好)来调用<br>
+该接口。</p>
+<h3>目录结构</h3>
+<pre><code>
+.-scripts/ # lua 脚本 （后端）
+|
+.-static/  # js/css/html （前端）
+
+</code></pre>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/5#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

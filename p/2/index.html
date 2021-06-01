@@ -1,0 +1,268 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">根据Lua Table设计协议</div>
+            <div id="content" class="markdown-body">
+                <h1>Lua Protocol</h1>
+<p>使用Lua Table语法定义协议模板。</p>
+<h2>设计由来</h2>
+<p>使用Lua开发游戏已经有两年多了，最初接触到的网络交互协议是由老大设计的。只支持整数和字符串类型的数据，后面的主程添加了元素为Lua表的数组类型的数据。主要核心在于Buffer的存储形式：</p>
+<ul>
+<li>整数分<code>int8</code>,<code>int16</code>,<code>int32</code>,<code>int64</code>类型存储，</li>
+<li>整数前面有1byte表示正负数和整数位数，</li>
+<li>字符串则是前面存字符串的长度。</li>
+<li>序列化时不存储key，只存value。</li>
+<li>协议的序列化和反序列化都需要依靠协议模板，称之为<code>schema-full</code>（有模式的序列化方式）</li>
+</ul>
+<h2>添加新类型</h2>
+<p>我现在添加了表，浮点数，完整的数组。</p>
+<ul>
+<li>数组元素必须是同种类型，类似于C语言数组</li>
+<li>数组元素可以是任意支持的类型</li>
+<li>序列化数组时，先存数组的长度</li>
+<li>表的key必须是字符串</li>
+<li>导入协议结构时会将表的key排序存储</li>
+<li>序列化表则是每个元素按key的顺序逐个存储</li>
+</ul>
+<h2>定义协议语法</h2>
+<ul>
+<li>使用Lua Table的语法</li>
+<li>根据默认值区分整数和浮点数
+<ul>
+<li>整数：<code>n==math.floor(n)</code> 例如：1.0,1,2.00</li>
+<li>浮点数：<code>n~=math.floor(n)</code> 例如：1.1,0.1,1.23</li>
+</ul>
+</li>
+<li>字符串：Lua的string类型</li>
+<li>表：只支持key为string类型的table</li>
+<li>数组：定义第一个元素</li>
+<li>如下完整示例：</li>
+</ul>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> proto_struct <span class="pl-k">=</span> {
+    tbl_data <span class="pl-k">=</span> {
+        int_data <span class="pl-k">=</span> <span class="pl-c1">0</span>,
+        float_data <span class="pl-k">=</span> <span class="pl-c1">0.1</span>,
+        str_data <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>default string<span class="pl-pds">"</span></span>,
+        int_array <span class="pl-k">=</span> {<span class="pl-c1">1</span>},
+        float_array <span class="pl-k">=</span> {<span class="pl-c1">1.1</span>},
+        str_array <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>},
+    },
+    tbl_array <span class="pl-k">=</span> {
+        {
+            name <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>tbl_array_element<span class="pl-pds">"</span></span>,
+            id <span class="pl-k">=</span> <span class="pl-c1">1</span>,
+        },
+    },
+}</pre></div>
+<h2>Buffer格式</h2>
+<h3>int 类型</h3>
+<ul>
+<li>(2bytes)<strong>[-255,+255]</strong></li>
+</ul>
+<table role="table">
+<thead>
+<tr>
+<th align="center">sign</th>
+<th align="center">1byte</th>
+<th align="center">1byte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-</td>
+<td align="center">0xF1</td>
+<td align="center">0x00~0xFF</td>
+</tr>
+<tr>
+<td align="center">+</td>
+<td align="center">0x01</td>
+<td align="center">0x00~0xFF</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>(3bytes)<strong>[-65535,-256],[+256,+65535]</strong></li>
+</ul>
+<table role="table">
+<thead>
+<tr>
+<th align="center">sign</th>
+<th align="center">1byte</th>
+<th align="center">2byte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-</td>
+<td align="center">0xF2</td>
+<td align="center">0x0100~0xFFFF</td>
+</tr>
+<tr>
+<td align="center">+</td>
+<td align="center">0x02</td>
+<td align="center">0x0100~0xFFFF</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>(5bytes)<strong>[-4294967295,-65536],[+65536,+4294967295]</strong></li>
+</ul>
+<table role="table">
+<thead>
+<tr>
+<th align="center">sign</th>
+<th align="center">1byte</th>
+<th align="center">4byte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-</td>
+<td align="center">0xF3</td>
+<td align="center">0x00010000~0xFFFFFFFF</td>
+</tr>
+<tr>
+<td align="center">+</td>
+<td align="center">0x03</td>
+<td align="center">0x00010000~0xFFFFFFFF</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>(9bytes)<strong>[-9223372036854775807,-4294967296],[+4294967296,+9223372036854775807]</strong><br>
+<em>（因为受限于int64_t，所以不是uint64_t的最大值）</em></li>
+</ul>
+<table role="table">
+<thead>
+<tr>
+<th align="center">sign</th>
+<th align="center">1byte</th>
+<th align="center">8byte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-</td>
+<td align="center">0xF4</td>
+<td align="center">0x0000000100000000~0x7FFFFFFFFFFFFFFF</td>
+</tr>
+<tr>
+<td align="center">+</td>
+<td align="center">0x04</td>
+<td align="center">0x0000000100000000~0x7FFFFFFFFFFFFFFF</td>
+</tr>
+</tbody>
+</table>
+<h3>string 类型（<em>float类型转为string类型存储</em>）</h3>
+<table role="table">
+<thead>
+<tr>
+<th align="center">len_of_string</th>
+<th align="center">string</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">int</td>
+<td align="center">string</td>
+</tr>
+</tbody>
+</table>
+<h3>array 类型</h3>
+<table role="table">
+<thead>
+<tr>
+<th align="center">len_of_array</th>
+<th align="center">element1</th>
+<th align="center">element2</th>
+<th align="center">...</th>
+<th align="center">elementn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">int</td>
+<td align="center">e1</td>
+<td align="center">e2</td>
+<td align="center">...</td>
+<td align="center">en</td>
+</tr>
+</tbody>
+</table>
+<h3>table 类型</h3>
+<p><strong>按key排序依次存储</strong></p>
+<div class="highlight highlight-source-lua"><pre>tbl <span class="pl-k">=</span> {
+    a <span class="pl-k">=</span> <span class="pl-c1">1</span>,
+    b <span class="pl-k">=</span> <span class="pl-c1">2</span>,
+    c <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>tbl<span class="pl-pds">"</span></span>,
+}</pre></div>
+<table role="table">
+<thead>
+<tr>
+<th align="center">a</th>
+<th align="center">b</th>
+<th align="center">c</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">tbl</td>
+</tr>
+</tbody>
+</table>
+<h2>协议模板的C数据结构</h2>
+<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> field {
+    <span class="pl-k">struct</span> field *next;
+    <span class="pl-k">struct</span> field_list *child;
+    <span class="pl-k">char</span> type;
+    <span class="pl-k">char</span> key[DEFAULT_STR_LEN];
+    <span class="pl-k">union</span> {
+        <span class="pl-k">char</span> str_value[DEFAULT_STR_LEN];
+        <span class="pl-k">int</span> int_value;
+    } default_value;
+};
+
+<span class="pl-k">struct</span> field_list {
+    <span class="pl-k">struct</span> field *head;
+    <span class="pl-k">struct</span> field *tail;
+    <span class="pl-k">int</span> len;
+};
+<span class="pl-c"><span class="pl-c">//</span> field 用于存储int/float/string,field_list用于存储array/table</span></pre></div>
+<p>代码已经开源了，在这里<a href="https://github.com/hanxi/lproto">https://github.com/hanxi/lproto</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/2#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

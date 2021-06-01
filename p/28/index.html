@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">给我的 K2 编译 coolsnowwolf 的 lede</div>
+            <div id="content" class="markdown-body">
+                <h3>部署 docker 编译环境</h3>
+<p>可以下载这个 <a href="https://github.com/hanxi/lede-docker-builder">https://github.com/hanxi/lede-docker-builder</a></p>
+<p>如果想自建 docker 镜像，记得把这个环境变量加上。docker 默认是 root 环境。</p>
+<pre><code>ENV FORCE_UNSAFE_CONFIGURE=1
+</code></pre>
+<h3>make menuconfig 选项配置(基本配置)</h3>
+<ul>
+<li>Target system (目标系统类型,即路由器CPU架构)</li>
+<li>Subtarget (子目标,即路由器芯片型号)</li>
+<li>Target Profile (目标文件,即路由器型号)</li>
+<li>LuCI (LuCI界面设置)</li>
+</ul>
+<p>我的是斐讯K2路由器, CPU型号为MT7620, 芯片架构为MIPS, 路由器型号为PSG1218 rev.Ax, 那么我的基本配置就为:</p>
+<ul>
+<li>Target system -&gt; <strong>MediaTek Ralink MIPS</strong></li>
+<li>Subtarget -&gt; <strong>MT7620 based boards</strong></li>
+<li>Target Profile -&gt; <strong>Phicomm PSG128 rev.Ax</strong></li>
+</ul>
+<p>之前被误导了,K1 是 PSG1208,K2 是 PSG1218 rev.Ax, K2C是PSG1218 rev.Bx</p>
+<h3>LuCI配置:</h3>
+<pre><code>LuCI-&gt;
+    Modules-&gt;
+        Translations-&gt;
+            &lt;*&gt;English (en)
+            &lt;*&gt;Chinese (zh-cn)
+    Themes-&gt;
+            &lt;*&gt;luaci-theme-argon
+</code></pre>
+<p>配置完以上信息后, OpenWrt最基本的一些配置已经完成。</p>
+<p>make menuconfig 配置选项参考: <a href="https://blog.csdn.net/Amosstan/article/details/80135108" rel="nofollow">https://blog.csdn.net/Amosstan/article/details/80135108</a></p>
+<h3>加点插件进去</h3>
+<p>参考下这个配置插件: <a href="https://www.right.com.cn/forum/forum.php?mod=viewthread&amp;tid=344825" rel="nofollow">https://www.right.com.cn/forum/forum.php?mod=viewthread&amp;tid=344825</a></p>
+<pre><code>LuCI ---&gt; Applications ---&gt; luci-app-arpbind  #IP/MAC绑定
+LuCI ---&gt; Applications ---&gt; luci-app-autoreboot  #高级重启
+LuCI ---&gt; Applications ---&gt; luci-app-ddns   #动态域名 DNS 
+LuCI ---&gt; Applications ---&gt; luci-app-firewall   #添加防火墙
+LuCI ---&gt; Applications ---&gt; luci-app-ramfree  #释放内存
+LuCI ---&gt; Applications ---&gt; luci-app-flowoffload   #Turbo ACC  FLOW转发加速
+</code></pre>
+<h3>找回丢失的 $$R</h3>
+<p>这东西我也就临时用下，比如刷 LineageOS 跳过谷歌认证需要用到。</p>
+<pre><code>mkdir ~/lede/package/openwrt-packages
+cd ~/lede/package/openwrt-packages
+git clone https://github.com/SuLingGG/luci-app-ssr-plus ./luci-app-ssr-plus
+</code></pre>
+<p>再插入这行彩蛋语句到 <code>package/lean/default-settings/files/zzz-default-settings</code></p>
+<pre><code>echo 0xDEADBEEF &gt; /etc/config/google_fu_mode
+</code></pre>
+<p>然后 make menuconfig 把选项加进去</p>
+<h3>修改 ip 为 192.168.2.1</h3>
+<p>修改这个文件 <code>package/base-files/files/bin/config_generate</code> 里的 192.168.1.1 为 192.168.2.1</p>
+<h3>修改默认主题</h3>
+<p>再插入这几行语句到 <code>package/lean/default-settings/files/zzz-default-settings</code> 修改主题设置</p>
+<pre><code>uci batch &lt;&lt;-EOF
+    set luci.themes.Argon=/luci-static/argon
+    set luci.main.mediaurlbase=/luci-static/argon
+    commit luci
+EOF
+</code></pre>
+<p>我编译的 K2 的包下载地址: <a href="https://github.com/hanxi/lede-docker-builder/releases/tag/K2-lede">openwrt-ramips-mt7620-psg1218a-squashfs-sysupgrade.bin<br>
+</a></p>
+<p>选错版本，结果把K1编译出来了，K1的包下载地址 <a href="https://github.com/hanxi/lede-docker-builder/releases/tag/K1-lede">openwrt-ramips-mt7620-psg1208-squashfs-sysupgrade.bin</a></p>
+<p>K2 也能甩刷 K1 的包, 就是无线2.4G基本废掉了，没信号的。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/28#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

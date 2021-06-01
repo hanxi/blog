@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="css/style.css">
+        <link rel="Stylesheet" type="text/css" href="css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">【旧博客迁移】记录解决sshd服务配置不能使用公钥登录的问题</div>
+            <div id="content" class="markdown-body">
+                <ol>
+<li>服务查看log</li>
+</ol>
+<pre><code>    tail -1f /var/log/secure
+</code></pre>
+<p>因为搜索了好多sshd的配置都是一样的，不能解决问题，就想到了查看log显示更确切的报错什么的。</p>
+<ol start="2">
+<li>客户端执行命令</li>
+</ol>
+<pre><code>    time scp -v t.lua hlm-devel@192.168.16.234:/home/hlm-devel/t.lua
+</code></pre>
+<p>这句话是搜着搜着找到的。来自这里：<a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=3744661" rel="nofollow">http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=3744661</a><br>
+可以总结出，一般命令都有debug模式，以后出现问题就直接去查找命令的debug参数就是了。</p>
+<ol start="3">
+<li>查看服务器输出的log</li>
+</ol>
+<pre><code>    Dec  3 09:49:19 localhost sshd[15272]: Authentication refused: bad ownership or modes for directory /home/hlm-devel
+    Dec  3 09:49:19 localhost sshd[15272]: Authentication refused: bad ownership or modes for directory /home/hlm-devel
+</code></pre>
+<p>输出了sshd的日志，根据log提示认证拒绝，权限问题，然后就搜 bad ownership or modes for directory<br>
+然后就找到了这个 <a href="http://blog.itpub.net/137293/viewspace-896312/" rel="nofollow">http://blog.itpub.net/137293/viewspace-896312/</a></p>
+<p>到此就解决了ssh公钥登录问题。</p>
+            </div>
+            <div id="comment">
+                <a href="https://api.github.com/repos/hanxi/blog/issues/68#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
