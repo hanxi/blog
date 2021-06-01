@@ -50,12 +50,15 @@ def save_file(fname, content):
         f.write(content.encode("UTF-8"))
 
 def generate(tp, cnt):
+    sitemap = []
     for page_id in range(1,cnt):
         print("Try generate page:", page_id)
         fname = "p/%s/index.html" % page_id
+        url = "https://blog.hanxi.cc/p/%s/" % page_id
         if tp == "update":
             if pathlib.Path(fname).is_file():
                 print("Exist :", fname)
+                sitemap.append(url)
                 continue
         page_html = to_page(page_id)
         if not page_html:
@@ -65,7 +68,9 @@ def generate(tp, cnt):
         pathlib.Path(fpath).mkdir(parents=True, exist_ok=True)
         save_file(fname, page_html)
         print("Generate Ok. fname:", fname)
-        page_html
+        sitemap.append(url)
+    save_file("sitemap.txt", "\n".join(sitemap))
+    requests.get("http://www.google.com/ping?sitemap=https://blog.hanxi.cc/sitemap.txt")
 
 if __name__=="__main__":
     argc = len(sys.argv)
