@@ -36,7 +36,7 @@ def to_page(page_id):
     title = data["title"]
     content = renderMarkdown(data["body"])
 
-    comment_url = url + "#new_comment_field"
+    comment_url = "https://github.com/%s/%s/issues/%d#new_comment_field" %(github_username, github_repo, page_id)
     comment = '<a href="%s"> 点击进入评论 ... </a>' % comment_url
     page_html = page_templ.format(
             blog_name = blog_name,
