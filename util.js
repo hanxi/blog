@@ -64,16 +64,10 @@ removeChildById = function(node, id)
     }
 }
 
-setHeader = function()
-{
-    var header = document.getElementById("header");
-    header.innerHTML = '<div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>';
-}
-
 setFooter = function()
 {
     var footer = document.getElementById("footer");
-    footer.innerHTML = '<span>\
+    footer.innerHTML += '<span>\
         Copyright © 2015-'+ new Date().getFullYear() +' <a href="http://github.com/'+config.github_username+'" target="_blank">'+config.github_username+'</a>.\
         Powered by <a href="http://github.com/hanxi/issues-blog" target="_blank">issues-blog</a>.\
         </span>';

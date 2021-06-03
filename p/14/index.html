@@ -22,7 +22,11 @@
 
     <body>
         <div id="header">
-            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
         </div>
         <div id="container">
             <div id="title">2018再次更新vim配置</div>
@@ -64,31 +68,31 @@
 <li>文件列表默认是搜索文件名的，按 <code>Ctrl + f</code> 切换路径搜索</li>
 </ul>
 <div class="highlight highlight-source-viml"><pre><span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>Lf_ShortcutF</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>&lt;c-p&gt;<span class="pl-pds">'</span></span><span class="pl-c">       <span class="pl-c">"</span> Ctrl + p 打开文件搜索</span>
-<span class="pl-c1">noremap</span> <span class="pl-c1">&lt;c-n&gt;</span> :LeaderfMru<span class="pl-c1">&lt;cr&gt;</span><span class="pl-c">      <span class="pl-c">"</span> Ctrl + n 打开MRU文件列表</span>
-<span class="pl-c1">noremap</span> <span class="pl-c1">&lt;m-p&gt;</span> :LeaderfFunction<span class="pl-c1">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + p 打开函数列表</span></pre></div>
+<span class="pl-c1">noremap</span> <span class="pl-e">&lt;c-n&gt;</span> :LeaderfMru<span class="pl-e">&lt;cr&gt;</span><span class="pl-c">      <span class="pl-c">"</span> Ctrl + n 打开MRU文件列表</span>
+<span class="pl-c1">noremap</span> <span class="pl-e">&lt;m-p&gt;</span> :LeaderfFunction<span class="pl-e">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + p 打开函数列表</span></pre></div>
 <h2>预览文件</h2>
 <ul>
 <li>使用插件 <a href="https://github.com/skywind3000/vim-preview">vim-preview</a></li>
 <li>关闭预览窗口的快捷键是 <code>Ctrl + w  z</code></li>
 <li>设置其他快捷键</li>
 </ul>
-<div class="highlight highlight-source-viml"><pre><span class="pl-c1">noremap</span> <span class="pl-c1">&lt;m-u&gt;</span> :PreviewScroll <span class="pl-c1">-1</span><span class="pl-c1">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + u 往上滚动预览窗口</span>
-<span class="pl-c1">noremap</span> <span class="pl-c1">&lt;m-d&gt;</span> :PreviewScroll <span class="pl-k">+</span><span class="pl-c1">1</span><span class="pl-c1">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + d 往下滚动预览窗口</span>
-<span class="pl-c1">inoremap</span> <span class="pl-c1">&lt;m-u&gt;</span> <span class="pl-c1">&lt;c-\&gt;&lt;c-o&gt;</span>:PreviewScroll <span class="pl-c1">-1</span><span class="pl-c1">&lt;cr&gt;</span>
-<span class="pl-c1">inoremap</span> <span class="pl-c1">&lt;m-d&gt;</span> <span class="pl-c1">&lt;c-\&gt;&lt;c-o&gt;</span>:PreviewScroll <span class="pl-k">+</span><span class="pl-c1">1</span><span class="pl-c1">&lt;cr&gt;</span>
+<div class="highlight highlight-source-viml"><pre><span class="pl-c1">noremap</span> <span class="pl-e">&lt;m-u&gt;</span> :PreviewScroll <span class="pl-c1">-1</span><span class="pl-e">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + u 往上滚动预览窗口</span>
+<span class="pl-c1">noremap</span> <span class="pl-e">&lt;m-d&gt;</span> :PreviewScroll <span class="pl-k">+</span><span class="pl-c1">1</span><span class="pl-e">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + d 往下滚动预览窗口</span>
+<span class="pl-c1">inoremap</span> <span class="pl-e">&lt;m-u&gt;</span> <span class="pl-e">&lt;c-\&gt;&lt;c-o&gt;</span>:PreviewScroll <span class="pl-c1">-1</span><span class="pl-e">&lt;cr&gt;</span>
+<span class="pl-c1">inoremap</span> <span class="pl-e">&lt;m-d&gt;</span> <span class="pl-e">&lt;c-\&gt;&lt;c-o&gt;</span>:PreviewScroll <span class="pl-k">+</span><span class="pl-c1">1</span><span class="pl-e">&lt;cr&gt;</span>
 <span class="pl-c"><span class="pl-c">"</span> 在quickfix窗口按 p 打开预览窗口（配合 grepper 插件很实用）</span>
-<span class="pl-c1">autocmd</span> <span class="pl-c1">FileType</span> qf <span class="pl-c1">nnoremap</span> <span class="pl-c1">&lt;silent&gt;&lt;buffer&gt;</span> <span class="pl-c1">p</span> :PreviewQuickfix<span class="pl-c1">&lt;cr&gt;</span>
-<span class="pl-c1">autocmd</span> <span class="pl-c1">FileType</span> qf <span class="pl-c1">nnoremap</span> <span class="pl-c1">&lt;silent&gt;&lt;buffer&gt;</span> <span class="pl-c1">P</span> :PreviewClose<span class="pl-c1">&lt;cr&gt;</span>
-<span class="pl-c1">noremap</span> <span class="pl-c1">&lt;m-n&gt;</span> :PreviewSignature<span class="pl-k">!</span><span class="pl-c1">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + n 提示函数声明</span>
-<span class="pl-c1">inoremap</span> <span class="pl-c1">&lt;m-n&gt;</span> <span class="pl-c1">&lt;c-\&gt;&lt;c-o&gt;</span>:PreviewSignature<span class="pl-k">!</span><span class="pl-c1">&lt;cr&gt;</span>
-<span class="pl-c1">noremap</span> <span class="pl-c1">&lt;leader&gt;</span><span class="pl-c1">g</span> :PreviewTag<span class="pl-c1">&lt;cr&gt;</span> <span class="pl-s"><span class="pl-pds">"</span> leader + g <span class="pl-pds">"</span></span> 打开单词<span class="pl-c1">tag</span>的预览窗口</pre></div>
+<span class="pl-k">autocmd</span> <span class="pl-c1">FileType</span> <span class="pl-s">qf</span> <span class="pl-c1">nnoremap</span> <span class="pl-e">&lt;silent&gt;&lt;buffer&gt;</span> <span class="pl-c1">p</span> :PreviewQuickfix<span class="pl-e">&lt;cr&gt;</span>
+<span class="pl-k">autocmd</span> <span class="pl-c1">FileType</span> <span class="pl-s">qf</span> <span class="pl-c1">nnoremap</span> <span class="pl-e">&lt;silent&gt;&lt;buffer&gt;</span> <span class="pl-c1">P</span> :PreviewClose<span class="pl-e">&lt;cr&gt;</span>
+<span class="pl-c1">noremap</span> <span class="pl-e">&lt;m-n&gt;</span> :PreviewSignature<span class="pl-k">!</span><span class="pl-e">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + n 提示函数声明</span>
+<span class="pl-c1">inoremap</span> <span class="pl-e">&lt;m-n&gt;</span> <span class="pl-e">&lt;c-\&gt;&lt;c-o&gt;</span>:PreviewSignature<span class="pl-k">!</span><span class="pl-e">&lt;cr&gt;</span>
+<span class="pl-c1">noremap</span> <span class="pl-e">&lt;leader&gt;</span><span class="pl-c1">g</span> :PreviewTag<span class="pl-e">&lt;cr&gt;</span> <span class="pl-s"><span class="pl-pds">"</span> leader + g <span class="pl-pds">"</span></span> 打开单词<span class="pl-c1">tag</span>的预览窗口</pre></div>
 <h2>输入提示</h2>
 <ul>
 <li>ycm 太卡，neovim 异步配置没起效果，平时也用不上语法补全，还是选用了 <a href="https://github.com/roxma/nvim-completion-manager">roxma/nvim-completion-manager</a></li>
 <li>配置 <code>tab</code> 和 <code>shift + tab</code> 选中候选项</li>
 </ul>
-<div class="highlight highlight-source-viml"><pre><span class="pl-c1">inoremap</span> <span class="pl-c1">&lt;expr&gt;</span> <span class="pl-c1">&lt;Tab&gt;</span> <span class="pl-en">pumvisible</span>() ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;</span>C-n&gt;<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;</span>Tab&gt;<span class="pl-pds">"</span></span>
-<span class="pl-c1">inoremap</span> <span class="pl-c1">&lt;expr&gt;</span> <span class="pl-c1">&lt;S-Tab&gt;</span> <span class="pl-en">pumvisible</span>() ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;</span>C-p&gt;<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;</span>S-Tab&gt;<span class="pl-pds">"</span></span></pre></div>
+<div class="highlight highlight-source-viml"><pre><span class="pl-c1">inoremap</span> <span class="pl-e">&lt;expr&gt;</span> <span class="pl-e">&lt;Tab&gt;</span> <span class="pl-en">pumvisible</span>() ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;C-n&gt;</span><span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;Tab&gt;</span><span class="pl-pds">"</span></span>
+<span class="pl-c1">inoremap</span> <span class="pl-e">&lt;expr&gt;</span> <span class="pl-e">&lt;S-Tab&gt;</span> <span class="pl-en">pumvisible</span>() ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;C-p&gt;</span><span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;S-Tab&gt;</span><span class="pl-pds">"</span></span></pre></div>
 <h2>全局搜索</h2>
 <ul>
 <li>选用 <a href="https://github.com/mhinz/vim-grepper">mhinz/vim-grepper</a> 插件，没有选用 ack 的原因是，ack 没配置搜索选中字符的功能。</li>
@@ -111,9 +115,9 @@
     <span class="pl-k">return</span> <span class="pl-smi"><span class="pl-k">s:</span>root</span>
 <span class="pl-k">endfunction</span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>root_dir</span> <span class="pl-k">=</span> <span class="pl-en">FindProjectRoot</span>(<span class="pl-s"><span class="pl-pds">'</span>.git<span class="pl-pds">'</span></span>)<span class="pl-c">   <span class="pl-c">"</span> 搜索 .git 为项目路径</span>
-<span class="pl-c1">autocmd</span> <span class="pl-c1">BufEnter</span> <span class="pl-k">*</span> <span class="pl-c1">silent</span><span class="pl-k">!</span> <span class="pl-c1">lcd</span> <span class="pl-smi"><span class="pl-k">g:</span>root_dir</span><span class="pl-c">  <span class="pl-c">"</span> 设置当前路径为项目路径</span>
-<span class="pl-c1">nmap</span> gs <span class="pl-c1">&lt;plug&gt;</span>(GrepperOperator)<span class="pl-c">	<span class="pl-c">"</span> 选择字符后按 g + s 开始搜索（异步的）</span>
-<span class="pl-c1">xmap</span> gs <span class="pl-c1">&lt;plug&gt;</span>(GrepperOperator)
+<span class="pl-k">autocmd</span> <span class="pl-c1">BufEnter</span> <span class="pl-s">*</span> <span class="pl-c1">silent</span><span class="pl-k">!</span> <span class="pl-c1">lcd</span> <span class="pl-smi"><span class="pl-k">g:</span>root_dir</span><span class="pl-c">  <span class="pl-c">"</span> 设置当前路径为项目路径</span>
+<span class="pl-c1">nmap</span> gs <span class="pl-e">&lt;plug&gt;</span>(GrepperOperator)<span class="pl-c">	<span class="pl-c">"</span> 选择字符后按 g + s 开始搜索（异步的）</span>
+<span class="pl-c1">xmap</span> gs <span class="pl-e">&lt;plug&gt;</span>(GrepperOperator)
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>grepper</span> <span class="pl-k">=</span> {}
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>grepper</span>.ag <span class="pl-k">=</span> {}
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>grepper</span>.ag.<span class="pl-c1">grepprg</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>ag --vimgrep $* <span class="pl-pds">'</span></span>.<span class="pl-smi"><span class="pl-k">g:</span>root_dir</span><span class="pl-c"> <span class="pl-c">"</span> 设置 ag 参数</span>

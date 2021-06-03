@@ -27,15 +27,17 @@ def renderMarkdown(text):
 
 page_templ = read_file('page.html')
 
-def to_page(page_id):
+def get_data(page_id):
     url = "https://api.github.com/repos/%s/%s/issues/%d" % (github_username, github_repo, page_id)
     r = requests.get(url, headers=headers_dict)
     data = json.loads(r.text)
     if "title" not in data:
-        return False
+        return False,False
     title = data["title"]
     content = renderMarkdown(data["body"])
+    return title,content
 
+def to_page(page_id, title, content):
     comment_url = "https://github.com/%s/%s/issues/%d#new_comment_field" %(github_username, github_repo, page_id)
     comment = '<a href="%s"> 点击进入评论 ... </a>' % comment_url
     page_html = page_templ.format(
@@ -49,32 +51,40 @@ def save_file(fname, content):
     with open(fname, 'wb') as f:
         f.write(content.encode("UTF-8"))
 
-def generate(tp, cnt):
+templ = read_file('sitetempl.html')
+def sitemaphtml_format(sitemaphtml_arr):
+    arr = []
+    for info in sitemaphtml_arr:
+        title = info[0]
+        url = info[1]
+        arr.append('<li class="pagelist"><a href="%s">%s</a></li>' % (url, title))
+    postlist = "\n".join(arr)
+    html = templ.format(blog_name = blog_name, postlist = postlist)
+    return html
+
+def generate(cnt):
     sitemap = []
+    sitemaphtml_arr = []
     for page_id in range(1,cnt):
         print("Try generate page:", page_id)
         fname = "p/%s/index.html" % page_id
         url = "https://blog.hanxi.cc/p/%s/" % page_id
-        if tp == "update":
-            if pathlib.Path(fname).is_file():
-                print("Exist :", fname)
-                sitemap.append(url)
-                continue
-        page_html = to_page(page_id)
-        if not page_html:
+        title, content = get_data(page_id)
+        if not title:
             print("Page not exist:", page_id)
             break
+        page_html = to_page(page_id, title, content)
+        sitemap.append(url)
+        sitemaphtml_arr.append([title,url])
         fpath = "p/%s" % page_id 
         pathlib.Path(fpath).mkdir(parents=True, exist_ok=True)
         save_file(fname, page_html)
         print("Generate Ok. fname:", fname)
-        sitemap.append(url)
     save_file("sitemap.txt", "\n".join(sitemap))
+    sitemaphtml = sitemaphtml_format(sitemaphtml_arr)
+    save_file("sitemap.html", sitemaphtml)
     requests.get("http://www.google.com/ping?sitemap=https://blog.hanxi.cc/sitemap.txt")
 
 if __name__=="__main__":
     argc = len(sys.argv)
-    tp = "update"
-    if argc > 1:
-        tp = sys.argv[1]
-    generate(tp, 200)
+    generate(200)
