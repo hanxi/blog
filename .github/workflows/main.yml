@@ -1,5 +1,7 @@
 name: publish static site
-on: push
+on: 
+  issues:
+    types: [opened, edited, milestoned]
 
 jobs:
   run:
