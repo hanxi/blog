@@ -1,0 +1,161 @@
+<!DOCTYPE HTML>
+<!-- Departed !-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav"><a href="/">首页</a><a href="/about.html">关于</a></div>
+        </div>
+        <div id="container">
+            <div id="title">skynet debug console 使用</div>
+            <div id="content" class="markdown-body">
+                <h2>预读</h2>
+<ul>
+<li>关于如何使用 skynet 可以参考 <a href="https://github.com/cloudwu/skynet/wiki">wiki 文档</a></li>
+<li>更多实战内容见 <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">https://www.lanqiao.cn/courses/2770</a> 优惠码：<code>2CZ2UA5u</code></li>
+</ul>
+<h2>环境测试搭建</h2>
+<p>使用示例代码见 <code>examples/main.lua</code> 。</p>
+<p>先开启进程:</p>
+<div class="highlight highlight-source-shell"><pre>$ ./skynet examples/config</pre></div>
+<p>从 <code>examples/main.lua</code> 中可以看到 <code>debug_console</code> 开启的端口是 <code>8000</code> :</p>
+<div class="highlight highlight-source-lua"><pre>skynet.<span class="pl-c1">newservice</span>(<span class="pl-s"><span class="pl-pds">"</span>debug_console<span class="pl-pds">"</span></span>,<span class="pl-c1">8000</span>)</pre></div>
+<p>现在我们使用 <code>nc</code> 或者 <code>telnet</code> 命令连接这个端口就能进入调试控制台。</p>
+<div class="highlight highlight-source-shell"><pre>$ rlwrap nc 127.0.0.1 8000
+Welcome to skynet console</pre></div>
+<p>这里推荐使用 <code>rlwarp</code> 命令包裹一下 <code>nc</code> 命令，这样可以实现输入命令时使用 <code>ctrl + r</code> 搜索历史输入的命令，使用 <code>ctrl + p</code> 和 <code>ctrl + n</code> 可以上下查看历史命令。</p>
+<p>当看到显示了 <code>Welcome to skynet console</code> 时，说明已经成功连上控制台了。</p>
+<h2>查看服务列表</h2>
+<p>输入 <code>list</code> 命令，可以看到正在运行中的服务列表。</p>
+<pre lang="txt"><code>Welcome to skynet console
+list
+:01000004       snlua cmaster
+:01000005       snlua cslave
+:01000007       snlua datacenterd
+:01000008       snlua service_mgr
+:0100000a       snlua protoloader
+:0100000b       snlua console
+:0100000c       snlua debug_console 8000
+:0100000d       snlua simpledb
+:0100000e       snlua watchdog
+:0100000f       snlua gate
+&lt;CMD OK&gt;
+</code></pre>
+<p>如上所示，<code>:01000004</code> 第一列冒号开头的是服务的地址，<code>snlua cmaster</code> 是服务启动参数。比如根据 <code>:0100000c snlua debug_console 8000</code> 可以查到 <code>debug_console</code> 服务的地址为 <code>:0100000c</code> 。</p>
+<h2>查看帮助</h2>
+<p><code>help</code> 命令很有用的，有时候忘记命令的格式了，输入 <code>help</code> 可以临时看看。</p>
+<pre lang="txt"><code>help
+call    call address ...
+clearcache      clear lua code cache
+cmem    Show C memory info
+debug   debug address : debug a lua service
+dumpheap        dumpheap : dump heap profilling
+exit    exit address : kill a lua service
+gc      gc : force every lua service do garbage collect
+help    This help message
+info    info address : get service infomation
+inject  inject address luascript.lua
+jmem    Show jemalloc mem stats
+kill    kill address : kill service
+killtask        killtask address threadname : threadname listed by task
+list    List all the service
+log     launch a new lua service with log
+logoff  logoff address
+logon   logon address
+mem     mem : show memory status
+netstat netstat : show netstat
+ping    ping address
+profactive      profactive [on|off] : active/deactive jemalloc heap profilling
+service List unique service
+signal  signal address sig
+snax    lanuch a new snax service
+start   lanuch a new lua service
+stat    Dump all stats
+task    task address : show service task detail
+trace   trace address [proto] [on|off]
+uniqtask        task address : show service unique task detail
+</code></pre>
+<h2>call 命令的使用</h2>
+<p><code>call</code> 命令是对 <code>skynet.call</code> 接口的封装，执行效果和 <code>skynet.call</code> 效果一样，一般用于手动执行服务里的某个函数，且该函数是 <code>command</code> 里的接口。</p>
+<p>比如 <code>simpledb</code> 服务，代码位置： <code>examples/simpledb.lua</code> ，定义了 <code>GET</code> 和 <code>SET</code> 接口：</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">command.GET</span>(<span class="pl-smi">key</span>)
+    <span class="pl-k">return</span> db[key]
+<span class="pl-k">end</span>
+
+<span class="pl-k">function</span> <span class="pl-en">command.SET</span>(<span class="pl-smi">key</span>, <span class="pl-smi">value</span>)
+    <span class="pl-k">local</span> last <span class="pl-k">=</span> db[key]
+    db[key] <span class="pl-k">=</span> value
+    <span class="pl-k">return</span> last
+<span class="pl-k">end</span></pre></div>
+<p>接下来我们在 debug console 里执行 <code>call</code> 指令查看效果：</p>
+<pre lang="txt"><code>call :0100000d "set", "A", 100
+n       1
+&lt;CMD OK&gt;
+call :0100000d "get", "A"
+1       100
+n       1
+&lt;CMD OK&gt;
+</code></pre>
+<p>首先是执行的 <code>set</code> 接口，命令格式为 <code>call 服务地址 "接口名", 参数1, 参数2</code> 。其中服务地址就是 <code>list</code> 命令显示出来的地址，接口名需要带引号，参数如果是字符串的时候，也需要有引号。</p>
+<p>然后执行的是 <code>get</code> 接口，返回的数据会输出到终端。</p>
+<p>可能已经发现了为什么定义的接口名是大写的，我们使用的时候却可以小写？这是因为 <code>simpledb</code> 对接口名做了处理，忽略大小写了。一般服务都没有处理这个的，所以需要注意保持相同的接口名。</p>
+<div class="highlight highlight-source-lua"><pre>skynet.<span class="pl-c1">start</span>(<span class="pl-k">function</span>()
+    skynet.<span class="pl-c1">dispatch</span>(<span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">session</span>, <span class="pl-smi">address</span>, <span class="pl-smi">cmd</span>, ...)
+        cmd <span class="pl-k">=</span> cmd:<span class="pl-c1">upper</span>()
+        <span class="pl-k">if</span> cmd <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">"</span>PING<span class="pl-pds">"</span></span> <span class="pl-k">then</span>
+        <span class="pl-c1">...</span>
+        <span class="pl-k">end</span>
+        <span class="pl-k">local</span> f <span class="pl-k">=</span> command[cmd]
+        <span class="pl-k">if</span> f <span class="pl-k">then</span>
+        <span class="pl-c1">...</span></pre></div>
+<h2>debug 命令</h2>
+<p><code>debug</code> 命令就不多解释了，这篇  <a href="https://blog.codingnow.com/2015/02/skynet_debugger.html" rel="nofollow">《在线调试 Lua 代码》</a> 写很详细了，也给出了演示示例。</p>
+<h2>inject 命令</h2>
+<p>前面看到 <code>call</code> 命令可以执行已经有实现好的外部接口，可是如何执行不是外部接口的函数呢？这就可以用 <code>inject</code> 来执行没有提供外部接口的函数了。</p>
+<p>新建文件 <code>testinject.lua</code> ，写入下面代码：</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> skynet <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet<span class="pl-pds">"</span></span>
+skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>I'm in inject<span class="pl-pds">"</span></span>)</pre></div>
+<p>然后在 debug console 里执行 <code>inject :0100000d ./testinject.lua</code> ，如下：</p>
+<pre lang="txt"><code>inject :0100000d ./testinject.lua
+
+&lt;CMD OK&gt;
+</code></pre>
+<p>这时， <code>skynet</code> 进程那边会输出下面的日志：</p>
+<pre lang="txt"><code>[:0100000d] I'm in inject
+</code></pre>
+<p>这里只是测试了 <code>skynet.error</code> 接口，想执行任意接口都行的。 <code>local</code> 函数不是很方便执行的，需要根据 <code>upvalue</code> 去找，比较麻烦。所以一般只用来执行一些模块的接口。</p>
+<h2>参考文章</h2>
+<ul>
+<li><a href="https://github.com/cloudwu/skynet/wiki/DebugConsole">cloudwu/skynet/wiki/DebugConsole</a></li>
+<li><a href="https://blog.codingnow.com/2015/02/skynet_debugger.html" rel="nofollow">在线调试 Lua 代码</a></li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/73#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
