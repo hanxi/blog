@@ -1,0 +1,21 @@
+name: publish static site
+on: push
+
+jobs:
+  run:
+    name: Publish static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Generate static file
+        run: python to_p.py
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: hanxi
+          author_email: im.hanxi@gmail.com
+          message: 'Publish'
+          add: '*'
