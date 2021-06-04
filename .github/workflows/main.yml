@@ -2,6 +2,7 @@ name: publish static site
 on: 
   issues:
     types: [opened, edited, milestoned]
+  push:
 
 jobs:
   run:
