@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">使用信号给 skynet 发消息</div>
+            <div id="content" class="markdown-body">
+                <p>skynet 只支持接收一个 SIGHUP 信号，该信号默认是用来切割日志文件的，跟 nginx 切割日志文件的方式一样。</p>
+<p>nginx 支持比较多的信号，比如用于 reload 的  SIGHUP 和切割日志的 SIGUSR1 。</p>
+<p>如果想用信号控制 skynet ，比如执行安全关服， skynet issues 里只讨论了可以重写一个自定义的日志服务来使用信号 SIGHUP 来安全关服。</p>
+<p>那如果想要使用信号同时控制安全关服和切割日志该如何处理呢？</p>
+<p>我想了个方案，重写一个自定义的日志服务，处理信号 SIGHUP 的逻辑，依靠一个文件的内容来区分信号想要传递的具体信息。这样想要支持什么消息都可以很简单的扩展了，比如文件内容写 reload 表示重新加载服务，cutlog 表示切割日志。可以先把指令写入文件，再调用 kill -1 命令。</p>
+<p>这套机制实现代码见 <a href="https://github.com/hanxi/wlua/blob/main/service/log.lua">https://github.com/hanxi/wlua/blob/main/service/log.lua</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/75#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
