@@ -58,6 +58,11 @@ VBoxManage setextradata "macosx" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRe
 <li>输入命令date 0201010116，修改时间为2016年。</li>
 </ol>
 </blockquote>
+<p>改分辨率：</p>
+<pre><code>cd "C:\Program Files\Oracle\Virtualbox"
+VBoxManage setextradata "macosx" VBoxInternal2/EfiGraphicsResolution 1600x900
+</code></pre>
+<p>最后发现 10.13.6 版本安装不了最新的 xcode，于是就在里面升级到 11.4 了。</p>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/76#new_comment_field"> 点击进入评论 ... </a>
