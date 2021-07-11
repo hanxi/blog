@@ -50,6 +50,14 @@ VBoxManage setextradata "macosx" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRe
 <p>再打开 virtual box ，启动进入，进入到语言选择界面就基本没环境问题了。</p>
 <p>使用磁盘工具，把 100 G 的磁盘格式化，名称自行设置，[格式]设置为[Mac OS扩展（日志式）]，方案为[GUID分区图]，点击[抹掉]。</p>
 <p>可以参考这个教程： <a href="https://zhuanlan.zhihu.com/p/337036027" rel="nofollow">https://zhuanlan.zhihu.com/p/337036027</a></p>
+<blockquote>
+<p>如果在安装苹果系统提示"安装 macOS xxx"应用程序副本已损坏，不能用来安装macOS，这个时候本不是镜像本身有问题，是由于镜像的证书过期，并且苹果没有更新证书日期导致的。</p>
+<ol>
+<li>断开网络连接</li>
+<li>打开终端，修改时间</li>
+<li>输入命令date 0201010116，修改时间为2016年。</li>
+</ol>
+</blockquote>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/76#new_comment_field"> 点击进入评论 ... </a>
