@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">VirtualBox 安装 macOS 10.13.6 虚拟机</div>
+            <div id="content" class="markdown-body">
+                <p>下载 iso 文件，或者用这个工程 <a href="https://github.com/myspaghetti/macos-virtualbox">https://github.com/myspaghetti/macos-virtualbox</a> 自动做好 iso 文件。</p>
+<ul>
+<li>确保已经关闭 hype-v 并开启 vt-x，可以用 LeoMoon CPU-V.exe 工具检测环境。</li>
+<li>新建虚拟机，虚拟机名字： macosx</li>
+<li>设置内存和创建硬盘，硬盘设置 100 G</li>
+<li>设置 cd iso 镜像</li>
+<li>然后退出 virtual box</li>
+<li>然后用管理员模式打开 cmd 窗口，执行下面的命令</li>
+</ul>
+<pre lang="txt"><code>cd "c:\Program Files\Oracle\VirtualBox"
+VBoxManage modifyvm "macosx" --cpuidset 00000001 000106e5 00100800 0098e3fd bfebfbff
+VBoxManage setextradata "macosx" "VBoxInternal/Devices/efi/0/Config/DmiSystemProduct" "iMac11,3"
+VBoxManage setextradata "macosx" "VBoxInternal/Devices/efi/0/Config/DmiSystemVersion" "1.0"
+VBoxManage setextradata "macosx" "VBoxInternal/Devices/efi/0/Config/DmiBoardProduct" "Iloveapple"
+VBoxManage setextradata "macosx" "VBoxInternal/Devices/smc/0/Config/DeviceKey" "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
+VBoxManage setextradata "macosx" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRealSMC" 1
+</code></pre>
+<p>再打开 virtual box ，启动进入，进入到语言选择界面就基本没环境问题了。</p>
+<p>使用磁盘工具，把 100 G 的磁盘格式化，名称自行设置，[格式]设置为[Mac OS扩展（日志式）]，方案为[GUID分区图]，点击[抹掉]。</p>
+<p>可以参考这个教程： <a href="https://zhuanlan.zhihu.com/p/337036027" rel="nofollow">https://zhuanlan.zhihu.com/p/337036027</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/76#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
