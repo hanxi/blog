@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">用 xcode 命令行打包 ipa</div>
+            <div id="content" class="markdown-body">
+                <p>引用自这里 <a href="https://developer.apple.com/forums/thread/70326" rel="nofollow">https://developer.apple.com/forums/thread/70326</a></p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span># ipa.sh</span>
+<span class="pl-c"><span class="pl-c">#</span># usage: PASSWORD=loginpassword sh ipa.sh</span>
+security unlock-keychain -p <span class="pl-smi">$PASSWORD</span> login.keychain
+NAME=Unity-iPhone
+<span class="pl-c"><span class="pl-c">#</span># Builds the app into an archive</span>
+<span class="pl-c"><span class="pl-c">#</span>xcodebuild -project ${NAME}.xcodeproj -scheme ${NAME} -archivePath ${NAME}.xcarchive archive</span>
+
+<span class="pl-c"><span class="pl-c">#</span># Exports the archive according to the export options specified by the plist</span>
+xcodebuild -exportArchive -archivePath <span class="pl-smi">${NAME}</span>.xcarchive -exportPath output -exportOptionsPlist <span class="pl-smi">${NAME}</span>.xcarchive/Info.plist</pre></div>
+<p>第一行的 <code>security unlock-keychain</code> 引用自这里 <a href="https://stackoverflow.com/questions/24023639/xcode-command-usr-bin-codesign-failed-with-exit-code-1-errsecinternalcomponen" rel="nofollow">https://stackoverflow.com/questions/24023639/xcode-command-usr-bin-codesign-failed-with-exit-code-1-errsecinternalcomponen</a></p>
+<p>上面的脚本可以用于打包 Unity 导出的 ios 工程，还需要在 xcode 里设置 apple 账号。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/77#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
