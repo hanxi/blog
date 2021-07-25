@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">AOI （Area Of Interest）算法实现</div>
+            <div id="content" class="markdown-body">
+                <h2>参考</h2>
+<ul>
+<li><a href="https://my.oschina.net/ta8210/blog/709075" rel="nofollow">聊一聊游戏服务器架构设计－聊天功能的那些事</a></li>
+<li><a href="https://blog.codingnow.com/2012/03/dev_note_13.html" rel="nofollow">开发笔记 (13) : AOI 服务的设计与实现</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/201588990" rel="nofollow">深入探索AOI算法</a></li>
+<li><a href="https://rondsny.github.io/2016/11/29/802-Game_AOI_Cross_Linked_List/" rel="nofollow">十字链表的AOI算法实现</a></li>
+<li><a href="https://blog.csdn.net/qq_21407523/article/details/114297309" rel="nofollow">AOI算法、Unity游戏优化（一）</a></li>
+<li><a href="https://lotabout.me/2018/skip-list/" rel="nofollow">跳表──没听过但很犀利的数据结构</a></li>
+<li><a href="https://www.cnblogs.com/coding-my-life/p/14256640.html" rel="nofollow">游戏服务器AOI的实现</a></li>
+<li><a href="https://www.cnblogs.com/persistentsnail/p/3294842.html" rel="nofollow">游戏中的AOI（Area of Interest）算法</a></li>
+<li><a href="https://iyichen.xyz/2020/04/talk-about-aoi/" rel="nofollow">聊聊游戏中的AOI</a></li>
+</ul>
+<h2>1. 九宫格</h2>
+<p>绘制如下的 2D 的地图：</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_watermark.png" alt="grid" style="max-width:100%;"></a></p>
+<ul>
+<li>场景大小： 300(w) X 250(h)</li>
+<li>x 轴格子数量： cntx = 6</li>
+<li>y 轴格子数量： cnty = 5</li>
+<li>格子宽度： dw = w/cntx = 300 / 6 = 50</li>
+<li>格子长度： dh = h/cnty = 250 / 5 = 50</li>
+<li>格子 15 的 x 轴坐标： idx = 3</li>
+<li>格子 15 的 y 轴坐标： idy = 2</li>
+<li>格子编号： id = idy * cntx + idx = 2 * 6 + 3 = 15 (利用格子坐标计算给自编号)</li>
+<li>格子 x 轴坐标： idx = id % cntx = 15 % 6 = 3 (利用格子 id 计算格子坐标：取余)</li>
+<li>格子 y 轴坐标： idy = id % cnty = 15 // 5 = 2 (整除)</li>
+<li>坐标 (255,101) 所在格子：
+<ul>
+<li>idx = x/dw = 255 // 50 = 5</li>
+<li>idy = y/dh = 101 // 50 = 2</li>
+</ul>
+</li>
+</ul>
+<p>计算九宫格：</p>
+<pre lang="txt"><code>{-1,-1}, {0,-1}, {1,-1}
+{-1,0},  {0,0},  {1,0},
+{-1,1},  {0,1},  {1,1},
+</code></pre>
+<p>用当前格子坐标加上上面的二维数组就能找出周围的九个格子（包括自己），当然处于边界的时候需要判断坐标的范围。</p>
+<p>首先确定数据结构如下图：</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png" alt="grid_struct" style="max-width:100%;"></a></p>
+<p>数据结构的定义大概是下面这样的：</p>
+<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> aoi_space {
+    <span class="pl-k">int</span> w;
+    <span class="pl-k">int</span> h;
+    <span class="pl-k">int</span> nx;
+    <span class="pl-k">int</span> ny;
+    <span class="pl-k">struct</span> grid * grid_list;
+};
+<span class="pl-k">struct</span> grid {
+    <span class="pl-k">int</span> gid;
+    <span class="pl-k">struct</span> map * object_map;
+};
+<span class="pl-k">struct</span> object {
+    <span class="pl-k">int</span> id;
+    <span class="pl-k">int</span> position[<span class="pl-c1">2</span>];
+};</pre></div>
+<ul>
+<li><code>grid_list</code> 可以直接使用数组，因为 gid 是从 0 开始且连续的。</li>
+<li><code>object_map</code> 是一个 hash 表，因为 object id 是不连续的。</li>
+</ul>
+<p>再定义操作接口：</p>
+<div class="highlight highlight-source-c"><pre><span class="pl-c"><span class="pl-c">//</span> op: 'e' enter</span>
+<span class="pl-c"><span class="pl-c">//</span> op: 'l' leave</span>
+<span class="pl-c"><span class="pl-c">//</span> op: 'm' move</span>
+<span class="pl-k">typedef</span> <span class="pl-en">void</span> (AoiCallback)(<span class="pl-k">int</span> watcher, <span class="pl-k">int</span> marker, <span class="pl-k">char</span> op);
+
+<span class="pl-k">struct</span> aoi_space * <span class="pl-en">aoi_new</span>(<span class="pl-k">int</span> w, <span class="pl-k">int</span> h, <span class="pl-k">int</span> nx, <span class="pl-k">int</span> ny, AoiCallback cb);
+<span class="pl-k">void</span> <span class="pl-en">aoi_delete</span>(<span class="pl-k">struct</span> aoi_space * aoi);
+
+<span class="pl-k">void</span> <span class="pl-en">aoi_enter</span>(<span class="pl-k">struct</span> aoi_space * aoi, <span class="pl-k">int</span> id, <span class="pl-k">int</span> x, <span class="pl-k">int</span> y);
+<span class="pl-k">void</span> <span class="pl-en">aoi_leave</span>(<span class="pl-k">struct</span> aoi_space * aoi, <span class="pl-k">int</span> id);
+<span class="pl-k">void</span> <span class="pl-en">aoi_move</span>(<span class="pl-k">struct</span> aoi_space * aoi, <span class="pl-k">int</span> id, <span class="pl-k">int</span> x, <span class="pl-k">int</span> y);</pre></div>
+<p>这里从接口可以看出：</p>
+<ul>
+<li>没有定义视野半径，这样九宫格内的玩家都会收到消息。</li>
+<li>事件消息通过返回值的方式接收。</li>
+</ul>
+<p>方案实现规则引用 <a href="https://zhuanlan.zhihu.com/p/201588990" rel="nofollow">co lin</a> 的描述：</p>
+<blockquote>
+<ul>
+<li>进入场景：进入一个格子，取出周围9格的对象，向它们发送Enter(我)事件，同时向我发送Enter(对象)事件。</li>
+<li>离开场景：取出周围9格的对象，向它们发送Leave(我)事件。</li>
+<li>移动：
+<ul>
+<li>如果没跨格子，直接取9格的对象，向它们发送移动事件。</li>
+<li>如果跨过格子，计算{OldGrid-NewGrid}，向它们发送Leave(我)事件，向我发送Leave(对象)事件；计算{NewGrid-OldGrid}集合，向它们发送Enter(我)事件，向我发送Enter(对象事件；计算{NewGrid*OldGrid}集合，向他们发送移动事件。</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_move_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_move_watermark.png" alt="grid_move" style="max-width:100%;"></a></p>
+<ul>
+<li>进入场景:  根据坐标 (x,y) 计算出 id 所在的格子 ID (gid) ，找出格子里的所有对象 object_list ，然后调用 <code>aoi_callback(watcher, marker, 'e')</code> ，双方都发送 enter 事件，然后把自己加入到 grid 里。</li>
+<li>离开场景： 根据坐标 (x,y) 计算出 id 所在的格子 ID (gid) ，找出格子里的所有对象 object_list ，然后调用 <code>aoi_callback(watcher, marker, 'l')</code> ，然后把自己从 grid 里删除。</li>
+</ul>
+<p>为了简化代码实现，还是用 Lua 来实现示例。主要原因是如果实现 map 就觉得代码长了几行，如果是正式环境还是用 C 实现更高效。</p>
+<p>Lua 代码实现在这里 <a href="https://github.com/hanxi/aoi">https://github.com/hanxi/aoi</a></p>
+<h2>2. 十字链表</h2>
+<p>有空再研究。。。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/78#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
