@@ -81,6 +81,7 @@ def generate(cnt):
         save_file(fname, page_html)
         print("Generate Ok. fname:", fname)
     save_file("sitemap.txt", "\n".join(sitemap))
+    sitemaphtml_arr.reverse()
     sitemaphtml = sitemaphtml_format(sitemaphtml_arr)
     save_file("sitemap.html", sitemaphtml)
     requests.get("http://www.google.com/ping?sitemap=https://blog.hanxi.cc/sitemap.txt")
