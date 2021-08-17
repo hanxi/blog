@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">skynet自定义log服务</div>
+            <div id="content" class="markdown-body">
+                <p>本文主要演示如何给 skynet 设置一个自定义的日志服务，并添加一些额外的功能。</p>
+<ul>
+<li>每天切割日志文件</li>
+<li>扩展 kill -1 信号，支持安全关服，重新打开日志文件等</li>
+<li>日志等级划分</li>
+</ul>
+<h2>参考示例</h2>
+<p>首先参考示例 <code>examples/userlog.lua</code> ，使用 <code>skynet.register_protocol</code> 注册 <code>skynet.PTYPE_TEXT</code> 文本消息，用于输出日志。注册 <code>skynet.PTYPE_SYSTEM</code> 系统消息，用于接收系统信号。</p>
+<h2>实现日志等级功能</h2>
+<p>代码位置 <code>lualib/log.lua</code> ，这里逻辑比较简单，就是根据配置的日志等级和接口对比，决定是否输出日志，分为 <code>debug</code>, <code>info</code> , <code>warn</code> , <code>error</code> 四个等级。其中 <code>error</code> 增加了调用堆栈输出，方便排查错误。</p>
+<h2>实现日志服务</h2>
+<ul>
+<li>每天切割一次文件采用的是 <code>skynet.timeout</code> 接口设置循环定时器，每天把日志文件备份处理。</li>
+<li>信号处理采用读取 sighup 文件的第一行，根据文件内容来决定信号内容。</li>
+</ul>
+<h2>其他</h2>
+<ul>
+<li>代码分支： <a href="https://github.com/hanxi/skynet/tree/log">https://github.com/hanxi/skynet/tree/log</a></li>
+<li>代码提交记录： <a class="commit-link" data-hovercard-type="commit" data-hovercard-url="https://github.com/hanxi/skynet/commit/15117a446c443840d927f35ab0071e033edbce8b/hovercard" href="https://github.com/hanxi/skynet/commit/15117a446c443840d927f35ab0071e033edbce8b">hanxi/skynet@<tt>15117a4</tt></a></li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/80#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
