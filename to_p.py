@@ -8,7 +8,7 @@ def read_file(fname):
         contents = f.read()
         return contents
 
-access_token = "d229952b3e850117931"+"e15ba7e5db4939d346f0b"
+access_token = "g"+"hp_djsCiXH8lEL4HBOD1R7yS"+"DiJoZDPI31fdtRw"
 blog_name = "涵曦 ~ 博客"
 github_username = "hanxi"
 github_repo = "blog"
