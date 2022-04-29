@@ -71,8 +71,8 @@ enckey=<span class="pl-s"><span class="pl-pds">$(</span>get_config enckey<span c
 
 <span class="pl-s"><span class="pl-pds">`</span><span class="pl-pds">`</span><span class="pl-pds">`</span>bash</span>
 <span class="pl-s">cat <span class="pl-k">&gt;</span> <span class="pl-smi">$config</span> <span class="pl-s"><span class="pl-k">&lt;&lt;</span> <span class="pl-k">EOF</span></span></span>
-<span class="pl-s"><span class="pl-s">token=$1</span></span>
-<span class="pl-s"><span class="pl-s">enckey=$2</span></span>
+<span class="pl-s"><span class="pl-s">token=<span class="pl-smi">$1</span></span></span>
+<span class="pl-s"><span class="pl-s">enckey=<span class="pl-smi">$2</span></span></span>
 <span class="pl-s"><span class="pl-s"><span class="pl-k">EOF</span></span></span></pre></div>
 <h2>加密解密字符串</h2>
 <div class="highlight highlight-source-shell"><pre><span class="pl-c1">echo</span> -e <span class="pl-s"><span class="pl-pds">"</span>Hello World<span class="pl-pds">"</span></span> <span class="pl-k">|</span> openssl enc -e -aes-256-cbc -k enckey <span class="pl-k">&gt;</span> enc.tmp
