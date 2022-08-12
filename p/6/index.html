@@ -35,7 +35,7 @@
 <p>最初使用这个 github issues 写一个主页和404页面跳转的时候就用到了使用 ajax 调用 github api。那时候就有想法要实现博客的外衣，只是一只没有空搞。昨天花了一天搞定了。</p>
 <h3>添加主页</h3>
 <ul>
-<li>调用接口 <code>GET /repos/:owner/:repo/issues</code> 获取所有的 issues</li>
+<li>调用接口 <code class="notranslate">GET /repos/:owner/:repo/issues</code> 获取所有的 issues</li>
 <li>api 参考 <a href="https://developer.github.com/v3/issues/#list-issues-for-a-repository">https://developer.github.com/v3/issues/#list-issues-for-a-repository</a></li>
 <li>将结果中的每篇文章的 title 提取出来，显示在 html 中即可</li>
 </ul>
@@ -46,11 +46,11 @@
 </ul>
 <div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> <span class="pl-s1">id</span> <span class="pl-c1">=</span> <span class="pl-en">parseInt</span><span class="pl-kos">(</span><span class="pl-s1">location</span><span class="pl-kos">.</span><span class="pl-c1">pathname</span><span class="pl-kos">.</span><span class="pl-en">substring</span><span class="pl-kos">(</span><span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
 <ul>
-<li>调用接口 <code>GET /repos/:owner/:repo/issues/:number</code></li>
+<li>调用接口 <code class="notranslate">GET /repos/:owner/:repo/issues/:number</code></li>
 <li>api 参考 <a href="https://developer.github.com/v3/issues/#get-a-single-issue">https://developer.github.com/v3/issues/#get-a-single-issue</a></li>
 <li>然后把 title 和 body 显示在页面上</li>
 <li>转换 markdown 最初是找的 <a href="https://github.com/markdown-it/markdown-it">markdown-it</a> 。但是解析和 github 的 <a href="">gfm</a> 显示效果不一样</li>
-<li>然后找到了 github 的 markdown 转换 api <code>POST /markdown</code></li>
+<li>然后找到了 github 的 markdown 转换 api <code class="notranslate">POST /markdown</code></li>
 <li>api 参考 <a href="https://developer.github.com/v3/markdown/">https://developer.github.com/v3/markdown/</a></li>
 </ul>
 <h3>关于主题</h3>

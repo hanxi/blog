@@ -66,9 +66,9 @@
 <p>第一个版本定为 0.01 ，主要功能就是上面说的。后续版本现在也只是想想而已，比如目前只能在 Linux 下运行，可以尝试迁移到 Mac OS 和 Windows 下运行，因为不是必须的东西，所以就放在 TODO 计划中了。</p>
 <h2>开发路线</h2>
 <h3>1. 根据参考的框架，确定框架</h3>
-<p>从使用者的角度来确定框架结构。首先是方便开发部署，所以参考了 lor 的方式，提供脚手架生成工程，工程中包含些操作脚本，比如 <code>start.sh</code> , <code>stop.sh</code> 和 <code>reload.sh</code> 这些。由于选用的底层是 skynet ，所以按照 skynet 推荐的方式开发，以 skynet 为 submodule 。</p>
+<p>从使用者的角度来确定框架结构。首先是方便开发部署，所以参考了 lor 的方式，提供脚手架生成工程，工程中包含些操作脚本，比如 <code class="notranslate">start.sh</code> , <code class="notranslate">stop.sh</code> 和 <code class="notranslate">reload.sh</code> 这些。由于选用的底层是 skynet ，所以按照 skynet 推荐的方式开发，以 skynet 为 submodule 。</p>
 <p>预定的目录结果大概是这样的：</p>
-<pre lang="txt"><code>.
+<pre lang="txt" class="notranslate"><code class="notranslate">.
 ├── 3rd
 ├── conf
 ├── luaclib
@@ -77,9 +77,9 @@
 ├── service
 └── skynet
 </code></pre>
-<p>框架的主要代码都放在 <code>lualib</code> 目录，其他第三方库都放到 <code>3rd</code> 目录。<code>service</code> 是自定义的 skynet 服务目录。</p>
+<p>框架的主要代码都放在 <code class="notranslate">lualib</code> 目录，其他第三方库都放到 <code class="notranslate">3rd</code> 目录。<code class="notranslate">service</code> 是自定义的 skynet 服务目录。</p>
 <p>框架使用 skynet 的特性很少，只用到了 2 种服务，一个主服务 main 和多个 agent 服务，web 开发逻辑都在 agent 服务上执行。</p>
-<pre lang="txt"><code>              +---------+    +---------+
+<pre lang="txt" class="notranslate"><code class="notranslate">              +---------+    +---------+
               | agent 1 &lt;----+  client |
 +-------+     +---------+    +---------+
 |  main +-----+
@@ -88,10 +88,10 @@
               +---------+
 </code></pre>
 <h3>2. 首先让框架跑起来</h3>
-<p>首先就是参考 <code>skynet/examples/simpleweb.lua</code> 示例开启 http 服务。这里的例子把 agent 服务写在了同一个文件，把他拆开为 <code>service/main.lua</code> 和 <code>lualib/wlua/agent.lua</code> 两个文件，稍微改改就跑起来了。</p>
+<p>首先就是参考 <code class="notranslate">skynet/examples/simpleweb.lua</code> 示例开启 http 服务。这里的例子把 agent 服务写在了同一个文件，把他拆开为 <code class="notranslate">service/main.lua</code> 和 <code class="notranslate">lualib/wlua/agent.lua</code> 两个文件，稍微改改就跑起来了。</p>
 <h3>3. 代码架构设计</h3>
 <p>首先从使用者的角度来设计框架，使用者的目录结构大致是这样的：</p>
-<pre lang="txt"><code>.
+<pre lang="txt" class="notranslate"><code class="notranslate">.
 ├── app
 │   └── main.lua
 ├── conf
@@ -102,7 +102,7 @@
 ├── start.sh
 └── stop.sh
 </code></pre>
-<p>可以看出，除了那些 sh 脚本，只有两个文件是主要的。 <code>app/main.lua</code> 就是 <code>agent</code> 服务的入口，也是使用者开发 web 服务器的入口。 <code>conf/wlua.conf</code> 是配置文件，我想要的 <code>app/main.lua</code> 是这样的结构，和 lor 框架的非常类似。</p>
+<p>可以看出，除了那些 sh 脚本，只有两个文件是主要的。 <code class="notranslate">app/main.lua</code> 就是 <code class="notranslate">agent</code> 服务的入口，也是使用者开发 web 服务器的入口。 <code class="notranslate">conf/wlua.conf</code> 是配置文件，我想要的 <code class="notranslate">app/main.lua</code> 是这样的结构，和 lor 框架的非常类似。</p>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> wlua <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wlua<span class="pl-pds">"</span></span>
 <span class="pl-k">local</span> app <span class="pl-k">=</span> wlua:<span class="pl-c1">new</span>()
 
@@ -111,9 +111,9 @@ app:<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</sp
 <span class="pl-k">end</span>)
 
 app:<span class="pl-c1">run</span>()</pre></div>
-<p>跟 lor 还是有点区别的，这里参考了 gin 框架的样式，回调函数的参数只有 <code>c</code> ，是 <code>context</code> 对象，这个对象包含了此次客户端请求的所有信息和相关的操作。</p>
-<p>app 这个对象也参考了 gin 框架的 engine 对象，代码结构也和 gin 框架类似。<code>lualib</code> 目录结构是这样的：</p>
-<pre lang="txt"><code>lualib/
+<p>跟 lor 还是有点区别的，这里参考了 gin 框架的样式，回调函数的参数只有 <code class="notranslate">c</code> ，是 <code class="notranslate">context</code> 对象，这个对象包含了此次客户端请求的所有信息和相关的操作。</p>
+<p>app 这个对象也参考了 gin 框架的 engine 对象，代码结构也和 gin 框架类似。<code class="notranslate">lualib</code> 目录结构是这样的：</p>
+<pre lang="txt" class="notranslate"><code class="notranslate">lualib/
 ├── config.lua
 ├── log.lua
 ├── middleware
@@ -134,14 +134,14 @@ app:<span class="pl-c1">run</span>()</pre></div>
 │   └── routergroup.lua
 └── wlua.lua
 </code></pre>
-<p><code>wlua.lua</code> 就是上面 <code>app</code> 对象的类的实现。<code>wlua</code> 类主要包含了 <code>router</code> ，<code>router</code> 最初是采用的是很简单的 <a href="https://github.com/APItools/router.lua">APItools/router.lua</a> ，只要代码能跑起来随时都能把它替换掉。最后发现了一个性能很强的路由库 <a href="https://github.com/c9s/r3">c9s/r3</a> ，参考了 <a href="https://github.com/iresty/lua-resty-libr3">iresty/lua-resty-libr3</a> 的封装，自己封装成 <a href="https://github.com/hanxi/lua-r3">hanxi/lua-r3</a> 。主要接口代码就是上面的 <code>r3.lua</code> 文件，之前封装的时候也写过一篇相关文章记录 <a href="https://blog.hanxi.cc/p/49" rel="nofollow">https://blog.hanxi.cc/p/49</a> 。</p>
+<p><code class="notranslate">wlua.lua</code> 就是上面 <code class="notranslate">app</code> 对象的类的实现。<code class="notranslate">wlua</code> 类主要包含了 <code class="notranslate">router</code> ，<code class="notranslate">router</code> 最初是采用的是很简单的 <a href="https://github.com/APItools/router.lua">APItools/router.lua</a> ，只要代码能跑起来随时都能把它替换掉。最后发现了一个性能很强的路由库 <a href="https://github.com/c9s/r3">c9s/r3</a> ，参考了 <a href="https://github.com/iresty/lua-resty-libr3">iresty/lua-resty-libr3</a> 的封装，自己封装成 <a href="https://github.com/hanxi/lua-r3">hanxi/lua-r3</a> 。主要接口代码就是上面的 <code class="notranslate">r3.lua</code> 文件，之前封装的时候也写过一篇相关文章记录 <a href="https://blog.hanxi.cc/p/49" rel="nofollow">https://blog.hanxi.cc/p/49</a> 。</p>
 <p>一个客户端请求包含什么呢？主要就者两个：</p>
 <ul>
 <li>request</li>
 <li>response</li>
 </ul>
 <p>基本就是请求和回应了，context 把 request 和 response 组合在一起，方便使用者操作。</p>
-<p>中间件也参考了 gin 的中间件接口和实现，也实现了一个 logger 中间件来输出 access log 。采用 <code>use</code> 来使用中间件，中间里采用 <code>c:next()</code> 函数来执行后续的 <code>handlers</code> 函数。</p>
+<p>中间件也参考了 gin 的中间件接口和实现，也实现了一个 logger 中间件来输出 access log 。采用 <code class="notranslate">use</code> 来使用中间件，中间里采用 <code class="notranslate">c:next()</code> 函数来执行后续的 <code class="notranslate">handlers</code> 函数。</p>
 <p>实现的 http method 就是下面这些，也基本够用了。</p>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> M <span class="pl-k">=</span> {
     GET     <span class="pl-k">=</span> <span class="pl-c1">true</span>,
@@ -156,7 +156,7 @@ app:<span class="pl-c1">run</span>()</pre></div>
 <h2>最后</h2>
 <p>统计了下 lualib 目录下的代码，也就 820 行，还是很简洁的，开发过程中的看板可以参考下 <a href="https://github.com/hanxi/wlua/projects/1">https://github.com/hanxi/wlua/projects/1</a> 。</p>
 <p>目前除了精简，就只剩下不足了，比如没有实现重定向接口。而且 reload 目前还是有点粗鲁的，只是发个消息退出，如果有挂起的逻辑，会造成逻辑只跑了一半就退出了，还是有优化的余地的。</p>
-<p>另外想学 skynet 的话，可以试试我写的这门实战课程 <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">《Skynet 游戏服务器开发实战》</a> ， 地址: <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">https://www.lanqiao.cn/courses/2770</a> 优惠邀请码: <code>2CZ2UA5u</code></p>
+<p>另外想学 skynet 的话，可以试试我写的这门实战课程 <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">《Skynet 游戏服务器开发实战》</a> ， 地址: <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">https://www.lanqiao.cn/courses/2770</a> 优惠邀请码: <code class="notranslate">2CZ2UA5u</code></p>
 <h3>相关链接</h3>
 <ul>
 <li><a href="https://github.com/hanxi/wlua">wlua</a></li>

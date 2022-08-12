@@ -31,11 +31,11 @@
             <div id="title">Python 程序使用 nohup 后台运行时日志哪里去了？</div>
             <div id="content" class="markdown-body">
                 <p><a href="https://stackoverflow.com/questions/12919980/nohup-is-not-writing-log-to-output-file" rel="nofollow">https://stackoverflow.com/questions/12919980/nohup-is-not-writing-log-to-output-file</a></p>
-<pre><code>export PYTHONUNBUFFERED=1
+<pre class="notranslate"><code class="notranslate">export PYTHONUNBUFFERED=1
 nohup ./cmd.py &gt; cmd.log &amp;
 </code></pre>
 <p>or</p>
-<pre><code>nohup python -u ./cmd.py &gt; cmd.log &amp;
+<pre class="notranslate"><code class="notranslate">nohup python -u ./cmd.py &gt; cmd.log &amp;
 </code></pre>
 <p><a href="https://docs.python.org/2/using/cmdline.html#cmdoption-u" rel="nofollow">https://docs.python.org/2/using/cmdline.html#cmdoption-u</a></p>
             </div>

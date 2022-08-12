@@ -33,7 +33,7 @@
                 <h2>起因</h2>
 <p>本来一直没想过还会在 windows 下开发的，但是一想到我的处理 Excel 的转表工具可能需要提供给策划本地使用，我就想方设法了，安装 mingw 的话应该更好解决，但是不了解发布版需不需要安装 mingw，而且刚好电脑已经安装好了 vs。所以就有了这篇文章。其实不用  nmake ,完全用 cl 和 link 命令也是可以的。只不过 nmake 和 make 一样，更适合管理。</p>
 <h2>编译 Lua</h2>
-<p>为了能编译并使用扩展，需要在生成 <code>.dll</code> 的时候生成 <code>.lib</code> 文件。生成 DLL 使用 <code>/DLL</code> 参数。但是生成的 lib 文件有问题，编译扩展库的时候会出现 <code>unresolved xxx</code>。搜到这个 <a href="https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc" rel="nofollow">https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc</a> 。最有用了，虽然是用 CMake 生成的 Make 日志，但是都把编译命令输出来了。需要添加 <code>-DLUA_BUILD_AS_DLL</code> ，至于为什么的话可以去 <code>src/luaconf.h</code> 中搜就知道了。</p>
+<p>为了能编译并使用扩展，需要在生成 <code class="notranslate">.dll</code> 的时候生成 <code class="notranslate">.lib</code> 文件。生成 DLL 使用 <code class="notranslate">/DLL</code> 参数。但是生成的 lib 文件有问题，编译扩展库的时候会出现 <code class="notranslate">unresolved xxx</code>。搜到这个 <a href="https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc" rel="nofollow">https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc</a> 。最有用了，虽然是用 CMake 生成的 Make 日志，但是都把编译命令输出来了。需要添加 <code class="notranslate">-DLUA_BUILD_AS_DLL</code> ，至于为什么的话可以去 <code class="notranslate">src/luaconf.h</code> 中搜就知道了。</p>
 <p>下面的 makefile 就是使用 nmake 执行的。生成 Lua.exe 比较简单。生成 Lua.lib 主要是要加上面提到的预定义。</p>
 <div class="highlight highlight-source-makefile"><pre><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\include" <span class="pl-cce">\</span>
@@ -115,7 +115,7 @@
     del *.exp
     del *.lib</pre></div>
 <p>对应的 Lua 源码目录结构是这样的</p>
-<pre><code>E:\workspace\lua\
+<pre class="notranslate"><code class="notranslate">E:\workspace\lua\
                 |
                 .---src\
                 |
@@ -125,11 +125,11 @@
 </code></pre>
 <h2>编译 Lua 的扩展库</h2>
 <p>我主要是为了编译 <a href="https://github.com/hanxi/luaxlsx">xlsx</a> 库，所以就以这个为例子。<br>
-主要就是为了生成 <code>zip.so</code> 和 <code>base64.so</code>。 生成 base64.so 比较简单就一个文件，生成一个obj，<br>
-然后再 link 成 dll。主要关键点在引用 Lua.lib 和 两个预定义 <code>-DLUA_LIB -DLUA_BUILD_AS_DLL</code>。<br>
-Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个预定义的话还是要依据 <code>luaconf.h</code><br>
-也是根据而来。改了这么多还不够，还要改 <code>lbase64.c</code> 和 <code>luazip.c</code> 的 <code>xxx_open</code> 函数的定义，<br>
-需要在前面加上 <code>LUA_API</code>。<code>/MD</code> 需要改为 <code>/MT</code>，要不然移植到没有安装 vc++ 环境的机器上就跑不起来。历经N次尝试和谷歌搜索，就这样结束了。<code>luazip.c</code> 里面有行代码不兼容VC编译器：<code>char tmp[szfn];</code>，这是C99的用法，需要自行修改下。</p>
+主要就是为了生成 <code class="notranslate">zip.so</code> 和 <code class="notranslate">base64.so</code>。 生成 base64.so 比较简单就一个文件，生成一个obj，<br>
+然后再 link 成 dll。主要关键点在引用 Lua.lib 和 两个预定义 <code class="notranslate">-DLUA_LIB -DLUA_BUILD_AS_DLL</code>。<br>
+Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个预定义的话还是要依据 <code class="notranslate">luaconf.h</code><br>
+也是根据而来。改了这么多还不够，还要改 <code class="notranslate">lbase64.c</code> 和 <code class="notranslate">luazip.c</code> 的 <code class="notranslate">xxx_open</code> 函数的定义，<br>
+需要在前面加上 <code class="notranslate">LUA_API</code>。<code class="notranslate">/MD</code> 需要改为 <code class="notranslate">/MT</code>，要不然移植到没有安装 vc++ 环境的机器上就跑不起来。历经N次尝试和谷歌搜索，就这样结束了。<code class="notranslate">luazip.c</code> 里面有行代码不兼容VC编译器：<code class="notranslate">char tmp[szfn];</code>，这是C99的用法，需要自行修改下。</p>
 <div class="highlight highlight-source-makefile"><pre><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt" <span class="pl-cce">\</span>
@@ -213,7 +213,7 @@ Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个�
     del *.exp
     del *.lib</pre></div>
 <p>目录结构</p>
-<pre><code>luaclib\
+<pre class="notranslate"><code class="notranslate">luaclib\
        |
        .---minizip\
        |

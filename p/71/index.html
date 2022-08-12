@@ -78,7 +78,7 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <p>采用 Docker 的方式安装 gitlab-runner ，并且采用 Docker 的方式运行 Runner 。</p>
 <p>GitLab 官方给出的 Docker 方式安装 gitlab-runner 文档路径： <a href="https://docs.gitlab.com/runner/install/docker.html" rel="nofollow">https://docs.gitlab.com/runner/install/docker.html</a></p>
 <p>熟悉 docker-compose 的话，用 docker-compose 启动 gitlab-runner 更方便。</p>
-<p>docker-compose 文件路径在服务器代码目录： <code>tools/gitlab-runner/docker-compose.yml</code></p>
+<p>docker-compose 文件路径在服务器代码目录： <code class="notranslate">tools/gitlab-runner/docker-compose.yml</code></p>
 <div class="highlight highlight-source-yaml"><pre><span class="pl-ent">gitlab-runner</span>:
   <span class="pl-ent">container_name</span>: <span class="pl-s">gitlab-runner</span>
   <span class="pl-ent">image</span>: <span class="pl-s"><span class="pl-pds">"</span>gitlab/gitlab-runner:latest<span class="pl-pds">"</span></span>
@@ -90,7 +90,7 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
     - <span class="pl-s"><span class="pl-pds">"</span>SET_CONTAINER_TIMEZONE=true<span class="pl-pds">"</span></span>
     - <span class="pl-s"><span class="pl-pds">"</span>CONTAINER_TIMEZONE=Asia/Shanghai<span class="pl-pds">"</span></span>
     - <span class="pl-s"><span class="pl-pds">"</span>TZ=Asia/Shanghai<span class="pl-pds">"</span></span></pre></div>
-<p>在 <code>tools/gitlab-runner/</code> 目录执行 <code>docker-compose up -d</code> 命令即可启动容器。</p>
+<p>在 <code class="notranslate">tools/gitlab-runner/</code> 目录执行 <code class="notranslate">docker-compose up -d</code> 命令即可启动容器。</p>
 <h3>2. 注册 runner</h3>
 <p>详细文档路径： <a href="https://docs.gitlab.com/runner/register/" rel="nofollow">https://docs.gitlab.com/runner/register/</a></p>
 <ol>
@@ -103,7 +103,7 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A42.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabci%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A42.png" alt="gitlabci配置步骤2.png" style="max-width: 100%;"></a></p>
 </li>
 <li>
-<p>执行 <code>gitlab-runner register</code> 命令来注册。其中 url 和 registration-token 参数就是上面截图中的，docker-pull-policy 设置为 if-not-present 表示优先使用本地 docker 镜像，executor 设置运行方式为 docker ，docker-image 设置镜像名。</p>
+<p>执行 <code class="notranslate">gitlab-runner register</code> 命令来注册。其中 url 和 registration-token 参数就是上面截图中的，docker-pull-policy 设置为 if-not-present 表示优先使用本地 docker 镜像，executor 设置运行方式为 docker ，docker-image 设置镜像名。</p>
 </li>
 </ol>
 <div class="highlight highlight-source-shell"><pre>docker <span class="pl-c1">exec</span> -it gitlab-runner gitlab-runner register --non-interactive \
@@ -115,16 +115,16 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
   --docker-image sim-server-build</pre></div>
 <h3>3. 准备好运行环境的 docker 镜像</h3>
 <p>这节是介绍我们的 sim-server-build 镜像是如何生成的。</p>
-<p>脚本在服务器代码目录下： <code>tools/docker-build/</code></p>
+<p>脚本在服务器代码目录下： <code class="notranslate">tools/docker-build/</code></p>
 <div class="highlight highlight-source-shell"><pre><span class="pl-c1">.</span>
 ├── build.sh
 ├── create.sh
 ├── Dockerfile
 ├── id_rsa
 └── id_rsa.pub</pre></div>
-<p><code>create.sh</code> 就是一行创建镜像的命令，表示创建镜像名字为 <code>sim-server-build</code> 的 docker 镜像，最后的 <code>.</code> 表示使用当前目录下的 Dockerfile 文件来生成镜像。</p>
+<p><code class="notranslate">create.sh</code> 就是一行创建镜像的命令，表示创建镜像名字为 <code class="notranslate">sim-server-build</code> 的 docker 镜像，最后的 <code class="notranslate">.</code> 表示使用当前目录下的 Dockerfile 文件来生成镜像。</p>
 <div class="highlight highlight-source-shell"><pre>sudo docker build -t sim-server-build <span class="pl-c1">.</span></pre></div>
-<p><code>Dockerfile</code> 比较简单，主要就是执行 <code>build.sh</code> 文件来安装我们项目依赖的工具和库：</p>
+<p><code class="notranslate">Dockerfile</code> 比较简单，主要就是执行 <code class="notranslate">build.sh</code> 文件来安装我们项目依赖的工具和库：</p>
 <div class="highlight highlight-source-dockerfile"><pre><span class="pl-k">FROM</span> centos:7.6.1810
 
 <span class="pl-k">COPY</span> build.sh /tmp/build.sh
@@ -144,8 +144,8 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <span class="pl-k">ENV</span> CONTAINER_TIMEZONE=Asia/Shanghai
 <span class="pl-k">ENV</span> TZ=Asia/Shanghai</pre></div>
 <h2>如何写 .gitlab-ci.yml</h2>
-<p>通过配置 <code>.gitlab-ci.yml</code> 文件来告诉 CI 要对你的项目做什么，它位于仓库的根目录下。</p>
-<p>代码仓库一旦收到任何推送 (git push)，GitLab 将立即查找 <code>.gitlab-ci.yml</code> 文件，并根据文件的内容在 Runner 上启动作业。</p>
+<p>通过配置 <code class="notranslate">.gitlab-ci.yml</code> 文件来告诉 CI 要对你的项目做什么，它位于仓库的根目录下。</p>
+<p>代码仓库一旦收到任何推送 (git push)，GitLab 将立即查找 <code class="notranslate">.gitlab-ci.yml</code> 文件，并根据文件的内容在 Runner 上启动作业。</p>
 <p>下面是我们服务器脚本代码的 ci 文件。</p>
 <div class="highlight highlight-source-yaml"><pre><span class="pl-ent">image</span>: <span class="pl-s">sim-server-build</span>
 
@@ -169,13 +169,13 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
     - <span class="pl-s">make deploy-debug</span>
     - <span class="pl-s">make deploy-release</span>
   <span class="pl-ent">when</span>: <span class="pl-s">manual</span></pre></div>
-<p><code>image</code> 定义了使用哪个 docker 镜像运行， <code>variables</code> 是用来配置环境变量的，这里配置了 <code>GIT_SUBMODULE_STRATEGY</code> 为 <code>recursive</code> 表示递归拉取 git submodule 。</p>
-<p><code>stages</code> 是用来定义有多少个执行阶段的，这里定义了 2 个阶段：</p>
+<p><code class="notranslate">image</code> 定义了使用哪个 docker 镜像运行， <code class="notranslate">variables</code> 是用来配置环境变量的，这里配置了 <code class="notranslate">GIT_SUBMODULE_STRATEGY</code> 为 <code class="notranslate">recursive</code> 表示递归拉取 git submodule 。</p>
+<p><code class="notranslate">stages</code> 是用来定义有多少个执行阶段的，这里定义了 2 个阶段：</p>
 <ul>
 <li>test 测试阶段，用于执行 make check 检查代码语法错误</li>
 <li>deploy 打包阶段，用于打包代码给运维发布</li>
 </ul>
-<p><code>job_test</code> 和 <code>job_deploy</code> 定义了 2 个 job，<code>stage</code> 标记属于哪个阶段，<code>script</code> 就是该 job 执行的命令，<code>when</code> 为 manual 时表示需要手动在网页里点击按钮才执行 job 。</p>
+<p><code class="notranslate">job_test</code> 和 <code class="notranslate">job_deploy</code> 定义了 2 个 job，<code class="notranslate">stage</code> 标记属于哪个阶段，<code class="notranslate">script</code> 就是该 job 执行的命令，<code class="notranslate">when</code> 为 manual 时表示需要手动在网页里点击按钮才执行 job 。</p>
 <p>这里只定义了 2 个 job，其实一个阶段里面可以执行多个 job 的。下图介绍了以某个 pipeline 为例解释 pipeline , stage , job 的含义：</p>
 <p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabcipipeline.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/gitlabci/gitlabcipipeline.png" alt="gitlabcipipeline" style="max-width: 100%;"></a></p>
 <h3>在网页里查看执行日志</h3>

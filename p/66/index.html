@@ -43,7 +43,7 @@
 </li>
 </ul>
 <blockquote>
-<pre>   p = {
+<pre class="notranslate">   p = {
        name = "hanxi",
        tel = 1383838,
        addresslist = {
@@ -55,7 +55,7 @@
 </blockquote>
 <blockquote>
 <p>p 是定义一个协议格式，其中，addresslist是array类型，定义的内容表示array的元素的格式。协议的实际内容格式如下：</p>
-<pre>  p = {
+<pre class="notranslate">  p = {
       name = "hanxi",
       tel = 1383838,
       addresslist = {
@@ -80,7 +80,7 @@
 </li>
 </ul>
 <blockquote>
-<pre>p = {
+<pre class="notranslate">p = {
       _keysort = {"addresslist","name","tel"},
       name = "hanxi",
       tel = 1383838,
@@ -103,7 +103,7 @@
 </ul>
 <h2>实现</h2>
 <p>在c中提供接口：</p>
-<pre>    luaL_Reg l[] ={
+<pre class="notranslate">    luaL_Reg l[] ={
         { "packinit", lpackinit },
         { "write", lwrite },
         { "getpack", lgetpack },

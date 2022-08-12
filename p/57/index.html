@@ -31,7 +31,7 @@
             <div id="title">使用cocos2dx的lua脚本写游戏逻辑</div>
             <div id="content" class="markdown-body">
                 <h3>脚本代码文件结构</h3>
-<pre>luaScript
+<pre class="notranslate">luaScript
 ├── conf.lua
 ├── global.lua
 ├── include.lua
@@ -81,12 +81,12 @@
 <ul>
 <li>生成 keystore 文件</li>
 </ul>
-<pre>keytool -genkey -alias hanxigame.keystore -keyalg RSA -keystore hanxigame.keystore
+<pre class="notranslate">keytool -genkey -alias hanxigame.keystore -keyalg RSA -keystore hanxigame.keystore
 </pre>
 <ul>
 <li>修改 ant.properties 文件</li>
 </ul>
-<pre>key.store=./hanxigame.keystore
+<pre class="notranslate">key.store=./hanxigame.keystore
 key.alias=hanxigame.keystore
 key.store.password=hanxigame
 key.alias.password=hanxigame
@@ -99,7 +99,7 @@ key.alias.password=hanxigame
 <p>如果出现环境变量问题,需要把一些必要的环境变量设置好.ant 需要用到 NDK_ROOT 这个变量</p>
 </li>
 </ul>
-<pre>#set android environment
+<pre class="notranslate">#set android environment
 export ANDROID_SDK_ROOT=/home/hanxi/Lib/android-sdk
 export NDK_ROOT=/home/hanxi/Lib/android-ndk
 export COCOS2DX_ROOT=/home/hanxi/Lib/cocos2d-x

@@ -36,7 +36,7 @@
 <h4>带有default constructor 的member class object（组合结构）</h4>
 <p>如果一个类没有任何构造函数，而它含有一个对象成员，且该成员有默认构造函数，那么编译器需要为该类合成一个默认构造函数，不过合成操作只在构造函数真正需要被调用的时候才会发生。<br>
 被合成的默认构造函数只满足编译器的需要，而不是程序的需要。如：</p>
-<pre>class Foo {public: Foo(), Foo(int) ...};
+<pre class="notranslate">class Foo {public: Foo(), Foo(int) ...};
 class Bar {public: Foo foo; char* str;} // 组合
 
 void foo_bar()
@@ -46,7 +46,7 @@ void foo_bar()
 }
 </pre>
 <p>被合成的默认构造函数看起来可能时这样的：</p>
-<pre>inline
+<pre class="notranslate">inline
 Bar::Bar()
 {
     //C++伪代码
@@ -54,10 +54,10 @@ Bar::Bar()
 }
 </pre>
 <p>生成的代码中没有提供str的初始化操作，需要程序员自己完成。如果程序员定义构造函数如下：</p>
-<pre>Bar::Bar() { str=0;}
+<pre class="notranslate">Bar::Bar() { str=0;}
 </pre>
 <p>编译的做法是：如果类内含一个或多个对象成员，那么类的每一个构造函数必须调用每一个对象成员的默认构造函数。编译器会扩张已存在的构造函数，在user code之前安插一些代码。上面的构造函数会扩张成下面的样子：</p>
-<pre>Bar::Bar() {
+<pre class="notranslate">Bar::Bar() {
     foo.Foo:Foo();
     str=0;
 }
@@ -97,7 +97,7 @@ Bar::Bar()
 </ol>
 <p>不使用逐位拷贝的情况</p>
 <h4>类中含有类对象成员，而该成员的类声明有一个拷贝构造函数</h4>
-<pre>class Word {
+<pre class="notranslate">class Word {
 public:
     Word(const String&amp; );
     ~Word();
@@ -123,7 +123,7 @@ void foo()
 }
 </pre>
 <p>在这中情况下，编译器会合成出一个拷贝构造函数以便调用member class String object的拷贝构造函数：</p>
-<pre>inline Word:Word( const Word&amp; wd)
+<pre class="notranslate">inline Word:Word( const Word&amp; wd)
 {
     str.String::String(wd.str);
     cnt = wd.cnt;
@@ -133,7 +133,7 @@ void foo()
 <h4>类继承子一个基类而基类存在一个拷贝构造函数</h4>
 <p>这里不举例了，和第一种情况类似。</p>
 <h4>类声明了一个或多个虚函数</h4>
-<pre>class ZooAnimal {
+<pre class="notranslate">class ZooAnimal {
 public:
     ZooAnimal();
     virtual ~ZooAnimal();
@@ -159,7 +159,7 @@ ZooAnimal franny = yogi; // 切割行为
 </pre>
 <p>当一个基类对象以派生类的对象做初始化操作时，其bptr复制操作也必须保证安全，合成出来的 ZooAnimal 拷贝构造函数会明确设定对象的vptr指向 ZooAnimal 的 vtbl。</p>
 <h4>类派生子一个继承串链，其中有一个或多个虚基类</h4>
-<pre>class Raccoon : public virtual ZooAnimal {
+<pre class="notranslate">class Raccoon : public virtual ZooAnimal {
 };
 class RedPanda : public Raccoon {
 };
@@ -173,7 +173,7 @@ Raccoon little_critter = red; // 需要编译器完成vbcPtr(虚基类指针)的
 <p>为了正确的完成 little_critter 的初值设定，编译器必须合成一个拷贝构造函数，安插一些代码以设定vbcPtr的处置。</p>
 <h3>程序转换</h3>
 <h4>明确的初始化操作</h4>
-<pre>X x0;
+<pre class="notranslate">X x0;
 void foo_bar() {
     X x1(x0);
     X x2=x0;
@@ -192,7 +192,7 @@ void foo_bar() {
 }
 </pre>
 <p>####参数的初始化</p>
-<pre>void foo(X x0);
+<pre class="notranslate">void foo(X x0);
 X xx;
 foo(xx);
 
@@ -203,7 +203,7 @@ _tmp0.X::X(xx);
 foo(_tmp0);
 </pre>
 <h4>返回值的初始化</h4>
-<pre>X bar()
+<pre class="notranslate">X bar()
 {
     X xx;
     // ...
@@ -236,7 +236,7 @@ pf=bar;
 
 </pre>
 <h4>在使用者层面做优化</h4>
-<pre>X bar(const T &amp;y, const T &amp;z)
+<pre class="notranslate">X bar(const T &amp;y, const T &amp;z)
 {
     X xx;
     // 以y和z来处理xx
@@ -244,19 +244,19 @@ pf=bar;
 }
 </pre>
 <p>定义另一个构造函数，可以直接计算xx的值：</p>
-<pre>X bar(const T &amp;y, const T &amp;z)
+<pre class="notranslate">X bar(const T &amp;y, const T &amp;z)
 {
     return X(y,z);
 }
 </pre>
 <p>C++伪代码</p>
-<pre>void bar (X &amp; _ret,const T &amp;y, const T &amp;z) {
+<pre class="notranslate">void bar (X &amp; _ret,const T &amp;y, const T &amp;z) {
     _ret.X::X(y,z);
     return;
 }
 </pre>
 <h4>在编译器层面做优化(NRV-named return value)</h4>
-<pre>X bar()
+<pre class="notranslate">X bar()
 {
     X xx;
     // 处理xx
@@ -288,7 +288,7 @@ void bar(X &amp; _ret)
 </li>
 </ol>
 <p>编译器生成的初始化代码的次序不是按照成员初始化列表的顺序，而是有类中成员声明次序决定。编译器生成的初始化代码会放在user code之前。生成的基类构造函数的调用代码在生成的成员初始化代码之前。</p>
-<pre>class FooBar:public X {
+<pre class="notranslate">class FooBar:public X {
     int _fval;
 public:
     int fval() {return _fval);

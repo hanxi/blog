@@ -55,16 +55,16 @@ git pull
 
 <span class="pl-c"><span class="pl-c">#</span> Activate PATH and other environment variables in the current terminal</span>
 <span class="pl-c1">source</span> ./emsdk_env.sh</pre></div>
-<p>执行这行命令 <code>./emsdk install latest</code>  时有概率会失败，建议使用代理。</p>
-<p>最后一行设置环境变量的命令 <code>source ./emsdk_env.sh</code> 每次重新开机需要重新执行。</p>
+<p>执行这行命令 <code class="notranslate">./emsdk install latest</code>  时有概率会失败，建议使用代理。</p>
+<p>最后一行设置环境变量的命令 <code class="notranslate">source ./emsdk_env.sh</code> 每次重新开机需要重新执行。</p>
 <h2>2. 写个 Demo</h2>
 <p>参考了 <a href="http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html" rel="nofollow">http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html</a></p>
 <p>但是版本可能有点旧了，谷歌搜下报错也都能解决。</p>
-<p>新建 <code>t1.c</code> 文件，内容为：</p>
+<p>新建 <code class="notranslate">t1.c</code> 文件，内容为：</p>
 <div class="highlight highlight-source-c"><pre><span class="pl-k">double</span> <span class="pl-en">SquareVal</span>(<span class="pl-k">double</span> val) {
     <span class="pl-k">return</span> val * val;
 }</pre></div>
-<p>然后新建文件 <code>t1.html</code>，内容为：</p>
+<p>然后新建文件 <code class="notranslate">t1.html</code>，内容为：</p>
 <div class="highlight highlight-text-html-basic"><pre><span class="pl-c1">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"<span class="pl-kos">&gt;</span></span>
 
 <span class="pl-kos">&lt;</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span>

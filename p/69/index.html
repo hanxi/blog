@@ -50,14 +50,14 @@
 <p>执行 sftp hlm-devel@192.168.16.234。出现下面错误</p>
 </li>
 </ol>
-<pre><code>sftp Received message too long 458961715
+<pre class="notranslate"><code class="notranslate">sftp Received message too long 458961715
 </code></pre>
 <p>搜到这个方案</p>
 <p><a href="http://prystash.blogspot.com/2009/12/sftp-message-received-message-too-long.html" rel="nofollow">http://prystash.blogspot.com/2009/12/sftp-message-received-message-too-long.html</a></p>
 <p>和这个方案</p>
 <p><a href="http://www.linuxquestions.org/questions/slackware-14/sftp-received-message-too-long-887856/" rel="nofollow">http://www.linuxquestions.org/questions/slackware-14/sftp-received-message-too-long-887856/</a></p>
 <p>文中提到~/.bashrc的问题。于是查看自己的配置看看。里面有一条命令：</p>
-<pre><code>sh /home/develop/2.log
+<pre class="notranslate"><code class="notranslate">sh /home/develop/2.log
 </code></pre>
 <p>注释该命令。一切正常。</p>
 <p>2.log 文件是用来登录时输出欢迎文字的。随后把该命令移到/etc/profile后一切正常。</p>

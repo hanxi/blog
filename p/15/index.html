@@ -38,17 +38,17 @@
 <ol>
 <li>在 .config 里新增配置</li>
 </ol>
-<pre><code>CONFIG_FIRMWARE_INCLUDE_CURL_EXE=y
+<pre class="notranslate"><code class="notranslate">CONFIG_FIRMWARE_INCLUDE_CURL_EXE=y
 </code></pre>
 <ol start="2">
 <li>在 libs/Makefile 里新增配置</li>
 </ol>
-<pre><code>dir_$(CONFIG_FIRMWARE_INCLUDE_CURL_EXE)         += libcurl
+<pre class="notranslate"><code class="notranslate">dir_$(CONFIG_FIRMWARE_INCLUDE_CURL_EXE)         += libcurl
 </code></pre>
 <ol start="3">
 <li>修改 libs/libcurl/Makefile 的配置</li>
 </ol>
-<pre><code>install:
+<pre class="notranslate"><code class="notranslate">install:
        $(MAKE) -C $(SRC_NAME) install DESTDIR="$(STAGEDIR)"
 
 romfs:

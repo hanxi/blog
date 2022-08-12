@@ -33,14 +33,14 @@
                 <h2>1. TextView高亮关键字</h2>
 <p>可以使用<em>android.text.SpannableStringBuilder</em> 的 <em>setSpan(Object what, int start, int end, int flags)</em> 来实现高亮关键字。</p>
 <p>SpannableStringBuild用于经常变动的字符串，SpannableString则用于不变的字符串。例如：</p>
-<pre>    String str="SpannableStringBuilder class";
+<pre class="notranslate">    String str="SpannableStringBuilder class";
     SpannableStringBuilder sp=new SpannableStringBuilder(str);
     sp.setSpan(new ForegroundColorSpan(Color.RED), 1, 4, Spannable.SPAN_EXCLUSIVE_INCLUSIVE); //把str的前4个字符的前景色设置为红色
 </pre>
 <p>这个类还可以用来完成类似于QQ表情的功能。具体用法参考<a href="http://developer.android.com/reference/android/text/Spannable.html" rel="nofollow">android api</a>吧。我只用来修改颜色，用正则匹配关键字。可以浏览源代码：<a href="https://github.com/hanxi/lua_run/blob/master/src/com/hanxi/luarun/KeywordHighlight.java">KeywordHighlight.java</a>。根据<a href="https://github.com/jiro-aqua/Jota-Text-Editor">Jota</a>修改而来。</p>
 <h2>2. Activity界面跳转</h2>
 <p>界面跳转用到了<em>android.content.Intent</em>。</p>
-<pre>    // MainActivity 中这样写
+<pre class="notranslate">    // MainActivity 中这样写
     btn.setOnClickListener(new View.OnClickListener() { // 点击按钮，从MainActivity跳转到ResultActivity
         @Override
         public void onClick(View arg0) {
@@ -64,7 +64,7 @@
     });
 </pre>
 <p>代码写完之后需要在AndroidManifest.xml中添加</p>
-<pre>    &lt;application
+<pre class="notranslate">    &lt;application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"&gt;
@@ -87,7 +87,7 @@
 <h2>3. luajava的使用</h2>
 <p>为了在安卓上解释lua，采用了现成的luajava库，编译luajava可以参考<a href="http://www.cnblogs.com/astin/archive/2011/07/26/2117590.html" rel="nofollow">http://www.cnblogs.com/astin/archive/2011/07/26/2117590.html</a>。</p>
 <p>luajava.h可以使用javah生成。后台我找到了现成<a href="https://github.com/mkottman/AndroLua">AndroLua</a>。直接把它集成到我的项目中的了。</p>
-<pre>    import org.keplerproject.luajava.*;
+<pre class="notranslate">    import org.keplerproject.luajava.*;
     
     LuaState L = LuaStateFactory.newLuaState();
     L.openLibs();
@@ -99,7 +99,7 @@
 <h2>4. WebView的使用</h2>
 <p>最初以为高亮代码很难自己实现，就试着找现成的源码，结果没找到。就想着看看有没有js实现的代码编辑器，后面找到了一个不错的<a href="https://github.com/marijnh/CodeMirror">codemirror</a>。并且集成到我的项目中在android4.0以上设备显示还不错，但是在2.3的设备上不能滑动（webview不支持div的滑动），底层的硬伤，试过修改codemirror和使用iscroll都没搞定，最后才找到jota（2年前见过这玩意，用过一两次没注意到它是开源的），然后研究它的源代码，就有了现在的高亮了。</p>
 <p>WebView控件很简单的。js和java交互网上也找到很多教程<a href="http://blog.csdn.net/wangtingshuai/article/details/8631835" rel="nofollow">js和java交互</a>。</p>
-<pre>    WebView webView = new WebView(this); 
+<pre class="notranslate">    WebView webView = new WebView(this); 
     webView.getSettings().setJavaScriptEnabled(true);   // 开启js，不打开这个设置，就只能显示静态的html网页
     webView.loadUrl("http://www.baidu.com/");           // 远程网页
     //webView.loadUrl("file:///android_asset/demo.html"); // 本地assert目录下demo.html
@@ -109,7 +109,7 @@
 <p>这个功能一开始就不打算自己实现，现在开发安卓的这么多，一定能找到这种源码，结果一下子就找到了现成的文件选择对话框<a href="http://blog.csdn.net/trbbadboy/article/details/7899424" rel="nofollow">Android开发 打开文件 选择文件对话框</a>。已经集成到我的项目中了，我还模仿它完成了保存文件对话框的功能。</p>
 <p>实现保存文件对话框的时候难点就在于如何在静态的layout中添加动态的layout，<a href="http://blog.csdn.net/lzx_bupt/article/details/5600187" rel="nofollow">android: 静态XML和动态加载XML混合使用，以及重写Layout控件</a> 这篇文章对我帮助挺大的。</p>
 <p>封装静态的layout，其中预留动态layout的位置，方便添加动态layout的时候整理布局不变。</p>
-<pre>        static public class SaveDialogLayout extends LinearLayout{ 
+<pre class="notranslate">        static public class SaveDialogLayout extends LinearLayout{ 
             public SaveDialogLayout(Context context) {
                 super(context);
                 ((Activity) getContext()).getLayoutInflater().inflate(R.layout.dialog, this); 
@@ -128,7 +128,7 @@
 </pre>
 <h2>6. 添加设置</h2>
 <p>android提供了PreferenceActivity，所以添加设置是比较简单的。</p>
-<pre>    public class SetActivity extends PreferenceActivity {
+<pre class="notranslate">    public class SetActivity extends PreferenceActivity {
     	@Override
     	public void onCreate(Bundle savedInstanceState) {
     		super.onCreate(savedInstanceState);

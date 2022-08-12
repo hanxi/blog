@@ -36,9 +36,9 @@
 <li>配置字体</li>
 <li>干掉黑框</li>
 <li>隐藏滚动条</li>
-<li>默认进入 <code>$HOME</code> 目录</li>
+<li>默认进入 <code class="notranslate">$HOME</code> 目录</li>
 </ul>
-<pre><code>            "fontFace":  "SauceCodePro Nerd Font Mono",
+<pre class="notranslate"><code class="notranslate">            "fontFace":  "SauceCodePro Nerd Font Mono",
             "cursorShape": "filledBox",
             "padding" : "0, 0, 0, 0",
             "scrollbarState": "hidden",
@@ -46,7 +46,7 @@
 </code></pre>
 <p><a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/1185757/68737402-4be05500-061e-11ea-9f2d-179ec6a71568.png"><img src="https://user-images.githubusercontent.com/1185757/68737402-4be05500-061e-11ea-9f2d-179ec6a71568.png" alt="image" style="max-width: 100%;"></a></p>
 <p>我的完整配置如下：</p>
-<pre><code>
+<pre class="notranslate"><code class="notranslate">
 // To view the default settings, hold "alt" while clicking on the "Settings" button.
 // For documentation on these settings, see: https://aka.ms/terminal-documentation
 
@@ -123,8 +123,8 @@
 <p><a href="https://autoize.com/xfce4-desktop-environment-and-x-server-for-ubuntu-on-wsl-2/" rel="nofollow">https://autoize.com/xfce4-desktop-environment-and-x-server-for-ubuntu-on-wsl-2/</a></p>
 <p>下面是我的快捷打开terminal的相关脚本和快捷方式</p>
 <p><a href="https://github.com/hanxi/blog/files/3850661/wsl.zip">wsl.zip</a></p>
-<p>上面的 zip 里 <code>vcxsrv.bat</code> 有个 bug, 用下面这句忽略报错</p>
-<pre><code>@echo off
+<p>上面的 zip 里 <code class="notranslate">vcxsrv.bat</code> 有个 bug, 用下面这句忽略报错</p>
+<pre class="notranslate"><code class="notranslate">@echo off
 
 "C:\Program Files\VcXsrv\vcxsrv.exe" :0 -multiwindow -clipboard -wgl -ac -silent-dup-error
 </code></pre>
@@ -132,11 +132,11 @@
 <div class="highlight highlight-source-shell"><pre>sudo add-apt-repository ppa:leaeasy/dde
 sudo apt install -y deepin-terminal</pre></div>
 <p>这个 deepin-terminal 版本比较低，考虑再换个新版本的试试。编译了个最新版，没看出啥区别，暂时用旧版本吧。</p>
-<p>我又用回最新版本的 deepin-terminal 了，并修了一个 <a href="https://github.com/linuxdeepin/deepin-terminal/pull/207">bug</a>， 使其可以使用 VcXsrv 的窗口管理控制大小。</p>
-<pre><code>deepin-terminal -m tiling
+<p>我又用回最新版本的 deepin-terminal 了，并修了一个 <a href="https://github.com/linuxdeepin/deepin-terminal/pull/207" data-hovercard-type="pull_request" data-hovercard-url="/linuxdeepin/deepin-terminal/pull/207/hovercard">bug</a>， 使其可以使用 VcXsrv 的窗口管理控制大小。</p>
+<pre class="notranslate"><code class="notranslate">deepin-terminal -m tiling
 </code></pre>
 <p>上面 zip 包里的 terminal.bat 就需要改成下面这个了</p>
-<pre><code>@echo off
+<pre class="notranslate"><code class="notranslate">@echo off
 
 start /B vcxsrv.bat
 rem bash -c "source ~/.bashrc;xfce4-terminal"

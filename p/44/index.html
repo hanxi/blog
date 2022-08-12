@@ -33,12 +33,12 @@
                 <p>下载 《电子工业出版社》 开放的 pdf 电子书</p>
 <p>用 chome dev tools 调试了下，找到 pdf 是用 AES 加密过的。主要是在这个文件里断点：</p>
 <p><a href="https://yd.51zhy.cn/ebook/reader/static/js/0.f4c9028886a7b391c0df.1574068669001.js" rel="nofollow">https://yd.51zhy.cn/ebook/reader/static/js/0.f4c9028886a7b391c0df.1574068669001.js</a></p>
-<p>搜索 <code>AES.decrypt</code> 跟踪到 pdf 解密流程是根据 <code>this.v.authorKey</code> 来解密的。如何计算 <code>this.v.authorKey</code> 呢？</p>
-<p>继续搜索 <code>authorKey </code>  找到</p>
+<p>搜索 <code class="notranslate">AES.decrypt</code> 跟踪到 pdf 解密流程是根据 <code class="notranslate">this.v.authorKey</code> 来解密的。如何计算 <code class="notranslate">this.v.authorKey</code> 呢？</p>
+<p>继续搜索 <code class="notranslate">authorKey </code>  找到</p>
 <div class="highlight highlight-source-js"><pre><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">authorKey</span> <span class="pl-c1">=</span> <span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-en">makeKey</span><span class="pl-kos">(</span><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">readData</span><span class="pl-kos">.</span><span class="pl-c1">devicekey</span><span class="pl-kos">,</span> <span class="pl-s1">e</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">)</span></pre></div>
-<p>断点调试得到 <code>devicekey</code> 为： <code>LQBhm1oQvo2pDGBO</code></p>
-<p><code>Data.Key</code> 为 <code>9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=</code></p>
-<p>查看 <code>makeKey</code> 的实现如下：</p>
+<p>断点调试得到 <code class="notranslate">devicekey</code> 为： <code class="notranslate">LQBhm1oQvo2pDGBO</code></p>
+<p><code class="notranslate">Data.Key</code> 为 <code class="notranslate">9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=</code></p>
+<p>查看 <code class="notranslate">makeKey</code> 的实现如下：</p>
 <div class="highlight highlight-source-js"><pre><span class="pl-s1">makeKey</span>: <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">,</span> <span class="pl-s1">t</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
     <span class="pl-s1">e</span> <span class="pl-c1">=</span> <span class="pl-s1">e</span><span class="pl-kos">;</span>
     <span class="pl-k">var</span> <span class="pl-s1">n</span> <span class="pl-c1">=</span> <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">enc</span><span class="pl-kos">.</span><span class="pl-c1">Utf8</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
@@ -49,9 +49,9 @@
 <span class="pl-kos">}</span><span class="pl-kos">,</span></pre></div>
 <p>用 openssl 命令就是这样的：</p>
 <div class="highlight highlight-source-shell"><pre><span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">'</span>9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=<span class="pl-pds">'</span></span> <span class="pl-k">|</span> openssl enc -d -aes-128-ecb -a -K 4c5142686d316f51766f32704447424f</pre></div>
-<p>其中 <code>4c5142686d316f51766f32704447424f</code> 是 <code>LQBhm1oQvo2pDGBO</code> 的 hex 形式。</p>
-<p>算出结果为 <code>DzglNMjfYapT9XGy</code>, 再算出对应的 hex 为 <code>447a676c4e4d6a665961705439584779</code></p>
-<p>然后再从 chrome dev tools 的 network 里找到 pdf 的下载链接，右键拷贝出 curl 命令，然后把页码换成下面的变量 <code>$i</code>，批量下载。最后用 pdf 工具合并搞定，合并工具我选的 <a href="http://community.coherentpdf.com/" rel="nofollow">cpdf</a>。</p>
+<p>其中 <code class="notranslate">4c5142686d316f51766f32704447424f</code> 是 <code class="notranslate">LQBhm1oQvo2pDGBO</code> 的 hex 形式。</p>
+<p>算出结果为 <code class="notranslate">DzglNMjfYapT9XGy</code>, 再算出对应的 hex 为 <code class="notranslate">447a676c4e4d6a665961705439584779</code></p>
+<p>然后再从 chrome dev tools 的 network 里找到 pdf 的下载链接，右键拷贝出 curl 命令，然后把页码换成下面的变量 <code class="notranslate">$i</code>，批量下载。最后用 pdf 工具合并搞定，合并工具我选的 <a href="http://community.coherentpdf.com/" rel="nofollow">cpdf</a>。</p>
 <div class="highlight highlight-source-shell"><pre>for<span class="pl-s"><span class="pl-pds">((</span>i<span class="pl-k">=</span><span class="pl-c1">1</span>;i<span class="pl-k">&lt;=</span><span class="pl-c1">432</span>;i<span class="pl-k">++</span><span class="pl-pds">))</span></span><span class="pl-k">;</span><span class="pl-k">do</span>
     <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$i</span><span class="pl-pds">"</span></span>.pdf
 
@@ -133,7 +133,7 @@ TESTDATA=<span class="pl-s"><span class="pl-pds">$(</span>echo <span class="pl-s
 <span class="pl-k">for</span> <span class="pl-smi">c</span> <span class="pl-k">in</span> <span class="pl-smi">$TESTDATA</span><span class="pl-k">;</span> <span class="pl-k">do</span>
     <span class="pl-c1">echo</span> <span class="pl-smi">$c</span> <span class="pl-k">|</span> xxd -r
 <span class="pl-k">done</span></pre></div>
-<pre><code>sh tostr.sh '\x6d\x6f\x64\x65'
+<pre class="notranslate"><code class="notranslate">sh tostr.sh '\x6d\x6f\x64\x65'
 </code></pre>
             </div>
             <div id="comment">

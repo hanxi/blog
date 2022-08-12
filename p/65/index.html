@@ -107,7 +107,7 @@
 <h3>lua代码结构</h3>
 </li>
 </ul>
-<pre>src
+<pre class="notranslate">src
 ├── conf.lua                  # 配置文件，一些不变的配置保存在这里
 ├── GameOverScene.lua         # 游戏结束的界面
 ├── GameScene.lua             # 游戏主逻辑界面
@@ -118,7 +118,7 @@
 └── util.lua                  # 通用功能函数实现
 </pre>
 <p>每个XXOOScene.lua 文件的样子如下：</p>
-<pre>local XXOOScene = {}
+<pre class="notranslate">local XXOOScene = {}
 
 XXOOScene.newScene = function ()
     local scene = cc.Scene:create()
@@ -129,7 +129,7 @@ end
 return XXOOScene
 </pre>
 <p>关于Scene界面跳转，在util中封装一个通用函数用于界面跳转。</p>
-<pre>function util.toScene(scene)
+<pre class="notranslate">function util.toScene(scene)
     -- 增加一个统一的界面跳转动画
     scene = cc.TransitionSlideInR:create(0.5, scene)
     if cc.Director:getInstance():getRunningScene() then
@@ -140,7 +140,7 @@ return XXOOScene
 end
 </pre>
 <p>main.lua用户进入HelloScene界面</p>
-<pre>HelloScene = require("src/HelloScene")
+<pre class="notranslate">HelloScene = require("src/HelloScene")
  
 local function main()
     cc.FileUtils:getInstance():addSearchResolutionsOrder("src")
@@ -166,7 +166,7 @@ end
 <blockquote>
 <p>解决方案：在 C++ 中创建启动画面,HelloScene.lua中不做创建Scene的操作，直接getRunningScene。</p>
 </blockquote>
-<pre>AppDelegate::applicationDidFinishLaunching () {
+<pre class="notranslate">AppDelegate::applicationDidFinishLaunching () {
 
     // ... other xxoo things
 
@@ -260,7 +260,7 @@ end
 <p>文字描述可能不清晰，目录结构如下：</p>
 </blockquote>
 <blockquote>
-<pre>. -&gt; build
+<pre class="notranslate">. -&gt; build
 | -&gt;llvm-3.4  -&gt; tools -&gt; clang -&gt; CMakeLists.txt 
              |-&gt; CMakeLists.txt
 </pre>

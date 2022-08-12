@@ -33,7 +33,7 @@
                 <h3>部署 docker 编译环境</h3>
 <p>可以下载这个 <a href="https://github.com/hanxi/lede-docker-builder">https://github.com/hanxi/lede-docker-builder</a></p>
 <p>如果想自建 docker 镜像，记得把这个环境变量加上。docker 默认是 root 环境。</p>
-<pre><code>ENV FORCE_UNSAFE_CONFIGURE=1
+<pre class="notranslate"><code class="notranslate">ENV FORCE_UNSAFE_CONFIGURE=1
 </code></pre>
 <h3>make menuconfig 选项配置(基本配置)</h3>
 <ul>
@@ -50,7 +50,7 @@
 </ul>
 <p>之前被误导了,K1 是 PSG1208,K2 是 PSG1218 rev.Ax, K2C是PSG1218 rev.Bx</p>
 <h3>LuCI配置:</h3>
-<pre><code>LuCI-&gt;
+<pre class="notranslate"><code class="notranslate">LuCI-&gt;
     Modules-&gt;
         Translations-&gt;
             &lt;*&gt;English (en)
@@ -62,7 +62,7 @@
 <p>make menuconfig 配置选项参考: <a href="https://blog.csdn.net/Amosstan/article/details/80135108" rel="nofollow">https://blog.csdn.net/Amosstan/article/details/80135108</a></p>
 <h3>加点插件进去</h3>
 <p>参考下这个配置插件: <a href="https://www.right.com.cn/forum/forum.php?mod=viewthread&amp;tid=344825" rel="nofollow">https://www.right.com.cn/forum/forum.php?mod=viewthread&amp;tid=344825</a></p>
-<pre><code>LuCI ---&gt; Applications ---&gt; luci-app-arpbind  #IP/MAC绑定
+<pre class="notranslate"><code class="notranslate">LuCI ---&gt; Applications ---&gt; luci-app-arpbind  #IP/MAC绑定
 LuCI ---&gt; Applications ---&gt; luci-app-autoreboot  #高级重启
 LuCI ---&gt; Applications ---&gt; luci-app-ddns   #动态域名 DNS 
 LuCI ---&gt; Applications ---&gt; luci-app-firewall   #添加防火墙
@@ -71,19 +71,19 @@ LuCI ---&gt; Applications ---&gt; luci-app-flowoffload   #Turbo ACC  FLOW转发�
 </code></pre>
 <h3>找回丢失的 $$R</h3>
 <p>这东西我也就临时用下，比如刷 LineageOS 跳过谷歌认证需要用到。</p>
-<pre><code>mkdir ~/lede/package/openwrt-packages
+<pre class="notranslate"><code class="notranslate">mkdir ~/lede/package/openwrt-packages
 cd ~/lede/package/openwrt-packages
 git clone https://github.com/SuLingGG/luci-app-ssr-plus ./luci-app-ssr-plus
 </code></pre>
-<p>再插入这行彩蛋语句到 <code>package/lean/default-settings/files/zzz-default-settings</code></p>
-<pre><code>echo 0xDEADBEEF &gt; /etc/config/google_fu_mode
+<p>再插入这行彩蛋语句到 <code class="notranslate">package/lean/default-settings/files/zzz-default-settings</code></p>
+<pre class="notranslate"><code class="notranslate">echo 0xDEADBEEF &gt; /etc/config/google_fu_mode
 </code></pre>
 <p>然后 make menuconfig 把选项加进去</p>
 <h3>修改 ip 为 192.168.2.1</h3>
-<p>修改这个文件 <code>package/base-files/files/bin/config_generate</code> 里的 192.168.1.1 为 192.168.2.1</p>
+<p>修改这个文件 <code class="notranslate">package/base-files/files/bin/config_generate</code> 里的 192.168.1.1 为 192.168.2.1</p>
 <h3>修改默认主题</h3>
-<p>再插入这几行语句到 <code>package/lean/default-settings/files/zzz-default-settings</code> 修改主题设置</p>
-<pre><code>uci batch &lt;&lt;-EOF
+<p>再插入这几行语句到 <code class="notranslate">package/lean/default-settings/files/zzz-default-settings</code> 修改主题设置</p>
+<pre class="notranslate"><code class="notranslate">uci batch &lt;&lt;-EOF
     set luci.themes.Argon=/luci-static/argon
     set luci.main.mediaurlbase=/luci-static/argon
     commit luci

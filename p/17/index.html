@@ -47,7 +47,7 @@
 <li>解压后得到可执行文件 lemonade.exe</li>
 <li>在 lemonade.exe 目录下新建一个批处理文件 lamonade.bat ，内容如下：</li>
 </ul>
-<pre><code>lemonade.exe --port=2489 --line-ending="cr" --allow="192.168.0.0/24" server
+<pre class="notranslate"><code class="notranslate">lemonade.exe --port=2489 --line-ending="cr" --allow="192.168.0.0/24" server
 </code></pre>
 <ul>
 <li>上面一行命令的意思就是监听 2489 端口，允许局域网的机子访问你的 Windows 粘贴板</li>
@@ -59,7 +59,7 @@
 <li>把可执行文件 lemonade 放到 PATH 路径，比如 /usr/bin</li>
 <li>新建配置文件 .config/lemonade.toml ，内容如下：</li>
 </ul>
-<pre><code>port = 2489
+<pre class="notranslate"><code class="notranslate">port = 2489
 host = '192.168.16.12'
 trans-loopback = true
 trans-localfile = true
@@ -82,15 +82,15 @@ $ lemonade open <span class="pl-s"><span class="pl-pds">'</span>http://google.co
 <li>如果使用的是 NeoVim 就不用装插件了，本身就自动支持第三方粘贴板插件</li>
 </ul>
 <h4>II. 配置 Tmux</h4>
-<p>为了实现 Tmux 选择和 Vim 一致，需要修改快捷键，比如选中模式下按 <code>v</code> 开始选择，按 <code>y</code> 拷贝并结束选择。进入选中模式的快捷键为 <code>Ctrl + [</code> ，粘贴的快捷键为 <code>Ctrl + ]</code> 。如下配置 Tmux:</p>
-<p>我的 lemonade 的路径是在 <code>~/local/bin/lemonade</code></p>
-<pre><code># tmux 2.4 以上版本
+<p>为了实现 Tmux 选择和 Vim 一致，需要修改快捷键，比如选中模式下按 <code class="notranslate">v</code> 开始选择，按 <code class="notranslate">y</code> 拷贝并结束选择。进入选中模式的快捷键为 <code class="notranslate">Ctrl + [</code> ，粘贴的快捷键为 <code class="notranslate">Ctrl + ]</code> 。如下配置 Tmux:</p>
+<p>我的 lemonade 的路径是在 <code class="notranslate">~/local/bin/lemonade</code></p>
+<pre class="notranslate"><code class="notranslate"># tmux 2.4 以上版本
 setw -g mode-keys vi
 bind-key -T copy-mode-vi v send-keys -X begin-selection
 bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel "~/local/bin/lemonade copy"
 bind-key ] run-shell "~/local/bin/lemonade paste | tmux load-buffer -" \; paste-buffer ;
 </code></pre>
-<pre><code># tmux 旧版本
+<pre class="notranslate"><code class="notranslate"># tmux 旧版本
 bind-key -t vi-copy 'v' begin-selection
 bind-key -t vi-copy 'y' copy-pipe "~/local/bin/lemonade copy"
 bind-key ] run-shell "~/local/bin/lemonade paste | tmux load-buffer -" \; paste-buffer ;

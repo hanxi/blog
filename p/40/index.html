@@ -38,26 +38,26 @@ sudo modprobe ashmem_linux
 sudo modprobe binder_linux
 sudo snap install --edge --devmode anbox</pre></div>
 <h3>问题1: 遇到添加 ppa 失败</h3>
-<pre><code>Error: could not find a distribution template for Deepin/stable
+<pre class="notranslate"><code class="notranslate">Error: could not find a distribution template for Deepin/stable
 </code></pre>
 <blockquote>
 <p>参考这里的解决方法 <a href="https://unix.stackexchange.com/questions/520715/deepin-15-10-error-could-not-find-a-distribution-template-for-deepin-stable" rel="nofollow">https://unix.stackexchange.com/questions/520715/deepin-15-10-error-could-not-find-a-distribution-template-for-deepin-stable</a></p>
 </blockquote>
 <div class="highlight highlight-source-shell"><pre>sudo vim /usr/share/python-apt/templates/Deepin.info</pre></div>
 <p>修改这个</p>
-<pre><code>Suite: unstable
+<pre class="notranslate"><code class="notranslate">Suite: unstable
 </code></pre>
 <p>为</p>
-<pre><code>Suite: stable
+<pre class="notranslate"><code class="notranslate">Suite: stable
 </code></pre>
 <h3>问题2: sudo apt update 报错</h3>
-<pre><code>sudo vim /etc/apt/sources.list.d/morphis-ubuntu-anbox-support-eoan.list
+<pre class="notranslate"><code class="notranslate">sudo vim /etc/apt/sources.list.d/morphis-ubuntu-anbox-support-eoan.list
 </code></pre>
 <p>修改这个</p>
-<pre><code>deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu eoan main
+<pre class="notranslate"><code class="notranslate">deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu eoan main
 </code></pre>
 <p>为</p>
-<pre><code>deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu disco main
+<pre class="notranslate"><code class="notranslate">deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu disco main
 </code></pre>
 <h3>问题3: sudo snap install --edge --devmode anbox 下载超级慢</h3>
 <div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> 开始设置代理</span>

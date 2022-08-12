@@ -45,14 +45,14 @@
 <h3>3. 自动代理 PAC？</h3>
 <p>局域网的机器如果直接设置代理为 v2ray 客户端的端口 8080，就会全部走代理了。为了不需要在每台机器上都配置 PAC，就需要再加一层代理了，可以用 Privoxy 搭建。</p>
 <p>网络结构是这样的：</p>
-<pre><code>windows/linux/mac/android/ios 
+<pre class="notranslate"><code class="notranslate">windows/linux/mac/android/ios 
     -&gt; privoxy(192.168.2.2:8081)
     -&gt; v2ray client(192.168.2.2:8080)
     -&gt; v2ray server(xx.xx.com:443)
 </code></pre>
 <p>这样一来，局域网的机器只需要把代理配置为 192.168.2.2:8081 即可。</p>
 <p>v2ray server 安装在自己买的 VPS 上，安装方法网上教材很多很多。</p>
-<p><a href="https://hub.docker.com/r/v2ray/official" rel="nofollow">v2ray client</a> 和 <a href="https://hub.docker.com/r/vimagick/privoxy" rel="nofollow">privoxy</a> 我是安装在 docker 里面。privoxy 的配置用的这个工具 <a href="https://github.com/zfl9/gfwlist2privoxy">zfl9/gfwlist2privoxy</a> 把 gfwlist 转成 <code>gfwlist.action</code> 配置文件的。写了个脚本转完后重启 privoxy 容器，然后配置 crontab 自动每天做一次。</p>
+<p><a href="https://hub.docker.com/r/v2ray/official" rel="nofollow">v2ray client</a> 和 <a href="https://hub.docker.com/r/vimagick/privoxy" rel="nofollow">privoxy</a> 我是安装在 docker 里面。privoxy 的配置用的这个工具 <a href="https://github.com/zfl9/gfwlist2privoxy">zfl9/gfwlist2privoxy</a> 把 gfwlist 转成 <code class="notranslate">gfwlist.action</code> 配置文件的。写了个脚本转完后重启 privoxy 容器，然后配置 crontab 自动每天做一次。</p>
 <p>可以参考我的 docker-compose.yml 配置：</p>
 <div class="highlight highlight-source-yaml"><pre><span class="pl-ent">version</span>: <span class="pl-s"><span class="pl-pds">'</span>2<span class="pl-pds">'</span></span>
 

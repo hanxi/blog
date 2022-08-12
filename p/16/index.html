@@ -37,16 +37,16 @@
 <blockquote>
 <p>If you're using docker on MacOS (this usually means having a VirtualBox VM with a docker installation, which is done by the docker MacOS installer), you need to do some extra steps to get this working. DLNA server &amp; clients need to be on same network but the VirtualBox VM has a NATed network adapter. You need to add a new bridged network adapter:</p>
 <ol>
-<li>Stop the VM: <code>docker-machine stop default</code></li>
+<li>Stop the VM: <code class="notranslate">docker-machine stop default</code></li>
 <li>Open VirtualBox, select the VM with name "default" and go to its Settings -&gt; Network -&gt; Select an unused Adapter, enable it and select "Bridged Adapter" under "Attached to:" field.</li>
-<li>Start the VM: <code>docker-machine start default</code></li>
-<li>From VirtualBox, again select the "default" VM and click on Show. This will open up the terminal of the VM, use <code>ifconfig</code> to figure out the new bridged network adapter, say it is <code>eth2</code>.</li>
-<li>Now add <code>-e NIC=eth2</code> in the above run command after the <code>-v</code> switch.</li>
+<li>Start the VM: <code class="notranslate">docker-machine start default</code></li>
+<li>From VirtualBox, again select the "default" VM and click on Show. This will open up the terminal of the VM, use <code class="notranslate">ifconfig</code> to figure out the new bridged network adapter, say it is <code class="notranslate">eth2</code>.</li>
+<li>Now add <code class="notranslate">-e NIC=eth2</code> in the above run command after the <code class="notranslate">-v</code> switch.</li>
 </ol>
 </blockquote>
 <p>遇到了 aria2 的 BT 服务器地址需要手动更新的问题，参考 <a href="https://github.com/asmoker/btrackers-postman">asmoker/btrackers-postman</a>  实现了一个更简单的更新脚本 <a href="https://github.com/hanxi/aria2-bt-tracker">hanxi/aria2-bt-tracker</a></p>
-<p>遇到了 minidlna 无法自动刷新文件的问题，就是某个文件不是下载的，而是在windows里拷贝进去的时候，minidlna无法刷新到，目前是手动刷新解决的。进入容器执行 <code>minidlnad -R</code></p>
-<pre><code>$ docker-machine ssh default
+<p>遇到了 minidlna 无法自动刷新文件的问题，就是某个文件不是下载的，而是在windows里拷贝进去的时候，minidlna无法刷新到，目前是手动刷新解决的。进入容器执行 <code class="notranslate">minidlnad -R</code></p>
+<pre class="notranslate"><code class="notranslate">$ docker-machine ssh default
 $ docker exec -it minidlna minidlnad -R
 </code></pre>
 <p>当然，最后还在路由器配置了端口映射，实现了外网访问家里的服务器。有什么电影需要下载的时候可以随时在手机上提交，回到家中可以用电视盒子观看，也可以直接在手机上观看（家里上行20M，速度还行）</p>

@@ -33,20 +33,20 @@
                 <ol>
 <li>服务查看log</li>
 </ol>
-<pre><code>    tail -1f /var/log/secure
+<pre class="notranslate"><code class="notranslate">    tail -1f /var/log/secure
 </code></pre>
 <p>因为搜索了好多sshd的配置都是一样的，不能解决问题，就想到了查看log显示更确切的报错什么的。</p>
 <ol start="2">
 <li>客户端执行命令</li>
 </ol>
-<pre><code>    time scp -v t.lua hlm-devel@192.168.16.234:/home/hlm-devel/t.lua
+<pre class="notranslate"><code class="notranslate">    time scp -v t.lua hlm-devel@192.168.16.234:/home/hlm-devel/t.lua
 </code></pre>
 <p>这句话是搜着搜着找到的。来自这里：<a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=3744661" rel="nofollow">http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=3744661</a><br>
 可以总结出，一般命令都有debug模式，以后出现问题就直接去查找命令的debug参数就是了。</p>
 <ol start="3">
 <li>查看服务器输出的log</li>
 </ol>
-<pre><code>    Dec  3 09:49:19 localhost sshd[15272]: Authentication refused: bad ownership or modes for directory /home/hlm-devel
+<pre class="notranslate"><code class="notranslate">    Dec  3 09:49:19 localhost sshd[15272]: Authentication refused: bad ownership or modes for directory /home/hlm-devel
     Dec  3 09:49:19 localhost sshd[15272]: Authentication refused: bad ownership or modes for directory /home/hlm-devel
 </code></pre>
 <p>输出了sshd的日志，根据log提示认证拒绝，权限问题，然后就搜 bad ownership or modes for directory<br>

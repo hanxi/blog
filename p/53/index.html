@@ -32,7 +32,7 @@
             <div id="content" class="markdown-body">
                 <h3>目录结构</h3>
 <p>编译出来为我所需的文件,以及代码文件</p>
-<pre>├── bin
+<pre class="notranslate">├── bin
 │   ├── test
 │   └── test.lua
 ├── build
@@ -50,7 +50,7 @@
     └── main.cpp
 </pre>
 <h3>源代码</h3>
-<pre>//main.cpp
+<pre class="notranslate">//main.cpp
 #include &lt;stdio.h&gt;
 
 extern "C"{
@@ -84,13 +84,13 @@ int main(int argc, char ** argv) {
     return 0;
 }
 </pre>
-<pre>-- test.lua
+<pre class="notranslate">-- test.lua
 
 function printmsg()
     print("hello word")
 end
 </pre>
-<pre>#CMakeLists.txt
+<pre class="notranslate">#CMakeLists.txt
 PROJECT(test)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
@@ -116,7 +116,7 @@ add_executable(test
 target_link_libraries(test lua m dl)
 </pre>
 <h3>编译运行</h3>
-<pre>    $ cd build
+<pre class="notranslate">    $ cd build
     $ cmake ..
     $ make
     $ cd ../bin

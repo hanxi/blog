@@ -61,7 +61,7 @@ chown -R sftpuser:sftpuser /data0/sftp/sftpuser/upload</pre></div>
 <h4>7. 配置sshd_config</h4>
 <div class="highlight highlight-source-shell"><pre>vi /etc/ssh/sshd_config</pre></div>
 <h4>8. 修改如下内容，并保存退出</h4>
-<pre lang="txt"><code># 注释掉这行
+<pre lang="txt" class="notranslate"><code class="notranslate"># 注释掉这行
 # Subsystem sftp /usr/libexec/openssh/sftp-server
 # 添加这行：
 Subsystem sftp internal-sftp

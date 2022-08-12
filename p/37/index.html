@@ -36,7 +36,7 @@
 <p>然后做一个账号系统来验证登录，本来打算自己实现一套账号系统的，但是担心用户注册麻烦，最终还是选用了 GitHub OAuth 的方式来登录。这个实现主要是接入 GitHub 的 API，拿到 token 和用户信息之后保存到服务器，再给用户生成一个 JWT . 之后就客户端使用 JWT 跟服务器交互。</p>
 <p>关于使用 GitHub 登录和 JWT 是啥玩意参考这里列出的文章:  <a href="https://blog.hanxi.info/?p=34" rel="nofollow">https://blog.hanxi.info/?p=34</a></p>
 <p>网站的主页页面也就两个，一个主页，一个登录后的个人页面。后端采用的模板库是 bungle/lua-resty-template , 前端采用了 Bootstrap 库。登录成功后就能显示 JWT ，还弄了个自动安装客户端的命令。然后实现点击按钮复制命令的实现可看这里: <a href="https://blog.hanxi.info/?p=35" rel="nofollow">https://blog.hanxi.info/?p=35</a></p>
-<p>初版的 Linux 客户端的配置文件在 <code>$HOME/.oclip</code> ，安装位置在 <code>$HOME/.local/bin</code> 。实现过程中用到的一些 Bash 脚本关键点记录在这里: <a href="https://blog.hanxi.info/?p=33" rel="nofollow">https://blog.hanxi.info/?p=33</a></p>
+<p>初版的 Linux 客户端的配置文件在 <code class="notranslate">$HOME/.oclip</code> ，安装位置在 <code class="notranslate">$HOME/.local/bin</code> 。实现过程中用到的一些 Bash 脚本关键点记录在这里: <a href="https://blog.hanxi.info/?p=33" rel="nofollow">https://blog.hanxi.info/?p=33</a></p>
 <p>到这里就已经实现了一个初步可用的远程剪切板了，使用流程为 进入到 <a href="https://oclip.hanxi.info" rel="nofollow">https://oclip.hanxi.info</a> ，然后用 GitHub 登录，再复制安装命令到系统终端执行(不用 root 账户)，然后就能使用 oclip 命令了。 oclip 的参数格式参考了 xclip。</p>
 <div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> 复制</span>
 <span class="pl-c1">echo</span> hello <span class="pl-k">|</span> oclip
@@ -44,16 +44,16 @@
 <span class="pl-c"><span class="pl-c">#</span> 粘贴</span>
 oclip -o</pre></div>
 <p>然后在本地测试速度还可以 0.0xx 秒:</p>
-<pre><code>real    0m0.046s
+<pre class="notranslate"><code class="notranslate">real    0m0.046s
 user    0m0.015s
 sys     0m0.002s
 </code></pre>
 <p>远程测试速度为，可能慢在 HTTPS 连接上。</p>
-<pre><code>real    0m0.392s
+<pre class="notranslate"><code class="notranslate">real    0m0.392s
 user    0m0.129s
 sys     0m0.097s
 </code></pre>
-<p>最初想用 websocket 不是为了解决速度的问题，而是需要一个长连接的机制来实现监控和修改 Windows 的系统粘贴板。比如我在 Linux 上执行复制命令 <code>echo hello|oclip</code> ，然后数据可以自动推送到 Windows 上并修改系统粘贴板。</p>
+<p>最初想用 websocket 不是为了解决速度的问题，而是需要一个长连接的机制来实现监控和修改 Windows 的系统粘贴板。比如我在 Linux 上执行复制命令 <code class="notranslate">echo hello|oclip</code> ，然后数据可以自动推送到 Windows 上并修改系统粘贴板。</p>
 <p>确定好 Windows 客户端使用 Lua 开发后，需要使用的库大致分为操作系统剪切板，系统图标，websocket。</p>
 <p>系统剪切板的操作有现成的 Lua 库 <a href="http://files.luaforge.net/releases/jaslatrix/clipboard" rel="nofollow">jaslatrix/clipboard</a>，但是好多功能是我不需要的，而且没有监听剪切板的功能，因此我就参考它和 <a href="https://docs.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard" rel="nofollow">MSDN</a> 自己实现了一个 <a href="https://github.com/hanxi/lclipboard">hanxi/lclipboard</a></p>
 <p>系统图标也找到了一个 C 库 <a href="https://github.com/zserge/tray">zserge/tray</a> ，对它进行修改调整实现了一个 Lua 库 <a href="https://github.com/hanxi/ltray">hanxi/ltray</a></p>
@@ -62,7 +62,7 @@ sys     0m0.097s
 <li><a href="https://github.com/daurnimator/lua-http">daurnimator/lua-http</a></li>
 <li><a href="https://github.com/lipp/lua-websockets">lipp/lua-websockets</a></li>
 </ul>
-<p>但是 <code>lua-http</code> 依赖的 <code>cqueues</code> 不支持 Windows，自己去适配的话太耗时间了，最终选了 <code>lua-websockets</code> 这个库，然后参考 <a href="https://github.com/RamiLego4Game/Love-Discord">RamiLego4Game/Love-Discord</a> 改成异步的接口，放在这里了 <a href="https://github.com/hanxi/lua-websockets">hanxi/lua-websockets</a></p>
+<p>但是 <code class="notranslate">lua-http</code> 依赖的 <code class="notranslate">cqueues</code> 不支持 Windows，自己去适配的话太耗时间了，最终选了 <code class="notranslate">lua-websockets</code> 这个库，然后参考 <a href="https://github.com/RamiLego4Game/Love-Discord">RamiLego4Game/Love-Discord</a> 改成异步的接口，放在这里了 <a href="https://github.com/hanxi/lua-websockets">hanxi/lua-websockets</a></p>
 <p>为了支持 https 和 wss。 编译 luasec 花了点时间，网上找的 openssl 二进制包都有点问题，最后自己安装 perl 编译了一个 openssl 就没问题了。</p>
 <p>还差一个交互协议的选择，最后的决定是参考 JSON-RPC，用 msgpack 格式打包类似的结构进行交互。msgpack 库打算用 Redis 的 <a href="https://github.com/antirez/lua-cmsgpack">antirez/lua-cmsgpack</a>，最后发现 Openresty 安装时由于没装编译环境导致安装失败。所以选用了纯 Lua 实现的 <a href="https://framagit.org/fperrad/lua-MessagePack" rel="nofollow">fperrad/lua-MessagePack</a>。</p>
 <p>Windows 客户端的零件都准备好了，可以开始组装了。</p>
@@ -70,16 +70,16 @@ sys     0m0.097s
 <p>出现一个本地加密数据的问题， luasec 没有提供 openssl enc 接口，然后找到 luacrypto 和 lua-openssl。最后发现 lua-openssl 兼容了 luacrypto 和 luasec。 这样就可以只用 lua-openssl 替代 luacrypto 和 luasec 了。</p>
 <p>在 windows 下编译 lua-openssl 比较顺畅， 它提供了 makefile.win, 在编译 luasec 的基础上参考它就编译成功了。 最后使用 lua-openssl 的时候，遇到了两个问题：</p>
 <ul>
-<li><code>send</code> 和 <code>receive</code> 接口的实现跟 luasocket 实现的不一致，不能调用 <code>select</code> 函数。</li>
-<li><code>crypto.digest</code> 函数漏了 <code>raw</code> 参数没有往下面传递。</li>
+<li><code class="notranslate">send</code> 和 <code class="notranslate">receive</code> 接口的实现跟 luasocket 实现的不一致，不能调用 <code class="notranslate">select</code> 函数。</li>
+<li><code class="notranslate">crypto.digest</code> 函数漏了 <code class="notranslate">raw</code> 参数没有往下面传递。</li>
 </ul>
 <p>然后我都提了 issues 并修复了。</p>
 <p><a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="484080367" data-permission-text="Title is private" data-url="https://github.com/zhaozg/lua-openssl/issues/179" data-hovercard-type="issue" data-hovercard-url="/zhaozg/lua-openssl/issues/179/hovercard" href="https://github.com/zhaozg/lua-openssl/issues/179">zhaozg/lua-openssl#179</a></p>
 <p><a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="484291462" data-permission-text="Title is private" data-url="https://github.com/zhaozg/lua-openssl/issues/180" data-hovercard-type="issue" data-hovercard-url="/zhaozg/lua-openssl/issues/180/hovercard" href="https://github.com/zhaozg/lua-openssl/issues/180">zhaozg/lua-openssl#180</a></p>
-<p>接下来就是遇到 <code>openssl enc</code> 加密的数据， lua-openssl 解密不了的问题。这里需要去理解 <code>-K -iv</code> 参数的生成规则才行。</p>
+<p>接下来就是遇到 <code class="notranslate">openssl enc</code> 加密的数据， lua-openssl 解密不了的问题。这里需要去理解 <code class="notranslate">-K -iv</code> 参数的生成规则才行。</p>
 <p>参考这里： <a href="https://www.jianshu.com/p/813e184b56bd" rel="nofollow">https://www.jianshu.com/p/813e184b56bd</a></p>
 <p>AES-128-CBC 的 Key 和 iv 生成规则</p>
-<pre><code>hash1_256 = SHA256(Passphrase)
+<pre class="notranslate"><code class="notranslate">hash1_256 = SHA256(Passphrase)
 Key = First128bit(hash1_256)
 IV = Second128bit(hash1_256)
 </code></pre>
@@ -131,9 +131,9 @@ iv=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><
 <span class="pl-c1">self</span>.<span class="pl-smi">vid</span> <span class="pl-k">=</span> vi</pre></div>
 <p>使用 shared.DICT 而不是使用 lua-resty-lru 的原因是：这个数据需要在各个工作进程中共享, 因为不同的客户端连接的可能不是同一个进程。</p>
 <hr>
-<p>遇到 <code>ssl.bio</code> 发送很长数据的问题，<code>send</code> 时返回需要重试，还没想到比较好的解决办法，直接写了个死循环一直发送。这个得再想办法改下。</p>
-<p>还要处理 Lua 读取配置文件的问题, 预计采用类似 ini 文件格式, 跟 Linux 系统一致, 放到用户目录下, 并命名为 <code>.oclip</code></p>
-<pre><code>token=eyJhbG.eyJ.rWe...
+<p>遇到 <code class="notranslate">ssl.bio</code> 发送很长数据的问题，<code class="notranslate">send</code> 时返回需要重试，还没想到比较好的解决办法，直接写了个死循环一直发送。这个得再想办法改下。</p>
+<p>还要处理 Lua 读取配置文件的问题, 预计采用类似 ini 文件格式, 跟 Linux 系统一致, 放到用户目录下, 并命名为 <code class="notranslate">.oclip</code></p>
+<pre class="notranslate"><code class="notranslate">token=eyJhbG.eyJ.rWe...
 passwd=passwd
 </code></pre>
 <p>读取每行配置，用 gmatch 提取 key 和 value</p>
@@ -149,8 +149,8 @@ passwd=passwd
 <p>Windows 客户端逻辑写完之后就是剩下打包的工作了，打算用 lua-static 来打包。 打包前还要处理下系统图标的打包工作。</p>
 <p>luastatic 在 windows 下打包默认只支持 mingw, 可是我编译用的是 MSVC，主要遇到三个问题:</p>
 <ul>
-<li>nm.exe 读取 windows 里的 DLL 文件无效，改成 <code>set NM="dumpbin /EXPORTS"</code> 后解决</li>
-<li><code>is_binary_library</code> 需要加入后缀 <code>dll</code> 的判断</li>
+<li>nm.exe 读取 windows 里的 DLL 文件无效，改成 <code class="notranslate">set NM="dumpbin /EXPORTS"</code> 后解决</li>
+<li><code class="notranslate">is_binary_library</code> 需要加入后缀 <code class="notranslate">dll</code> 的判断</li>
 <li>使用 cl.exe 生成的 dll 或者 lib 无法链接到生成的 exe 文件，可能是某些参数问题。最后试了一个复杂的方法，把所有相关的 obj 文件放在一起 link，最后生成了可以运行的单个 exe 文件。</li>
 </ul>
 <p>最后又遇到了一个小问题 cacert.pem文件没有打包到 exe 文件，这个比较简单，写个 lua 函数把这个文件从字符串输出到临时文件就行。</p>
@@ -225,7 +225,7 @@ passwd=passwd
 }</pre></div>
 <hr>
 <p>更新：</p>
-<p>编码问题终于解决了,我傻逼了,主要原因是剪切板内容读取和设置的格式采用了 ASCII 格式 <code>CF_TEXT</code>. 所以还是相当于没有使用 <code>define UNICODE</code>. 今天试过 iconv 来转都是一样的效果,最后找到这个才发现需要改为 <code>CF_UNICODETEXT</code>.</p>
+<p>编码问题终于解决了,我傻逼了,主要原因是剪切板内容读取和设置的格式采用了 ASCII 格式 <code class="notranslate">CF_TEXT</code>. 所以还是相当于没有使用 <code class="notranslate">define UNICODE</code>. 今天试过 iconv 来转都是一样的效果,最后找到这个才发现需要改为 <code class="notranslate">CF_UNICODETEXT</code>.</p>
 <p><a href="https://github.com/ocornut/imgui/blob/f5243712ce9fb070370cdc847ccc1b8e655fb1ce/imgui.cpp#L9616-L9658">https://github.com/ocornut/imgui/blob/f5243712ce9fb070370cdc847ccc1b8e655fb1ce/imgui.cpp#L9616-L9658</a></p>
 <p>所以 utf8 和 utf16 互转的代码其实只要这样就行了</p>
 <div class="highlight highlight-source-c"><pre><span class="pl-k">char</span> * <span class="pl-en">malloc_utf16_to_utf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *utf16text)
@@ -289,7 +289,7 @@ iconv windows 版本找的这个: <a href="https://github.com/kiyolee/libiconv-w
 </li>
 </ul>
 <p>创建快捷方式的方法打算采用 os.execute() 来执行 mklink 命令。 参考这里： <a href="https://stackoverflow.com/questions/30028709/how-do-i-create-a-shortcut-via-command-line-in-windows" rel="nofollow">https://stackoverflow.com/questions/30028709/how-do-i-create-a-shortcut-via-command-line-in-windows</a></p>
-<pre><code>mklink "%userprofile%\Start Menu\Programs\Startup\%~nx0" "%~f0"
+<pre class="notranslate"><code class="notranslate">mklink "%userprofile%\Start Menu\Programs\Startup\%~nx0" "%~f0"
 </code></pre>
 <p>创建快捷方式遇到个权限问题，win10 需要管理员权限才能 mklink. 于是网上找了个 VBS 脚本调用 UAC 执行。代码有点绕，但是可以实现功能就行。</p>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">_M.set_auto_startup</span>()
@@ -357,7 +357,7 @@ iconv windows 版本找的这个: <a href="https://github.com/kiyolee/libiconv-w
   <span class="pl-c1">os.remove</span>(fname)
 <span class="pl-k">end</span></pre></div>
 <p>接着又处理了下 exe 的图标问题，修改 makefile 即可。生成 icon.rc，再用 rc.exe 生成 icon.res。最后 link 的时候加上 icon.res 就行了。</p>
-<pre><code>tmp\icon.rc:
+<pre class="notranslate"><code class="notranslate">tmp\icon.rc:
     echo IDI_ICON1 ICON DISCARDABLE "icon.ico" &gt; tmp\icon.rc
 tmp\icon.ico:
     copy ..\..\src\icon.ico tmp\icon.ico
@@ -391,7 +391,7 @@ tmp\icon.res: tmp\icon.rc tmp\icon.ico
 <ul>
 <li>处理 CRLF 行尾字符的问题</li>
 </ul>
-<pre><code>Windows end of line sequence:  \r\n
+<pre class="notranslate"><code class="notranslate">Windows end of line sequence:  \r\n
 Unix end of line sequence:     \n
 Mac end of line sequence:      \r
 </code></pre>

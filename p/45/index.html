@@ -82,9 +82,9 @@ my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class
     <span class="pl-k">end</span>
 <span class="pl-k">end</span>
 <span class="pl-c"><span class="pl-c">--</span> 上面的变量 f_id 是用来定位这场战斗的，打印日志和读取某些数据的时候用的。</span></pre></div>
-<p>先说下处理行动前状态是用来做什么的，这段逻辑用用来处理某些特殊 buffer 的。buffer 是用状态机实现的，英雄身上会挂着一堆状态，状态有回合数限制的。比如英雄身上有个持续两回合的状态，两回合到了就要把这个状态删掉。这个删状态的触发逻辑就在 <code>process_round_status</code> 里实现。</p>
+<p>先说下处理行动前状态是用来做什么的，这段逻辑用用来处理某些特殊 buffer 的。buffer 是用状态机实现的，英雄身上会挂着一堆状态，状态有回合数限制的。比如英雄身上有个持续两回合的状态，两回合到了就要把这个状态删掉。这个删状态的触发逻辑就在 <code class="notranslate">process_round_status</code> 里实现。</p>
 <p>接下来主要实现上面的出手逻辑，执行技能操作区1 -&gt; 执行技能操作区2 ...</p>
-<p>技能操作区的划分就是按照技能目标的不同来区分，比如上面的例子：“对随机2名敌方单位造成90%伤害，并给自身增加15%的伤害”，操作区1就是 <code>对随机2名敌方单位造成90%伤害</code>， 操作区2就是 <code>给自身增加15%的伤害</code> 。</p>
+<p>技能操作区的划分就是按照技能目标的不同来区分，比如上面的例子：“对随机2名敌方单位造成90%伤害，并给自身增加15%的伤害”，操作区1就是 <code class="notranslate">对随机2名敌方单位造成90%伤害</code>， 操作区2就是 <code class="notranslate">给自身增加15%的伤害</code> 。</p>
 <p>这样，一个技能的行动逻辑就主要是实现一个技能的操作区的逻辑了，递归或者循环处理完所有的操作区就行了。下面就以操作区1为例子讲下如何配 Excel 表。</p>
 <p>技能配表可以这样配，先是配选目标</p>
 <table role="table">
@@ -157,8 +157,8 @@ my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class
 </table>
 <p>触发时机一般有这几种，扣血时，被扣血时，死亡时等等。</p>
 <p>总体来看，一个回合的战斗过程就是，释放技能，给目标加上某些状态，并执行处理过程改变某些属性，再在某些时机执行状态的效果。</p>
-<p>上面配置 Excel 的过程中，支持直接配置中文的表达式，这里的导表工具是 Python 写的，表头是这样定义的 <code>op3_att(xfun)(f_id,atk,target,status,damage)(技能变量)</code></p>
-<p>这个表示第三个操作区的处理过程，类型是 <code>xfun</code> 支持中文的函数，<code>f_id,atk,target,status,damage</code> 是函数的参数， <code>(技能变量)</code> 是用来替换中文的 Sheet。技能变量表大概是这样的：</p>
+<p>上面配置 Excel 的过程中，支持直接配置中文的表达式，这里的导表工具是 Python 写的，表头是这样定义的 <code class="notranslate">op3_att(xfun)(f_id,atk,target,status,damage)(技能变量)</code></p>
+<p>这个表示第三个操作区的处理过程，类型是 <code class="notranslate">xfun</code> 支持中文的函数，<code class="notranslate">f_id,atk,target,status,damage</code> 是函数的参数， <code class="notranslate">(技能变量)</code> 是用来替换中文的 Sheet。技能变量表大概是这样的：</p>
 <table role="table">
 <thead>
 <tr>
@@ -183,8 +183,8 @@ my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class
 </tr>
 </tbody>
 </table>
-<p>解析表达式就是先用<code>=</code>切割表达式，有等号就是替换成 <code>set</code> 操作。比如 <code>A气血=100</code> 转成代码就是 <code>fightd.set_attr_tmp_v(f_id, atk, status, 'hp', 100)</code></p>
-<p>还可以用分号 <code>;</code> 来切割支持多个表达式。具体如何实现就不贴代码了。</p>
+<p>解析表达式就是先用<code class="notranslate">=</code>切割表达式，有等号就是替换成 <code class="notranslate">set</code> 操作。比如 <code class="notranslate">A气血=100</code> 转成代码就是 <code class="notranslate">fightd.set_attr_tmp_v(f_id, atk, status, 'hp', 100)</code></p>
+<p>还可以用分号 <code class="notranslate">;</code> 来切割支持多个表达式。具体如何实现就不贴代码了。</p>
 <p>其实画点图可能更有助于理解，后续再补充吧。</p>
             </div>
             <div id="comment">

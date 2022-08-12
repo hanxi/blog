@@ -35,11 +35,11 @@
 <h2>设计由来</h2>
 <p>使用Lua开发游戏已经有两年多了，最初接触到的网络交互协议是由老大设计的。只支持整数和字符串类型的数据，后面的主程添加了元素为Lua表的数组类型的数据。主要核心在于Buffer的存储形式：</p>
 <ul>
-<li>整数分<code>int8</code>,<code>int16</code>,<code>int32</code>,<code>int64</code>类型存储，</li>
+<li>整数分<code class="notranslate">int8</code>,<code class="notranslate">int16</code>,<code class="notranslate">int32</code>,<code class="notranslate">int64</code>类型存储，</li>
 <li>整数前面有1byte表示正负数和整数位数，</li>
 <li>字符串则是前面存字符串的长度。</li>
 <li>序列化时不存储key，只存value。</li>
-<li>协议的序列化和反序列化都需要依靠协议模板，称之为<code>schema-full</code>（有模式的序列化方式）</li>
+<li>协议的序列化和反序列化都需要依靠协议模板，称之为<code class="notranslate">schema-full</code>（有模式的序列化方式）</li>
 </ul>
 <h2>添加新类型</h2>
 <p>我现在添加了表，浮点数，完整的数组。</p>
@@ -56,8 +56,8 @@
 <li>使用Lua Table的语法</li>
 <li>根据默认值区分整数和浮点数
 <ul>
-<li>整数：<code>n==math.floor(n)</code> 例如：1.0,1,2.00</li>
-<li>浮点数：<code>n~=math.floor(n)</code> 例如：1.1,0.1,1.23</li>
+<li>整数：<code class="notranslate">n==math.floor(n)</code> 例如：1.0,1,2.00</li>
+<li>浮点数：<code class="notranslate">n~=math.floor(n)</code> 例如：1.1,0.1,1.23</li>
 </ul>
 </li>
 <li>字符串：Lua的string类型</li>

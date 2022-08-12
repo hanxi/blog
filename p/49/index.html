@@ -40,16 +40,16 @@
 <p>这个方案纠结了许久，使用一个 so 的话，方便使用者，只需要拷贝一个 so 文件就可以使用， 使用 so + lua 的方式又可以做到代码简洁。最后还是选用了代码简洁的方式，因为使用者使用起来也不麻烦，只需要把 so 和 lua 放到对应的搜索路径即可。</p>
 <p>先设计好使用接口:</p>
 <ol>
-<li>创建树 <code>M:create(cap)</code></li>
-<li>插入节点 <code>M:insert(path, method, data)</code></li>
-<li>编译 <code>M:compile()</code></li>
-<li>查找节点 <code>M:match(path, method)</code></li>
+<li>创建树 <code class="notranslate">M:create(cap)</code></li>
+<li>插入节点 <code class="notranslate">M:insert(path, method, data)</code></li>
+<li>编译 <code class="notranslate">M:compile()</code></li>
+<li>查找节点 <code class="notranslate">M:match(path, method)</code></li>
 </ol>
-<p>销毁树放到元表的 <code>__gc</code> 里面。</p>
+<p>销毁树放到元表的 <code class="notranslate">__gc</code> 里面。</p>
 <p>data 不直接存入 libr3 的树里，像 iresty 一样，只存入索引即可。</p>
 <p>不像 iresty 一样提供 dispatch 接口直接调用注入的 callback，而是提供 find 接口，方便使用者根据自己的需要是执行 callback，还是使用数据去干别的事情。这个可以参考 <a href="https://github.com/gin-gonic/gin">gin</a> 框架的代码，也是提供查询数据的接口的。另外我将要实现的 web 框架也借鉴了 gin 的思路。</p>
 <p>目前这个库还只实现了 C 库部分，代码已开放 <a href="https://github.com/hanxi/lua-r3">hanxi/lua-r3</a> ，感兴趣的可以提前看看。</p>
-<p>对 skynet 感兴趣的话，可以学习下这门课程：《<a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">Skynet 游戏服务器开发实战</a>》，课程地址： <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">https://www.lanqiao.cn/courses/2770</a> ，九折优惠邀请码: <code>2CZ2UA5u</code> 。</p>
+<p>对 skynet 感兴趣的话，可以学习下这门课程：《<a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">Skynet 游戏服务器开发实战</a>》，课程地址： <a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">https://www.lanqiao.cn/courses/2770</a> ，九折优惠邀请码: <code class="notranslate">2CZ2UA5u</code> 。</p>
 <p>使用 skynet 开发的 web 框架也见过几个，没有遇到合心意的。提前预告下，我写的 web 框架参考了 lor , gin ，webpy 等框架的实现，面世还没那么快，还在慢慢打磨。有时候遇到一个方案的抉择要推敲很久。</p>
 <hr>
 2021-02-03 更新

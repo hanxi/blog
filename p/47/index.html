@@ -59,7 +59,7 @@
             - <span class="pl-s">./data/files/music:/music</span>
             - <span class="pl-s">./data/files/download:/media</span></pre></div>
 <p>开个 caddy 反向代理接口（如果用Nginx可以自行网上搜教程如何反代）， Caddyfile 如下：</p>
-<pre><code>{$DOMAIN}/qq {
+<pre class="notranslate"><code class="notranslate">{$DOMAIN}/qq {
   log stdout
   proxy / https://api.qq.jsososo.com {
     header_downstream Access-Control-Allow-Origin "*"

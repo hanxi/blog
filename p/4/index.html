@@ -54,7 +54,7 @@ $ make</pre></div>
 <h3>快速重启脚本(方便快速调试)</h3>
 <ul>
 <li>试过把cache关闭，但是没起到效果，所以就写了个脚本快速重启</li>
-<li>启动alilua的命令：<code>./alilua process=4 bind=9999 daemon host-route=host-route.lua</code></li>
+<li>启动alilua的命令：<code class="notranslate">./alilua process=4 bind=9999 daemon host-route=host-route.lua</code></li>
 <li>关闭alilua的函数：</li>
 </ul>
 <div class="highlight highlight-source-shell"><pre><span class="pl-en">stop</span>()
@@ -84,20 +84,20 @@ $ make</pre></div>
 <h3>index.lua和模板的使用</h3>
 <ul>
 <li>参考：<a href="http://alilua.com/docs.html#%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E" rel="nofollow">http://alilua.com/docs.html#模板引擎</a></li>
-<li>就一句话加载index.html：<code>rts, err = dotemplate("/template/index.html")</code></li>
+<li>就一句话加载index.html：<code class="notranslate">rts, err = dotemplate("/template/index.html")</code></li>
 <li>这里说一下文件路径问题
 <ul>
-<li>alilua中定义了一个<code>__root</code>变量保存主路径，而<code>__root</code>来源于<code>host-rote.lua</code>中配置<code>host_route['*'] = '/home/hlm-devel/www/ordering/route.lua'</code>中<code>route.lua</code>的父目录路径。</li>
-<li><code>core.lua</code>中实现的函数参数涉及到文件时，都会加上<code>__root</code>前缀，所以在使用这些函数的时候不需要自己添加<code>__root</code>。</li>
+<li>alilua中定义了一个<code class="notranslate">__root</code>变量保存主路径，而<code class="notranslate">__root</code>来源于<code class="notranslate">host-rote.lua</code>中配置<code class="notranslate">host_route['*'] = '/home/hlm-devel/www/ordering/route.lua'</code>中<code class="notranslate">route.lua</code>的父目录路径。</li>
+<li><code class="notranslate">core.lua</code>中实现的函数参数涉及到文件时，都会加上<code class="notranslate">__root</code>前缀，所以在使用这些函数的时候不需要自己添加<code class="notranslate">__root</code>。</li>
 </ul>
 </li>
-<li><code>index.html</code>我就用到了模板中的include命令用来包含<code>header.html</code>和<code>footer.html</code></li>
+<li><code class="notranslate">index.html</code>我就用到了模板中的include命令用来包含<code class="notranslate">header.html</code>和<code class="notranslate">footer.html</code></li>
 </ul>
 <h3>使用jsonrpc实现api请求</h3>
 <ul>
-<li>最新版本的alilua中没有了文档中所说的<code>jsonrpc_handle</code>函数，而且<code>get_post_body</code>函数的名字改成了<code>get_request_body</code>。</li>
-<li>通过查看老版本的alilua，我找出了<code>jsonrpc_handle</code>函数的实现，拷贝出来修改<code>get_post_body</code>，在新版本中依然可以使用。</li>
-<li>参考<code>http://alilua.com/docs.html#jsonrpc_handle</code>实现远程RPC</li>
+<li>最新版本的alilua中没有了文档中所说的<code class="notranslate">jsonrpc_handle</code>函数，而且<code class="notranslate">get_post_body</code>函数的名字改成了<code class="notranslate">get_request_body</code>。</li>
+<li>通过查看老版本的alilua，我找出了<code class="notranslate">jsonrpc_handle</code>函数的实现，拷贝出来修改<code class="notranslate">get_post_body</code>，在新版本中依然可以使用。</li>
+<li>参考<code class="notranslate">http://alilua.com/docs.html#jsonrpc_handle</code>实现远程RPC</li>
 </ul>
 <h3>jsonrpc.js的实现</h3>
 <ul>
@@ -106,22 +106,22 @@ $ make</pre></div>
 </ul>
 <h3>MySQL数据库操作的封装(alilua的require和dofile)</h3>
 <ul>
-<li>单独建立<code>db.lua</code>文件封装用到的mysql操作</li>
-<li>如果直接在<code>db.lua</code>中执行<code>mysql</code>的<code>connect</code>函数，不能使用<code>require</code>包含文件，因为</li>
+<li>单独建立<code class="notranslate">db.lua</code>文件封装用到的mysql操作</li>
+<li>如果直接在<code class="notranslate">db.lua</code>中执行<code class="notranslate">mysql</code>的<code class="notranslate">connect</code>函数，不能使用<code class="notranslate">require</code>包含文件，因为</li>
 </ul>
 <blockquote>
 <p>参考：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="59430680" data-permission-text="Title is private" data-url="https://github.com/oneoo/alilua/issues/27" data-hovercard-type="issue" data-hovercard-url="/oneoo/alilua/issues/27/hovercard" href="https://github.com/oneoo/alilua/issues/27">oneoo/alilua#27</a></p>
-<p>因为 require 过程中产生的 Lua 运行环境不是一个协程，所以会报 <code>attempt to yield across C-call boundary</code> 错误。</p>
+<p>因为 require 过程中产生的 Lua 运行环境不是一个协程，所以会报 <code class="notranslate">attempt to yield across C-call boundary</code> 错误。</p>
 <p>你把 require 改为 dofile 就可以运行的。</p>
 </blockquote>
 <ul>
-<li>如果非要使用<code>require</code>，则需要在 <code>db.lua</code> 里面把数据库操作封装成 function ，再给调用者使用。我用的是这种方式。</li>
+<li>如果非要使用<code class="notranslate">require</code>，则需要在 <code class="notranslate">db.lua</code> 里面把数据库操作封装成 function ，再给调用者使用。我用的是这种方式。</li>
 </ul>
 <h3>文件上传的实现</h3>
 <ul>
 <li>不想用 alilua 示例中那个 form 的例子的实现方式（标准的 html post 请求方式）</li>
 <li>我采用 AJAX 实现 post 请求传文件内容， url 参数中传文件名的方式实现。</li>
-<li>AJAX 发送 post 请求遇到 <code>sendAsBinary</code> 函数在谷歌浏览器被移除的问题。
+<li>AJAX 发送 post 请求遇到 <code class="notranslate">sendAsBinary</code> 函数在谷歌浏览器被移除的问题。
 <ul>
 <li>谷歌一搜就有解答</li>
 </ul>
@@ -139,11 +139,11 @@ $ make</pre></div>
 <span class="pl-kos">}</span></pre></div>
 <ul>
 <li>post 内容全部存放文件内容，所以一次 post 只发一个文件。</li>
-<li>使用<code>read_request_body</code>循环读取 post 内容存入 <code>uploaddir</code>目录下面。</li>
+<li>使用<code class="notranslate">read_request_body</code>循环读取 post 内容存入 <code class="notranslate">uploaddir</code>目录下面。</li>
 </ul>
 <h3>js实现下载csv数据</h3>
 <ul>
-<li>使用 html <code>&lt;a</code> 标签实现： <code>&lt;a href="data:text/csv;,xxxxxx"&gt;&lt;/a&gt;</code></li>
+<li>使用 html <code class="notranslate">&lt;a</code> 标签实现： <code class="notranslate">&lt;a href="data:text/csv;,xxxxxx"&gt;&lt;/a&gt;</code></li>
 <li>遇到编码问题
 <ul>
 <li>alilua 全部使用UTF-8编码，发送到客户端的数据因此也是UTF-8的数据</li>
@@ -155,10 +155,10 @@ $ make</pre></div>
 </ul>
 <h3>添加luapath到配置文件</h3>
 <ul>
-<li>参考 <code>code-cache-ttl</code> 的配置</li>
-<li>在 <code>host-route.lua</code> 文件中添加luapath的配置:<code>config['lua-path']='xxxx/?.lua;'</code></li>
-<li>在 <code>vhost.c</code> 文件中添加全局变量lua_path：<code>lua_path = get_string_in_table(L, "lua-path", &amp;tl);</code></li>
-<li>在 <code>worker.c</code> 中把 <code>lua_path</code> 加入到 <code>package.path</code> 中： <code>sprintf(buf_4096 + epd-&gt;vhost_root_len + 1, "?.lua;%s/lua-libs/?.lua;%s", process_chdir, lua_path);</code></li>
+<li>参考 <code class="notranslate">code-cache-ttl</code> 的配置</li>
+<li>在 <code class="notranslate">host-route.lua</code> 文件中添加luapath的配置:<code class="notranslate">config['lua-path']='xxxx/?.lua;'</code></li>
+<li>在 <code class="notranslate">vhost.c</code> 文件中添加全局变量lua_path：<code class="notranslate">lua_path = get_string_in_table(L, "lua-path", &amp;tl);</code></li>
+<li>在 <code class="notranslate">worker.c</code> 中把 <code class="notranslate">lua_path</code> 加入到 <code class="notranslate">package.path</code> 中： <code class="notranslate">sprintf(buf_4096 + epd-&gt;vhost_root_len + 1, "?.lua;%s/lua-libs/?.lua;%s", process_chdir, lua_path);</code></li>
 <li>重新编译就搞定，已经修改好的代码在这里<a href="https://github.com/hanxi/alilua">hanxi/alilua</a></li>
 </ul>
 <p>源代码在这里：<a href="https://github.com/hanxi/alilua-demo-ordering">https://github.com/hanxi/alilua-demo-ordering</a></p>

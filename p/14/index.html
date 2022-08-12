@@ -38,7 +38,7 @@
 <h2>自动更新 ctags</h2>
 <ul>
 <li>换个新的 <a href="https://ctags.io/" rel="nofollow">ctags</a></li>
-<li>设置路径 <code>set tags=./.tags;,.tags</code></li>
+<li>设置路径 <code class="notranslate">set tags=./.tags;,.tags</code></li>
 <li>支持异步自动更新 ctags 的插件 <a href="https://github.com/ludovicchabant/vim-gutentags">vim-gutentags</a></li>
 </ul>
 <div class="highlight highlight-source-viml"><pre><span class="pl-c"><span class="pl-c">"</span> gutentags 搜索工程目录的标志，碰到这些文件/目录名就停止向上一级目录递归</span>
@@ -64,7 +64,7 @@
 <ul>
 <li>以前用的是 tagbar 和 CtrlP，现在改成 <a href="https://github.com/Yggdroot/LeaderF">LeaderF</a> 了</li>
 <li>设置快捷键</li>
-<li>文件列表默认是搜索文件名的，按 <code>Ctrl + f</code> 切换路径搜索</li>
+<li>文件列表默认是搜索文件名的，按 <code class="notranslate">Ctrl + f</code> 切换路径搜索</li>
 </ul>
 <div class="highlight highlight-source-viml"><pre><span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>Lf_ShortcutF</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>&lt;c-p&gt;<span class="pl-pds">'</span></span><span class="pl-c">       <span class="pl-c">"</span> Ctrl + p 打开文件搜索</span>
 <span class="pl-c1">noremap</span> <span class="pl-e">&lt;c-n&gt;</span> :LeaderfMru<span class="pl-e">&lt;cr&gt;</span><span class="pl-c">      <span class="pl-c">"</span> Ctrl + n 打开MRU文件列表</span>
@@ -72,7 +72,7 @@
 <h2>预览文件</h2>
 <ul>
 <li>使用插件 <a href="https://github.com/skywind3000/vim-preview">vim-preview</a></li>
-<li>关闭预览窗口的快捷键是 <code>Ctrl + w  z</code></li>
+<li>关闭预览窗口的快捷键是 <code class="notranslate">Ctrl + w  z</code></li>
 <li>设置其他快捷键</li>
 </ul>
 <div class="highlight highlight-source-viml"><pre><span class="pl-c1">noremap</span> <span class="pl-e">&lt;m-u&gt;</span> :PreviewScroll <span class="pl-c1">-1</span><span class="pl-e">&lt;cr&gt;</span><span class="pl-c"> <span class="pl-c">"</span> Alt + u 往上滚动预览窗口</span>
@@ -88,7 +88,7 @@
 <h2>输入提示</h2>
 <ul>
 <li>ycm 太卡，neovim 异步配置没起效果，平时也用不上语法补全，还是选用了 <a href="https://github.com/roxma/nvim-completion-manager">roxma/nvim-completion-manager</a></li>
-<li>配置 <code>tab</code> 和 <code>shift + tab</code> 选中候选项</li>
+<li>配置 <code class="notranslate">tab</code> 和 <code class="notranslate">shift + tab</code> 选中候选项</li>
 </ul>
 <div class="highlight highlight-source-viml"><pre><span class="pl-c1">inoremap</span> <span class="pl-e">&lt;expr&gt;</span> <span class="pl-e">&lt;Tab&gt;</span> <span class="pl-en">pumvisible</span>() ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;C-n&gt;</span><span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;Tab&gt;</span><span class="pl-pds">"</span></span>
 <span class="pl-c1">inoremap</span> <span class="pl-e">&lt;expr&gt;</span> <span class="pl-e">&lt;S-Tab&gt;</span> <span class="pl-en">pumvisible</span>() ? <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;C-p&gt;</span><span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\&lt;S-Tab&gt;</span><span class="pl-pds">"</span></span></pre></div>
@@ -126,7 +126,7 @@
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>qfenter_keymap</span>.topen <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>t<span class="pl-pds">'</span></span>]<span class="pl-c"> <span class="pl-c">"</span> 按 t 在新的标签页打开</span></pre></div>
 <h2>最后</h2>
 <ul>
-<li>查哪个插件启动慢的命令 <code>vim --startuptime /tmp/vim.log a.c</code></li>
+<li>查哪个插件启动慢的命令 <code class="notranslate">vim --startuptime /tmp/vim.log a.c</code></li>
 </ul>
             </div>
             <div id="comment">

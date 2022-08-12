@@ -32,7 +32,7 @@
             <div id="content" class="markdown-body">
                 <h3>指向成员函数的函数指针</h3>
 <p>首先看一个指向成员函数的函数指针的例子,比较常用,代码如下:</p>
-<pre>    class A {
+<pre class="notranslate">    class A {
     public:
         void func() {
             cout &lt;&lt; "func" &lt;&lt; endl;
@@ -54,7 +54,7 @@ p = &amp;a.funcB;<br><br>
 ^~~~~~~~<br><br>
 g++给出错误位置是多少行多少列,clang则是用波浪线标出来的.</p>
 <h3>类成员为函数指针</h3>
-<pre>    class A {
+<pre class="notranslate">    class A {
     public:
         void (*pq)();
     };
@@ -70,7 +70,7 @@ g++给出错误位置是多少行多少列,clang则是用波浪线标出来的.<
 </pre>
 <p>这个例子也验证了第一个例子所说的,c函数指针赋值是不用加&amp;的. 这个例子学习C语言的时候就见过了,写出来只是为了过度到第三个更加复杂例子的.</p>
 <h3>类成员函数指针指向类成员</h3>
-<pre>    class A {
+<pre class="notranslate">    class A {
     public:
         void func() {
             cout &lt;&lt; "func " &lt;&lt; endl;

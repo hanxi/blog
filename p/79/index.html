@@ -30,8 +30,8 @@
         <div id="container">
             <div id="title">如何在 skyent 中加入 lua-cjson 库</div>
             <div id="content" class="markdown-body">
-                <p>其实主要是演示如何编译出 <code>cjson.so</code> 文件，因为不能使用操作系统里的 lua 来编译，需要使用 skynet 配套的 <code>3rd/lua</code> 来编译。对于新手来说，可能无法理解或者处理这些版本差异带来的一系列报错，比如：</p>
-<pre><code>lua loader error : error loading module 'cjson' from file './luaclib/cjson.so':
+                <p>其实主要是演示如何编译出 <code class="notranslate">cjson.so</code> 文件，因为不能使用操作系统里的 lua 来编译，需要使用 skynet 配套的 <code class="notranslate">3rd/lua</code> 来编译。对于新手来说，可能无法理解或者处理这些版本差异带来的一系列报错，比如：</p>
+<pre class="notranslate"><code class="notranslate">lua loader error : error loading module 'cjson' from file './luaclib/cjson.so':
     ./luaclib/cjson.so: undefined symbol: 1ua_newuserdata
 </code></pre>
 <h2>添加 lua-cjson 源码</h2>
@@ -39,8 +39,8 @@
 <div class="highlight highlight-source-shell"><pre>git submodule add https://github.com/cloudwu/lua-cjson.git 3rd/lua-cjson</pre></div>
 <p>然后修改 Makefile ，添加 cjson 的编译选项：</p>
 <ul>
-<li><code>LUA_CLIB</code> 变量添加 <code>cjson</code></li>
-<li><code>cjson.so</code> 配置生成依赖：</li>
+<li><code class="notranslate">LUA_CLIB</code> 变量添加 <code class="notranslate">cjson</code></li>
+<li><code class="notranslate">cjson.so</code> 配置生成依赖：</li>
 </ul>
 <div class="highlight highlight-source-makefile"><pre><span class="pl-en"><span class="pl-s">$(<span class="pl-smi">LUA_CLIB_PATH</span>)</span>/cjson.so</span> : 3rd/lua-cjson/lua_cjson.c 3rd/lua-cjson/strbuf.c 3rd/lua-cjson/fpconv.c | <span class="pl-s">$(<span class="pl-smi">LUA_CLIB_PATH</span>)</span>
        $(CC) $(CFLAGS) $(SHARED) -I3rd/lua-cjson $^ -o $@</pre></div>
@@ -68,9 +68,9 @@ index 337ed3e..fd7ce50 100644
  clean :
         rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so &amp;&amp; \
    rm -rf $(SKYNET_BUILD_PATH)/*.dSYM $(CSERVICE_PATH)/*.dSYM $(LUA_CLIB_PATH)/*.dSYM</pre></div>
-<p>然后执行 <code>make linux</code> 就能编译出 <code>luaclib/cjson.so</code> 文件了。</p>
+<p>然后执行 <code class="notranslate">make linux</code> 就能编译出 <code class="notranslate">luaclib/cjson.so</code> 文件了。</p>
 <h2>测试</h2>
-<p>新建 <code>test/testcjson.lua</code> 文件：</p>
+<p>新建 <code class="notranslate">test/testcjson.lua</code> 文件：</p>
 <div class="highlight highlight-source-lua"><pre>package.<span class="pl-smi">cpath</span> <span class="pl-k">=</span> package.<span class="pl-smi">cpath</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>;luaclib/?.so<span class="pl-pds">"</span></span>
 <span class="pl-k">local</span> cjson <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>cjson<span class="pl-pds">"</span></span>
 <span class="pl-k">local</span> tbl <span class="pl-k">=</span> {
@@ -78,18 +78,18 @@ index 337ed3e..fd7ce50 100644
     b <span class="pl-k">=</span> { <span class="pl-c1">3</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">4</span> },
 }
 <span class="pl-c1">print</span>(cjson.<span class="pl-c1">encode</span>(tbl))</pre></div>
-<p>然后执行 <code>./3rd/lua/lua test/testcjson.lua</code> 就能看到下面的输出了：</p>
-<pre lang="txt"><code>{"a":1,"b":[3,2,3,4]}
+<p>然后执行 <code class="notranslate">./3rd/lua/lua test/testcjson.lua</code> 就能看到下面的输出了：</p>
+<pre lang="txt" class="notranslate"><code class="notranslate">{"a":1,"b":[3,2,3,4]}
 </code></pre>
-<p>接下来在 skynet 中测试下，新建 <code>examples/config.cjson</code> 文件：</p>
+<p>接下来在 skynet 中测试下，新建 <code class="notranslate">examples/config.cjson</code> 文件：</p>
 <div class="highlight highlight-source-lua"><pre>thread <span class="pl-k">=</span> <span class="pl-c1">8</span>
 logger <span class="pl-k">=</span> <span class="pl-c1">nil</span>
 harbor <span class="pl-k">=</span> <span class="pl-c1">0</span>
 start <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>testcjson<span class="pl-pds">"</span></span>
 bootstrap <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>snlua bootstrap<span class="pl-pds">"</span></span>	<span class="pl-c"><span class="pl-c">--</span> The service for bootstrap</span>
 luaservice <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>./service/?.lua;./test/?.lua;./examples/?.lua<span class="pl-pds">"</span></span></pre></div>
-<p>然后执行 <code>./skynet examples/config.cjson</code> 就能看到下面的输出：</p>
-<pre lang="txt"><code>[:00000002] LAUNCH snlua bootstrap
+<p>然后执行 <code class="notranslate">./skynet examples/config.cjson</code> 就能看到下面的输出：</p>
+<pre lang="txt" class="notranslate"><code class="notranslate">[:00000002] LAUNCH snlua bootstrap
 [:00000003] LAUNCH snlua launcher
 [:00000004] LAUNCH snlua cdummy
 [:00000005] LAUNCH harbor 0 4

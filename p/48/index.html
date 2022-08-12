@@ -75,10 +75,10 @@
    }
 }</pre></div>
 <ul>
-<li><code>start_idx</code>表示分段的起点，对应的 <code>len</code> 就是这个段的长度，<code>len</code> 是逐步递减到 1 就删除这个号段的，所以分配的第一个 ID 是 <code>start_idx + len</code>，最后分配的一个是 <code>start_idx + 1</code>。</li>
-<li><code>cur_idx</code> 记录的是当前使用的段ID，是 blocks 里最小的 <code>start_idx</code>。</li>
-<li><code>step</code> 是一个配置的每次从 db 取的 id 数量</li>
-<li><code>ids_cnt</code> 用来维护池子的大小</li>
+<li><code class="notranslate">start_idx</code>表示分段的起点，对应的 <code class="notranslate">len</code> 就是这个段的长度，<code class="notranslate">len</code> 是逐步递减到 1 就删除这个号段的，所以分配的第一个 ID 是 <code class="notranslate">start_idx + len</code>，最后分配的一个是 <code class="notranslate">start_idx + 1</code>。</li>
+<li><code class="notranslate">cur_idx</code> 记录的是当前使用的段ID，是 blocks 里最小的 <code class="notranslate">start_idx</code>。</li>
+<li><code class="notranslate">step</code> 是一个配置的每次从 db 取的 id 数量</li>
+<li><code class="notranslate">ids_cnt</code> 用来维护池子的大小</li>
 </ul>
 <h3>从 db 取一段 ID</h3>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">new_db_id</span>(<span class="pl-smi">idtype</span>, <span class="pl-smi">step</span>)
@@ -97,9 +97,9 @@
 
     <span class="pl-k">return</span> ret.<span class="pl-smi">value</span>.<span class="pl-smi">nextid</span>
 <span class="pl-k">end</span></pre></div>
-<p>用了 MongoDB 数据库的 <code>findAndModify</code> 和 <code>$inc</code> 指令。这里有个取巧，首次初始化数据库时会进入 "new_db_id failed" 逻辑，从而达到忽略第一段 ID，相当于 step 是步长也是最小值。</p>
-<p>为了实现这个初始化目的，还用了个取巧的地方，进程启动的时候，如果是首次初始化数据库，会执行 2 次生成函数，从而达到调用 2 次 <code>new_db_id</code> 函数。</p>
-<p>我这样做的目的就是因为 MongoDB 的 <code>upsert</code> 不能做指定的初始值。当然也有其他方法实现，就是不用 <code>upsert</code>，手动 <code>insert</code>。</p>
+<p>用了 MongoDB 数据库的 <code class="notranslate">findAndModify</code> 和 <code class="notranslate">$inc</code> 指令。这里有个取巧，首次初始化数据库时会进入 "new_db_id failed" 逻辑，从而达到忽略第一段 ID，相当于 step 是步长也是最小值。</p>
+<p>为了实现这个初始化目的，还用了个取巧的地方，进程启动的时候，如果是首次初始化数据库，会执行 2 次生成函数，从而达到调用 2 次 <code class="notranslate">new_db_id</code> 函数。</p>
+<p>我这样做的目的就是因为 MongoDB 的 <code class="notranslate">upsert</code> 不能做指定的初始值。当然也有其他方法实现，就是不用 <code class="notranslate">upsert</code>，手动 <code class="notranslate">insert</code>。</p>
 <p>算法用到的理论点到这就讲完了，具体的实现就去看代码吧。这个库是专门给 <a href="https://github.com/cloudwu/skynet">skynet</a> 使用的，所以用到了许多 skynet 特有的接口。</p>
 <p>忘记贴代码地址了，代码在这里 <a href="https://github.com/hanxi/skynet-demo/blob/master/service/guidd.lua">https://github.com/hanxi/skynet-demo/blob/master/service/guidd.lua</a></p>
 <p><em>鉴于有些时候还是需要用到时间是大致递增的情况，可以考虑配合时间戳来生成 ID</em></p>

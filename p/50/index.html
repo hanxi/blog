@@ -35,28 +35,28 @@
 <ul>
 <li>执行下面命令：</li>
 </ul>
-<pre>$ sudo apt-get install qt4-dev-tools qt4-doc qt4-qtconfig qt4-demos qt4-designer
+<pre class="notranslate">$ sudo apt-get install qt4-dev-tools qt4-doc qt4-qtconfig qt4-demos qt4-designer
 </pre>
 <ul>
 <li>当代码中含有</li>
 </ul>
-<pre>#include &lt;QSqlDatabase&gt;
+<pre class="notranslate">#include &lt;QSqlDatabase&gt;
 </pre>
 <p>需要用到mysql数据库需要执行下面命令安装(自带sqlite驱动),</p>
-<pre>$ sudo apt-get install libqt4-sql-mysql
+<pre class="notranslate">$ sudo apt-get install libqt4-sql-mysql
 </pre>
 <h3>来一个helloworld程序</h3>
 <ul>
 <li>建立工程目录：我的目录在/home/hanxi/tmp/</li>
 </ul>
-<pre>$ mkdir -p helloworld/src helloworld/ui helloworld/build helloworld/bin
+<pre class="notranslate">$ mkdir -p helloworld/src helloworld/ui helloworld/build helloworld/bin
 $ touch helloworld/src/main.cpp helloworld/src/mainwindowimpl.h helloworld/src/mainwindowimpl.cpp
 </pre>
 <ul>
 <li>打开qt designer（qt 设计器），新建一个helloworld.ui文件。（菜单：文件-&gt;新建，弹出新建窗体对话框，点击创建，保存为helloworld/ui/helloworld.ui）。<br>
 生成后的目录格式是这样的</li>
 </ul>
-<pre>helloworld
+<pre class="notranslate">helloworld
 ├── bin
 │   └── helloworld
 ├── build
@@ -71,7 +71,7 @@ $ touch helloworld/src/main.cpp helloworld/src/mainwindowimpl.h helloworld/src/m
 <ul>
 <li>编辑src/main.cpp</li>
 </ul>
-<pre>#include &lt;QApplication&gt;
+<pre class="notranslate">#include &lt;QApplication&gt;
 #include "mainwindowimpl.h"
 
 int main(int argc, char ** argv)
@@ -88,7 +88,7 @@ int main(int argc, char ** argv)
 <ul>
 <li>编辑src/mianwindowimpl.h</li>
 </ul>
-<pre>#ifndef MAINWINDOWIMPL_H
+<pre class="notranslate">#ifndef MAINWINDOWIMPL_H
 #define MAINWINDOWIMPL_H
 
 #include &lt;QDialog&gt;
@@ -106,7 +106,7 @@ public:
 <ul>
 <li>编辑src/MainWindowImpl.cpp</li>
 </ul>
-<pre>#include "mainwindowimpl.h"
+<pre class="notranslate">#include "mainwindowimpl.h"
 
 MainWindowImpl::MainWindowImpl( QWidget * parent, Qt::WFlags f)
 : QDialog(parent, f)
@@ -117,7 +117,7 @@ MainWindowImpl::MainWindowImpl( QWidget * parent, Qt::WFlags f)
 <ul>
 <li>编辑helloworld/CMakeLists.txt</li>
 </ul>
-<pre>PROJECT(helloworld)
+<pre class="notranslate">PROJECT(helloworld)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 FIND_PACKAGE(Qt4 REQUIRED)
 
@@ -166,7 +166,7 @@ target_link_libraries(helloworld ${QT_LIBRARIES})
 <ul>
 <li>进入build目录，执行</li>
 </ul>
-<pre>$ cmake ..
+<pre class="notranslate">$ cmake ..
 $ make
 $ ../bin/helloworld
 </pre>

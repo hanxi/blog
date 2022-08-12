@@ -33,12 +33,12 @@
                 <p>lua中使用c动态库，像luacjson（支持unicode），luasocket,都是以动态链接库的形式在lua中使用的，至于怎么写这些动态链接库很少有教程说到，下面我就说说如何把c文件编译成动态库。</p>
 <p>首先，假设需要在lua中调用一个在c中实现的求和函数，函数名add(a,b)。</p>
 <p>我给这个测试库取名为dylib，它包含一个函数add。lua中这样使用：</p>
-<pre>    local dylib = require "dylib.test"
+<pre class="notranslate">    local dylib = require "dylib.test"
     local c = dylib.add(1,2)
     print(c)
 </pre>
 <p>上面的dylib.test就是我编译生成的dylib/test.so文件。这个文件该怎么生成？如下：</p>
-<pre>    int
+<pre class="notranslate">    int
     luaopen_dylib_test(lua_State* L) {
         luaL_Reg l[] = {
            { "add", *dylib_add* },
@@ -51,7 +51,7 @@
     }
 </pre>
 <p>这个函数名有个命名规则，前缀为luaopen_，后面就是lua中require的字符串（将'.'转换成'_'）。当执行到require "dylib.test"时，lua解析器会去dylib/test.so文件中寻找并执行函数名为luaopen_dylib_test的函数。找不到则报错：</p>
-<pre>    lua: error loading module 'dylib.test' from file './dylib/test.so':
+<pre class="notranslate">    lua: error loading module 'dylib.test' from file './dylib/test.so':
         ./dylib/test.so: undefined symbol: luaopen_dylib_test
     stack traceback:
         [C]: in ?
@@ -60,7 +60,7 @@
         [C]: in ?
 </pre>
 <p>注意到dylib_add就是就是要实现的dylib.add函数。现在实现它：</p>
-<pre>    int
+<pre class="notranslate">    int
     dylib_add(lua_State* L) {
         int a = lua_tonumber(L,1);
         int b = lua_tonumber(L,2);
@@ -71,7 +71,7 @@
     }
 </pre>
 <p>这函数就是把两参数加起来，然后返回和。最后编译生成so文件：</p>
-<pre>    gcc -g -Wall --shared -fPIC -o dylib/test.so dylib_test.c
+<pre class="notranslate">    gcc -g -Wall --shared -fPIC -o dylib/test.so dylib_test.c
 </pre>
 <p>注意要给它建一个文件夹dylib。因为require的时候会把"dylib.test"转成"dylib/test"默认去该路径下寻找so或者lua文件。当然，你修改了搜索路径那是另外一回事了。</p>
 <p>基本的就是这样子了。正在看云风的<a href="https://github.com/cloudwu/hive">hive</a>游戏服务器框架（skynet的精简版，不是<a href="http://en.wikipedia.org/wiki/Apache_Hive" rel="nofollow">apache hive</a>）。</p>

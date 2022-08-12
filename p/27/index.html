@@ -43,7 +43,7 @@
 <p>skynet.exit() 用于退出当前的服务。skynet.exit 之后的代码都不会被运行。而且，当前服务被阻塞住的 coroutine 也会立刻中断退出。这些通常是一些 RPC 尚未收到回应。所以调用 skynet.exit() 请务必小心。<br>
 skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐这样做。因为对象会在任意一条消息处理完毕后，毫无征兆的退出。所以推荐的做法是，发送一条消息，让对方自己善后以及调用 skynet.exit 。注：skynet.kill(skynet.self()) 不完全等价于 skynet.exit() ，后者更安全。</p>
 </blockquote>
-<p>为了正确的退出服务，需要选用 <code>skynet.exit()</code>，而且要确保没有挂起的 RPC。</p>
+<p>为了正确的退出服务，需要选用 <code class="notranslate">skynet.exit()</code>，而且要确保没有挂起的 RPC。</p>
 <p>我们这里的例子是无状态服务，服务也比较简单，只做复杂计算，不会再发起 RPC 去其他地方请求数据(比如去数据库读取数据)。所以只需要这样写退出函数就行了。</p>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">CMD.exit</span>()
     skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>slave exit.<span class="pl-pds">"</span></span>)
@@ -52,7 +52,7 @@ skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐�
     <span class="pl-c"><span class="pl-c">--</span> exit() 之后的代码是不会执行的</span>
 <span class="pl-k">end</span></pre></div>
 <h3>负载均衡?</h3>
-<p>用数组 <code>slave</code> 把服务的地址存起来，然后在每调用一次计算接口 <code>calculate</code> 就换下一个服务。</p>
+<p>用数组 <code class="notranslate">slave</code> 把服务的地址存起来，然后在每调用一次计算接口 <code class="notranslate">calculate</code> 就换下一个服务。</p>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> slave <span class="pl-k">=</span> {}
 <span class="pl-k">local</span> balance <span class="pl-k">=</span> <span class="pl-c1">1</span>
 
@@ -66,7 +66,7 @@ skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐�
     <span class="pl-k">return</span> skynet.<span class="pl-c1">call</span>(s, <span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>calculate<span class="pl-pds">"</span></span>, a, b)
 <span class="pl-k">end</span></pre></div>
 <h3>动态伸缩服务数量?</h3>
-<p>取当前服务的数量 <code>#slave</code>, 数量相同就跳过，服务数量不够就开启新的服务，服务数量多了就干掉多余的服务。</p>
+<p>取当前服务的数量 <code class="notranslate">#slave</code>, 数量相同就跳过，服务数量不够就开启新的服务，服务数量多了就干掉多余的服务。</p>
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">CMD.set_slave_count</span>(<span class="pl-smi">cnt</span>)
     <span class="pl-k">local</span> now_cnt <span class="pl-k">=</span> <span class="pl-k">#</span>slave
     <span class="pl-k">if</span> now_cnt <span class="pl-k">==</span> cnt <span class="pl-k">then</span>

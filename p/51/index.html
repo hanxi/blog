@@ -62,18 +62,18 @@
 <h3>struct</h3>
 <p>为兼容c而存在的struct关键字，将C与C++组合在一起的做法：<br>
 1.从C struct 中派生C++部分：</p>
-<pre>struct C_point { ... };
+<pre class="notranslate">struct C_point { ... };
 class Point : public C_point { ... };
 </pre>
 <p>于是C和C++两种用法都可以得到支持：</p>
-<pre>extern void draw_line( Point, Point);
+<pre class="notranslate">extern void draw_line( Point, Point);
 extern "C" void draw_rect(C_point, C_point);
 
 draw_line(Point(0,0),Point(100,100));
 draw_rect(Point(0,0),Point(100,100));
 </pre>
 <p>2.第一种方法已不再推荐，而使用组合代替继承：</p>
-<pre>struct C_point { ... };
+<pre class="notranslate">struct C_point { ... };
 
 class Point {
 public:
@@ -96,17 +96,17 @@ private:
 <ul>
 <li>经由一组隐含的转化操作，例如把一个derived class指针转化为一个指向其public base type的指针：</li>
 </ul>
-<pre>    shape *ps = new circle();
+<pre class="notranslate">    shape *ps = new circle();
 </pre>
 <ul>
 <li>经由virtual function机制：</li>
 </ul>
-<pre>    ps-&gt;rotate();
+<pre class="notranslate">    ps-&gt;rotate();
 </pre>
 <ul>
 <li>经由dynamic_cast和typeid运算符：</li>
 </ul>
-<pre>    if (circle *pc = dynamic_cast(ps) ) ...
+<pre class="notranslate">    if (circle *pc = dynamic_cast(ps) ) ...
 </pre>
 <h3>对象的内存大小</h3>
 <ol>

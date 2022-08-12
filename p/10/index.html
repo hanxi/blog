@@ -47,11 +47,11 @@
 <li>参考 <a href="https://github.com/hanxi/issues-blog">issues-blog</a> 使用 ajax 实现单页面浏览 markdown 文档</li>
 <li>采用 <a href="https://github.com/chjj/marked">marked</a> 实现本地解析 markdown 文档</li>
 <li>服务器只需要架设一个静态 HTTP Server 即可实现</li>
-<li>读取文件服务器 <code>/md</code> 路径下的所有文件列表，列表信息中包含文件的最后修改时间</li>
-<li>文件名是有规则的命名的：<code>time.titlename.md</code>，time 格式为：<code>2015.8.14.23.48.33.100</code></li>
+<li>读取文件服务器 <code class="notranslate">/md</code> 路径下的所有文件列表，列表信息中包含文件的最后修改时间</li>
+<li>文件名是有规则的命名的：<code class="notranslate">time.titlename.md</code>，time 格式为：<code class="notranslate">2015.8.14.23.48.33.100</code></li>
 <li>由 time 唯一确定文档，time 相同的选取最新修改的文档</li>
 <li>根据上面的文件命名规则，可以只需要简单的文件服务器实现文档的改标题功能</li>
-<li>文件服务器需要设置跨域访问选项 <code>access-control-allow-origin</code></li>
+<li>文件服务器需要设置跨域访问选项 <code class="notranslate">access-control-allow-origin</code></li>
 </ul>
 <h3>文档编辑</h3>
 <ul>
@@ -61,7 +61,7 @@
 <li>markdown 语法都选用 <a href="https://help.github.com/articles/github-flavored-markdown">GFM</a> 语法</li>
 <li>使用 localStorage 缓存正在编辑的未发布的文档</li>
 <li>同样是根据文件名的 time 前缀来确定载入哪个缓存，包括缓存的文档标题</li>
-<li>发布文档调用 ajax <code>POST</code> 保存文档到文件服务器</li>
+<li>发布文档调用 ajax <code class="notranslate">POST</code> 保存文档到文件服务器</li>
 </ul>
 <h3>删除文档</h3>
 <ul>
@@ -73,10 +73,10 @@
 <h3>上传图片</h3>
 <ul>
 <li>实现效果：拖拽上传图片并将地址插入到编辑器中</li>
-<li>给 <code>editor</code> 添加 <code>ondrop</code> 事件</li>
-<li>获取 <code>e.dataTransfer.files</code>，遍历每个文件，实现拖拽多张图片</li>
-<li>使用 <code>FileReader.readAsArrayBuffer</code> 读取文件的二进制格式</li>
-<li>使用 <code>postBinary</code> 异步上传图片，图片上传成功则在编辑器中插入图片地址</li>
+<li>给 <code class="notranslate">editor</code> 添加 <code class="notranslate">ondrop</code> 事件</li>
+<li>获取 <code class="notranslate">e.dataTransfer.files</code>，遍历每个文件，实现拖拽多张图片</li>
+<li>使用 <code class="notranslate">FileReader.readAsArrayBuffer</code> 读取文件的二进制格式</li>
+<li>使用 <code class="notranslate">postBinary</code> 异步上传图片，图片上传成功则在编辑器中插入图片地址</li>
 </ul>
             </div>
             <div id="comment">

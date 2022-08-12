@@ -37,19 +37,19 @@
 <li>日志等级划分</li>
 </ul>
 <h2>参考示例</h2>
-<p>首先参考示例 <code>examples/userlog.lua</code> ，使用 <code>skynet.register_protocol</code> 注册 <code>skynet.PTYPE_TEXT</code> 文本消息，用于输出日志。注册 <code>skynet.PTYPE_SYSTEM</code> 系统消息，用于接收系统信号。</p>
+<p>首先参考示例 <code class="notranslate">examples/userlog.lua</code> ，使用 <code class="notranslate">skynet.register_protocol</code> 注册 <code class="notranslate">skynet.PTYPE_TEXT</code> 文本消息，用于输出日志。注册 <code class="notranslate">skynet.PTYPE_SYSTEM</code> 系统消息，用于接收系统信号。</p>
 <h2>实现日志等级功能</h2>
-<p>代码位置 <code>lualib/log.lua</code> ，这里逻辑比较简单，就是根据配置的日志等级和接口对比，决定是否输出日志，分为 <code>debug</code>, <code>info</code> , <code>warn</code> , <code>error</code> 四个等级。其中 <code>error</code> 增加了调用堆栈输出，方便排查错误。</p>
+<p>代码位置 <code class="notranslate">lualib/log.lua</code> ，这里逻辑比较简单，就是根据配置的日志等级和接口对比，决定是否输出日志，分为 <code class="notranslate">debug</code>, <code class="notranslate">info</code> , <code class="notranslate">warn</code> , <code class="notranslate">error</code> 四个等级。其中 <code class="notranslate">error</code> 增加了调用堆栈输出，方便排查错误。</p>
 <h2>实现日志服务</h2>
 <ul>
-<li>每天切割一次文件采用的是 <code>skynet.timeout</code> 接口设置循环定时器，每天把日志文件备份处理。</li>
+<li>每天切割一次文件采用的是 <code class="notranslate">skynet.timeout</code> 接口设置循环定时器，每天把日志文件备份处理。</li>
 <li>信号处理采用读取 sighup 文件的第一行，根据文件内容来决定信号内容。</li>
 </ul>
 <h2>配置</h2>
-<p>修改 <code>examples/config.userlog</code> 配置文件。</p>
+<p>修改 <code class="notranslate">examples/config.userlog</code> 配置文件。</p>
 <ul>
-<li>logger 是配置服务文件的，我们的服务文件是 <code>service/log.lua</code> 所以这里只配置 <code>log</code> 即可。</li>
-<li>logservice 配置如果日志服务是 Lua 实现的，需要配置为 <code>snlua</code></li>
+<li>logger 是配置服务文件的，我们的服务文件是 <code class="notranslate">service/log.lua</code> 所以这里只配置 <code class="notranslate">log</code> 即可。</li>
+<li>logservice 配置如果日志服务是 Lua 实现的，需要配置为 <code class="notranslate">snlua</code></li>
 <li>logpath 是默认日志服务使用到的，这里我们不需要了，所以可以删除</li>
 <li>logfile 是新增的配置，用于配置日志输出文件的</li>
 <li>loglevel 配置输出日志等级</li>

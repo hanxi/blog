@@ -67,10 +67,10 @@ bbb</pre></div>
 <span class="pl-s"> &gt; EOF</span>
 <span class="pl-s"> Working dir /home/user</span></pre></div>
 <h3>缘由</h3>
-<p>用 Python 调用一段 bash 脚本，之前的做法是把 bash 脚本写入文件，然后用 subprocess 调用 <code>bash filename.sh</code> 。但是文件名如果是固定的话，这脚本就不能并行运行了。所以就想到用 <code>bash &lt;&lt;EOF</code> 的办法。</p>
+<p>用 Python 调用一段 bash 脚本，之前的做法是把 bash 脚本写入文件，然后用 subprocess 调用 <code class="notranslate">bash filename.sh</code> 。但是文件名如果是固定的话，这脚本就不能并行运行了。所以就想到用 <code class="notranslate">bash &lt;&lt;EOF</code> 的办法。</p>
 <div class="highlight highlight-source-diff"><pre><span class="pl-md"><span class="pl-md">-</span>    cmd = "bash .tmp_run_shell.sh"</span>
 <span class="pl-mi1"><span class="pl-mi1">+</span>    cmd = "bash &lt;&lt; 'EOF'%sEOF" % script</span></pre></div>
-<p>一开始没给 EOF 加引号，导致 <code>$</code> 符号相关的命令报错了。通过搜索才发现有加引号的办法，所以记录一下啊。</p>
+<p>一开始没给 EOF 加引号，导致 <code class="notranslate">$</code> 符号相关的命令报错了。通过搜索才发现有加引号的办法，所以记录一下啊。</p>
 <h3>参考资料</h3>
 <ul>
 <li><a href="https://stackoverflow.com/questions/2500436/how-does-cat-eof-work-in-bash" rel="nofollow">https://stackoverflow.com/questions/2500436/how-does-cat-eof-work-in-bash</a></li>

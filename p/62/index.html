@@ -32,13 +32,13 @@
             <div id="content" class="markdown-body">
                 <h3>1. 简单http服务器</h3>
 <p>使用python开http服务很简单，执行</p>
-<pre>    python -m SimpleHTTPServer 8080
+<pre class="notranslate">    python -m SimpleHTTPServer 8080
 </pre>
 <p>就可以开一个简单http服务了。它会已当前目录为web目录。有index.html则打开它。没有则显示文件目录。</p>
 <h3>2. 功能加强的http服务器</h3>
 <p>这个python服务器太简单，不能满足我的需求。我需要通过网页操作完成一些打包zip和更新svn代码的工作。则可以使用python提供的BaseHTTPRequestHandler, HTTPServer即可实现。</p>
 <p>基本代码如下：具体需求就可以慢慢加进去了。</p>
-<pre>class MyRequestHandler(BaseHTTPRequestHandler):
+<pre class="notranslate">class MyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.process(2)
 
@@ -73,7 +73,7 @@ server = HTTPServer(('', 8081), MyRequestHandler)
 <h3>3. 具体操作的实现</h3>
 <p>现在主要工作都交给的了 page 函数处理,根据对应的action和参数做出对应的操作，并返回对应的file给客户端。</p>
 <p>比如我接收到action=="/" 则返回index.html</p>
-<pre>    #index.html我直接放在执行脚本时的目录下
+<pre class="notranslate">    #index.html我直接放在执行脚本时的目录下
     if action=="/": #主页index.html
         f = open('index.html')
         f.seek(0)
