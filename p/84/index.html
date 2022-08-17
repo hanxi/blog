@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">使用 lua-gdb 调试 skynet 的 core 文件</div>
+            <div id="content" class="markdown-body">
+                <blockquote>
+<p>测试环境为 Linux version 5.4.0-124-generic (buildd@lcy02-amd64-089) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1)) #140-Ubuntu SMP Thu Aug 4 02:23:37 UTC 2022</p>
+</blockquote>
+<h2>开启 core 文件生成</h2>
+<ul>
+<li>命令： <code class="notranslate">ulimit -c unlimited</code></li>
+<li>设置 core 文件格式： <code class="notranslate">sudo sysctl -w kernel.core_pattern=core.%p</code></li>
+<li>更多设置问题： <a href="https://stackoverflow.com/a/47481884" rel="nofollow">https://stackoverflow.com/a/47481884</a></li>
+</ul>
+<h2>创造一个 coredump 条件</h2>
+<p>从原有的 C 库下手比较好搞，直接改了 md5 库的代码，搞个 NULL 指针， diff 如下：</p>
+<div class="highlight highlight-source-diff"><pre><span class="pl-c1">diff --git a/3rd/lua-md5/md5lib.c b/3rd/lua-md5/md5lib.c</span>
+index 2580b6a..7117eb9 100644
+<span class="pl-md">--- a/3rd/lua-md5/md5lib.c</span>
+<span class="pl-mi1">+++ b/3rd/lua-md5/md5lib.c</span>
+<span class="pl-mdr">@@ -22,7 +22,7 @@</span>
+ *  @return  A 128-bit hash string.
+ */
+ static int lmd5 (lua_State *L) {
+<span class="pl-md"><span class="pl-md">-</span>  char buff[16];</span>
+<span class="pl-mi1"><span class="pl-mi1">+</span>  char *buff = NULL;</span>
+   size_t l;
+   const char *message = luaL_checklstring(L, 1, &amp;l);
+   md5(message, l, buff);
+<span class="pl-c1">diff --git a/examples/main.lua b/examples/main.lua</span>
+index 5a2150d..93e5ca4 100644
+<span class="pl-md">--- a/examples/main.lua</span>
+<span class="pl-mi1">+++ b/examples/main.lua</span>
+<span class="pl-mdr">@@ -1,5 +1,6 @@</span>
+ local skynet = require "skynet"
+ local sprotoloader = require "sprotoloader"
+<span class="pl-mi1"><span class="pl-mi1">+</span>local md5 = require "md5"</span>
+
+ local max_client = 64
+
+<span class="pl-mdr">@@ -18,5 +19,6 @@</span> skynet.start(function()
+                nodelay = true,
+        })
+        skynet.error("Watchdog listen on", 8888)
+<span class="pl-mi1"><span class="pl-mi1">+</span>       md5.sumhexa("mongo")</span>
+        skynet.exit()
+ end)</pre></div>
+<p>然后跑 <code class="notranslate">./skynet examples/config</code> 会产生如下信息：</p>
+<pre class="notranslate"><code class="notranslate">[:01000002] LAUNCH snlua bootstrap
+[:01000003] LAUNCH snlua launcher
+[:01000004] LAUNCH snlua cmaster
+[:01000004] master listen socket 0.0.0.0:2013
+[:01000005] LAUNCH snlua cslave
+[:01000005] slave connect to master 127.0.0.1:2013
+[:01000004] connect from 127.0.0.1:48190 4
+[:01000006] LAUNCH harbor 1 16777221
+[:01000004] Harbor 1 (fd=4) report 127.0.0.1:2526
+[:01000005] Waiting for 0 harbors
+[:01000005] Shakehand ready
+[:01000007] LAUNCH snlua datacenterd
+[:01000008] LAUNCH snlua service_mgr
+[:01000009] LAUNCH snlua main
+[:01000009] Server start
+[:0100000a] LAUNCH snlua protoloader
+[:0100000b] LAUNCH snlua console
+[:0100000c] LAUNCH snlua debug_console 8000
+[:0100000c] Start debug console at 127.0.0.1:8000
+[:0100000d] LAUNCH snlua simpledb
+[:0100000e] LAUNCH snlua watchdog
+[:0100000f] LAUNCH snlua gate
+[:0100000f] Listen on 0.0.0.0:8888
+Segmentation fault (core dumped)
+</code></pre>
+<p>此时当前目录应该会出现 <code class="notranslate">core.577461</code> 一样的文件。</p>
+<h2>开始调试</h2>
+<p>先把 <code class="notranslate">https://github.com/xjdrew/lua-gdb.git</code> 代码 clone 下来，假设我们放到 skynet 文件当前目录：</p>
+<pre class="notranslate"><code class="notranslate">git clone https://github.com/xjdrew/lua-gdb.git
+</code></pre>
+<p>执行 <code class="notranslate">gdb ./skynet core.577461</code> ，应该就会有下面类似的信息了，能看到 C 代码调用栈了。</p>
+<pre class="notranslate"><code class="notranslate">Reading symbols from ./skynet...
+[New LWP 577472]
+[New LWP 577461]
+[New LWP 577467]
+[New LWP 577464]
+[New LWP 577469]
+[New LWP 577470]
+[New LWP 577462]
+[New LWP 577471]
+[New LWP 577463]
+[New LWP 577466]
+[New LWP 577468]
+[New LWP 577465]
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Core was generated by `./skynet examples/config'.
+Program terminated with signal SIGSEGV, Segmentation fault.
+#0  0x00007fea28b41837 in word32tobytes (output=&lt;optimized out&gt;, input=0x7fea21bf9bd0) at 3rd/lua-md5/md5.c:71
+71          WORD32 v = *input++;
+[Current thread is 1 (Thread 0x7fea21bfc700 (LWP 577472))]
+(gdb)
+</code></pre>
+<p>然后在 gdb 里 source 插件</p>
+<pre class="notranslate"><code class="notranslate">(gdb) source lua-gdb/lua-gdb.py
+Loading Lua Runtime support.
+</code></pre>
+<p>此时直接使用 luacoroutines 命令查看 lua 协程是没用的，会报错，找不到 L</p>
+<pre class="notranslate"><code class="notranslate">(gdb) luacoroutines
+Python Exception &lt;class 'gdb.error'&gt; No symbol "L" in current context.:
+Error occurred in Python: No symbol "L" in current context.
+</code></pre>
+<p>我们需要把调用栈切到有 L 这个变量的层级（L 就是 Lua 的那个 LuaStack 变量）。先使用 where 命令看层级：</p>
+<pre class="notranslate"><code class="notranslate">(gdb) where
+#0  0x00007fea28b41837 in word32tobytes (output=&lt;optimized out&gt;, input=0x7fea21bf9bd0) at 3rd/lua-md5/md5.c:71
+#1  md5 (message=0x7fea206b0850 "mongo", len=5, output=output@entry=0x0) at 3rd/lua-md5/md5.c:212
+#2  0x00007fea28b41b47 in lmd5 (L=0x7fea206590a8) at 3rd/lua-md5/md5lib.c:28
+#3  0x000056213553a74e in precallC (f=0x7fea28b41b10 &lt;lmd5&gt;, nresults=1, func=&lt;optimized out&gt;, L=0x7fea206590a8) at ldo.c:506#4  luaD_precall (L=L@entry=0x7fea206590a8, func=&lt;optimized out&gt;, func@entry=0x7fea20633540, nresults=1) at ldo.c:572        #5  0x0000562135548e38 in luaV_execute (L=L@entry=0x7fea206590a8, ci=&lt;optimized out&gt;, ci@entry=0x7fea206b5bc0) at lvm.c:1638 #6  0x000056213553a322 in unroll (L=0x7fea206590a8, ud=&lt;optimized out&gt;) at ldo.c:717
+#7  0x0000562135539a05 in luaD_rawrunprotected (L=L@entry=0x7fea206590a8, f=f@entry=0x56213553a940 &lt;resume&gt;, ud=ud@entry=0x7fea21bf9f3c) at ldo.c:144
+</code></pre>
+<p>然后用 <code class="notranslate">up 3</code> 命令切层级到 <code class="notranslate">#3</code> ，这时用 <code class="notranslate">luacoroutines</code> 指令就能看到协程了：</p>
+<pre class="notranslate"><code class="notranslate">(gdb) up 3
+#3  0x000056213553a74e in precallC (f=0x7fea28b41b10 &lt;lmd5&gt;, nresults=1, func=&lt;optimized out&gt;, L=0x7fea206590a8) at ldo.c:506506       n = (*f)(L);  /* do the actual call */
+(gdb) luacoroutines
+m &lt;coroutine 0x7fea2060ef08&gt; = {[source] = [C]:-1, [func] = ?}
+  &lt;coroutine 0x7fea206590a8&gt; = {[source] = [C]:-1, [func] = 0x7fea28b41b10 &lt;lmd5&gt;}
+  &lt;coroutine 0x7fea20658fc8&gt; = {[source] = [C]:-1, [func] = 0x7fea28f14370 &lt;luaB_coresume&gt;}
+  &lt;coroutine 0x7fea2060ef08&gt; = {[source] = [C]:-1, [func] = ?}
+</code></pre>
+<p>再使用 <code class="notranslate">luastack</code> 命令查看 Lua 的调用栈：</p>
+<pre class="notranslate"><code class="notranslate">(gdb) luastack 0x7fea206590a8
+#0      0x7fea20633550  {val = "mongo", tbclist = {value_ = {gc = 0x7fea206b0830, p = 0x7fea206b0830, f = 0x7fea206b0830, i = 140643542960176, n = 6.9487142886020459e-310}, tt_ = 68 'D', delta = 0}}
+#1      0x7fea20633540  {val = &lt;lmd5&gt;, tbclist = {value_ = {gc = 0x7fea28b41b10 &lt;lmd5&gt;, p = 0x7fea28b41b10 &lt;lmd5&gt;, f = 0x7fea28b41b10 &lt;lmd5&gt;, i = 140643681966864, n = 6.9487211564449542e-310}, tt_ = 22 '\026', delta = 0}}
+#2      0x7fea20633530  {val = "mongo", tbclist = {value_ = {gc = 0x7fea206b0830, p = 0x7fea206b0830, f = 0x7fea206b0830, i = 140643542960176, n = 6.9487142886020459e-310}, tt_ = 68 'D', delta = 0}}
+#3      0x7fea20633520  {val = &lt;lclosure 0x7fea207304c0&gt; = {[file] = "@./lualib/md5.lua", [linestart] = 11, [lineend] = 16, [nupvalues] = 2 '\002'}, tbclist = {value_ = {gc = 0x7fea207304c0, p = 0x7fea207304c0, f = 0x7fea207304c0, i = 140643543483584, n
+= 6.9487143144618371e-310}, tt_ = 70 'F', delta = 0}}
+#4      0x7fea20633510  {val = 16777230, tbclist = {value_ = {gc = 0x100000e, p = 0x100000e, f = 0x100000e, i = 16777230, n = 8.2890529753771368e-317}, tt_ = 3 '\003', delta = 0}}
+#5      0x7fea20633500  {val = &lt;lclosure 0x7fea20731600&gt; = {[file] = "@./examples/main.lua", [linestart] = 7, [lineend] = 24, [nupvalues] = 3 '\003'}, tbclist = {value_ = {gc = 0x7fea20731600, p = 0x7fea20731600, f = 0x7fea20731600, i = 140643543488000,
+n = 6.9487143146800165e-310}, tt_ = 70 'F', delta = 0}}
+#6      0x7fea206334f0  {val = &lt;lclosure 0x7fea206ad0a0&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 934, [lineend] = 937, [nupvalues] = 2 '\002'}, tbclist = {value_ = {gc = 0x7fea206ad0a0, p = 0x7fea206ad0a0, f = 0x7fea206ad0a0, i = 14064354294595
+2, n = 6.9487142878992869e-310}, tt_ = 70 'F', delta = 0}}
+#7      0x7fea206334e0  {val = "False", tbclist = {value_ = {gc = 0x0, p = 0x0, f = 0x0, i = 0, n = 0}, tt_ = 17 '\021', delta = 0}}
+#8      0x7fea206334d0  {val = &lt;db_traceback&gt;, tbclist = {value_ = {gc = 0x562135554d70 &lt;db_traceback&gt;, p = 0x562135554d70 &lt;db_traceback&gt;, f = 0x562135554d70 &lt;db_traceback&gt;, i = 94700628692336, n = 4.6788327276451069e-310}, tt_ = 22 '\026', delta = 0}}
+#9      0x7fea206334c0  {val = &lt;lclosure 0x7fea206ad0a0&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 934, [lineend] = 937, [nupvalues] = 2 '\002'}, tbclist = {value_ = {gc = 0x7fea206ad0a0, p = 0x7fea206ad0a0, f = 0x7fea206ad0a0, i = 14064354294595
+2, n = 6.9487142878992869e-310}, tt_ = 70 'F', delta = 0}}
+#10     0x7fea206334b0  {val = &lt;luaB_xpcall&gt;, tbclist = {value_ = {gc = 0x5621355538a0 &lt;luaB_xpcall&gt;, p = 0x5621355538a0 &lt;luaB_xpcall&gt;, f = 0x5621355538a0 &lt;luaB_xpcall&gt;, i = 94700628687008, n = 4.6788327273818687e-310}, tt_ = 22 '\026', delta = 0}}
+#11     0x7fea206334a0  {val = &lt;lclosure 0x7fea206ad0a0&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 934, [lineend] = 937, [nupvalues] = 2 '\002'}, tbclist = {value_ = {gc = 0x7fea206ad0a0, p = 0x7fea206ad0a0, f = 0x7fea206ad0a0, i = 14064354294595
+2, n = 6.9487142878992869e-310}, tt_ = 70 'F', delta = 0}}
+#12     0x7fea20633490  {val = &lt;lclosure 0x7fea20731600&gt; = {[file] = "@./examples/main.lua", [linestart] = 7, [lineend] = 24, [nupvalues] = 3 '\003'}, tbclist = {value_ = {gc = 0x7fea20731600, p = 0x7fea20731600, f = 0x7fea20731600, i = 140643543488000,
+n = 6.9487143146800165e-310}, tt_ = 70 'F', delta = 0}}
+#13     0x7fea20633480  {val = &lt;lclosure 0x7fea20606950&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 933, [lineend] = 946, [nupvalues] = 5 '\005'}, tbclist = {value_ = {gc = 0x7fea20606950, p = 0x7fea20606950, f = 0x7fea20606950, i = 140643542264144, n = 6.948714254213496e-310}, tt_ = 70 'F', delta = 0}}
+#14     0x7fea20633470  {val = &lt;lclosure 0x7fea207316c0&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 950, [lineend] = 953, [nupvalues] = 3 '\003'}, tbclist = {value_ = {gc = 0x7fea207316c0, p = 0x7fea207316c0, f = 0x7fea207316c0, i = 140643543488192, n = 6.9487143146895025e-310}, tt_ = 70 'F', delta = 0}}
+#15     0x7fea20633460  {val = &lt;lclosure 0x7fea20623a40&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 252, [lineend] = 282, [nupvalues] = 10 '\n'}, tbclist = {value_ = {gc = 0x7fea20623a40, p = 0x7fea20623a40, f = 0x7fea20623a40, i = 140643542383168, n = 6.9487142600940629e-310}, tt_ = 70 'F', delta = 0}}
+#16     0x7fea20633450  {val = 1, tbclist = {value_ = {gc = 0x1, p = 0x1, f = 0x1, i = 1, n = 4.9406564584124654e-324}, tt_ = 3 '\003', delta = 0}}
+#17     0x7fea20633440  {val = 0, tbclist = {value_ = {gc = 0x0, p = 0x0, f = 0x0, i = 0, n = 0}, tt_ = 3 '\003', delta = 0}}
+#18     0x7fea20633430  {val = "&lt;lightuserdata 0x0&gt;", tbclist = {value_ = {gc = 0x0, p = 0x0, f = 0x0, i = 0, n = 0}, tt_ = 2 '\002', delta = 0}}
+#19     0x7fea20633420  {val = "False", tbclist = {value_ = {gc = 0x0, p = 0x0, f = 0x0, i = 0, n = 0}, tt_ = 17 '\021', delta = 0}}
+#20     0x7fea20633410  {val = &lt;lclosure 0x7fea20623a40&gt; = {[file] = "@./lualib/skynet.lua", [linestart] = 252, [lineend] = 282, [nupvalues] = 10 '\n'}, tbclist = {value_ = {gc = 0x7fea20623a40, p = 0x7fea20623a40, f = 0x7fea20623a40, i = 140643542383168, n = 6.9487142600940629e-310}, tt_ = 70 'F', delta = 0}}
+</code></pre>
+<p>这个调用栈信息量就比较充足了，文件和行号啥的都有了。</p>
+<h2>结束</h2>
+<p>像熟悉 lua 虚拟机的人，可能不需要工具，也能直接从 L 里手工查出 Lua 信息，比如这里介绍的方法：<br>
+<a href="https://blog.codingnow.com/2017/05/gdb_coredumplua.html" rel="nofollow">https://blog.codingnow.com/2017/05/gdb_coredumplua.html</a></p>
+<p>但是还是推荐这个 lua-gdb 工具吧，确实方便了不少:  <a href="https://github.com/xjdrew/lua-gdb">https://github.com/xjdrew/lua-gdb</a></p>
+<p>好了，入门级别的科普文写完了，原由是这里有人问道怎么用。<a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/RiceCN/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/RiceCN">@RiceCN</a>  <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="1331622873" data-permission-text="Title is private" data-url="https://github.com/cloudwu/skynet/issues/1624" data-hovercard-type="issue" data-hovercard-url="/cloudwu/skynet/issues/1624/hovercard" href="https://github.com/cloudwu/skynet/issues/1624">cloudwu/skynet#1624</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/84#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
