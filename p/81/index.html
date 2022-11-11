@@ -61,17 +61,16 @@ chown -R sftpuser:sftpuser /data0/sftp/sftpuser/upload</pre></div>
 <h4>7. 配置sshd_config</h4>
 <div class="highlight highlight-source-shell"><pre>vi /etc/ssh/sshd_config</pre></div>
 <h4>8. 修改如下内容，并保存退出</h4>
-<pre lang="txt" class="notranslate"><code class="notranslate"># 注释掉这行
-# Subsystem sftp /usr/libexec/openssh/sftp-server
-# 添加这行：
+<div class="highlight highlight-text-adblock"><pre><span class="pl-c"># 注释掉这行</span>
+<span class="pl-c"># Subsystem sftp /usr/libexec/openssh/sftp-server</span>
+<span class="pl-c"># 添加这行：</span>
 Subsystem sftp internal-sftp
     #添加在配置文件末尾
     Match User sftpuser
     ChrootDirectory /sftp/%u
     ForceCommand internal-sftp
     X11Forwarding no
-    AllowTcpForwarding no
-</code></pre>
+    AllowTcpForwarding no</pre></div>
 <h4>9. 重启sshd服务器</h4>
 <div class="highlight highlight-source-shell"><pre>systemctl restart sshd.service</pre></div>
 <h4>10. 配置 nginx 访问 upload 目录</h4>

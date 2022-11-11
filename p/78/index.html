@@ -44,7 +44,7 @@
 </ul>
 <h2>1. 九宫格</h2>
 <p>绘制如下的 2D 的地图：</p>
-<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_watermark.png" alt="grid" style="max-width: 100%;"></a></p>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_watermark.png" alt="grid" style="max-width: 100%;"></a></p>
 <ul>
 <li>场景大小： 300(w) X 250(h)</li>
 <li>x 轴格子数量： cntx = 6</li>
@@ -64,13 +64,12 @@
 </li>
 </ul>
 <p>计算九宫格：</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">{-1,-1}, {0,-1}, {1,-1}
+<div class="highlight highlight-text-adblock"><pre>{-1,-1}, {0,-1}, {1,-1}
 {-1,0},  {0,0},  {1,0},
-{-1,1},  {0,1},  {1,1},
-</code></pre>
+{-1,1},  {0,1},  {1,1},</pre></div>
 <p>用当前格子坐标加上上面的二维数组就能找出周围的九个格子（包括自己），当然处于边界的时候需要判断坐标的范围。</p>
 <p>首先确定数据结构如下图：</p>
-<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png" alt="grid_struct" style="max-width: 100%;"></a></p>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png" alt="grid_struct" style="max-width: 100%;"></a></p>
 <p>数据结构的定义大概是下面这样的：</p>
 <div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> aoi_space {
     <span class="pl-k">int</span> w;
@@ -121,7 +120,7 @@
 </li>
 </ul>
 </blockquote>
-<p><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_move_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_move_watermark.png" alt="grid_move" style="max-width: 100%;"></a></p>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_move_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_move_watermark.png" alt="grid_move" style="max-width: 100%;"></a></p>
 <ul>
 <li>进入场景:  根据坐标 (x,y) 计算出 id 所在的格子 ID (gid) ，找出格子里的所有对象 object_list ，然后调用 <code class="notranslate">aoi_callback(watcher, marker, 'e')</code> ，双方都发送 enter 事件，然后把自己加入到 grid 里。</li>
 <li>离开场景： 根据坐标 (x,y) 计算出 id 所在的格子 ID (gid) ，找出格子里的所有对象 object_list ，然后调用 <code class="notranslate">aoi_callback(watcher, marker, 'l')</code> ，然后把自己从 grid 里删除。</li>

@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">使用 OSC52 实现 wezterm 远程拷贝</div>
+            <div id="content" class="markdown-body">
+                <p>OSC 52 是 <a href="https://en.wikipedia.org/wiki/ANSI_escape_code" rel="nofollow">ANSI escape code</a> 中的 ESC ] (Operating System Command) 中的52， 它提供了访问访问本地剪贴板的能力。</p>
+<p>在没有了解到 OSC52 之前，我使用过  <a href="https://github.com/lemonade-command/lemonade">lemonade-command/lemonade</a> 来作为远程粘贴板工具，后面自己也折腾了一个 <a href="https://github.com/oclip">oclip</a> 。其实我想要的效果很简单，在远程 SSH 的终端里的 Vim 里拷贝某段字符串时，能在本地粘贴。当然使用鼠标选中拷贝是可以实现，但是对于键盘党当然是不想这效果的，在 Vim 里从 yy 命令拷贝一行很快为啥还要用鼠标呢。直到遇到 OSC52 ，超级简单的实现了我想要的效果。</p>
+<p>原理就不多说了，参考链接里都有说明，感兴趣的可以去看看。</p>
+<p>首先需要选用 SSH 终端工具支持 OSC 52 这个功能，我选用的 <a href="https://github.com/wez/wezterm">wezterm</a> 是支持的。然后就是对远程的 neovim 和 tmux 进行配置了。</p>
+<h2>配置 neovim</h2>
+<p>我的 neovim 配置： <a href="https://github.com/hanxi/nvim-config">hanxi/nvim-config</a> ， 安装插件 <a href="https://github.com/ojroques/vim-oscyank">ojroques/vim-oscyank</a> ，如果是使用 [packer] 来管理插件的话，使用下面的命令加入插件。</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-c1">use</span>({
+      <span class="pl-s"><span class="pl-pds">"</span>ojroques/vim-oscyank<span class="pl-pds">"</span></span>,
+      config <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">[[</span>require("plugins.oscyank")<span class="pl-pds">]]</span></span>,
+    })</pre></div>
+<p>插件的配置我放到 <code class="notranslate">plugins/oscyank.lua</code> 文件了，内容如下：</p>
+<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">copy</span>(<span class="pl-smi">lines</span>, <span class="pl-smi">_</span>)
+  vim.<span class="pl-smi">fn</span>.<span class="pl-c1">OSCYankString</span>(<span class="pl-c1">table.concat</span>(lines, <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>))
+<span class="pl-k">end</span>
+
+<span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">paste</span>()
+  <span class="pl-k">return</span> {
+    vim.<span class="pl-smi">fn</span>.<span class="pl-c1">split</span>(vim.<span class="pl-smi">fn</span>.<span class="pl-c1">getreg</span>(<span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>), <span class="pl-s"><span class="pl-pds">'</span><span class="pl-cce">\n</span><span class="pl-pds">'</span></span>),
+    vim.<span class="pl-smi">fn</span>.<span class="pl-c1">getregtype</span>(<span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>)
+  }
+<span class="pl-k">end</span>
+
+vim.<span class="pl-smi">g</span>.<span class="pl-smi">clipboard</span> <span class="pl-k">=</span> {
+  name <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>osc52<span class="pl-pds">"</span></span>,
+  copy <span class="pl-k">=</span> {
+    [<span class="pl-s"><span class="pl-pds">"</span>+<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> copy,
+    [<span class="pl-s"><span class="pl-pds">"</span>*<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> copy
+  },
+  paste <span class="pl-k">=</span> {
+    [<span class="pl-s"><span class="pl-pds">"</span>+<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> paste,
+    [<span class="pl-s"><span class="pl-pds">"</span>*<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> paste
+  }
+}
+
+vim.<span class="pl-smi">g</span>.<span class="pl-smi">oscyank_term</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>default<span class="pl-pds">'</span></span>
+vim.<span class="pl-c1">cmd</span> <span class="pl-s"><span class="pl-pds">[[</span></span>
+<span class="pl-s">set clipboard+=unnamedplus</span>
+<span class="pl-s"><span class="pl-pds">]]</span></span></pre></div>
+<p>这样配置后的效果就是，在 neovim 里使用 y 命令拷贝字符串的时候，字符串会进到本地系统的粘贴板。这个 <a href="https://github.com/ojroques/vim-oscyank/issues/24" data-hovercard-type="issue" data-hovercard-url="/ojroques/vim-oscyank/issues/24/hovercard">issues/24</a> 里也有讨论，说这个解决办法并不是非常完美的，比如在 neovim 里粘贴只能使用 <code class="notranslate">Ctrl + Shift + v</code> 来实现，对我来说这也足够了，至少不用使用鼠标选择复制了。</p>
+<h2>配置 tmux</h2>
+<p>tmux 配置就更简单了，它是原生就支持 OSC52 的，官方也有详细的文档： <a href="https://github.com/tmux/tmux/wiki/Clipboard">tmux配置粘贴板</a> 。</p>
+<p>只需要一行配置开启粘贴板就行：</p>
+<pre class="notranslate"><code class="notranslate">set -s set-clipboard on
+</code></pre>
+<p>当然，对于 Vim 党来说，设置 Vi 键位来选择和粘贴也是需要的：</p>
+<pre class="notranslate"><code class="notranslate"># 复制模式中的键盘布局
+setw -g mode-keys vi
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+set -s set-clipboard on
+bind-key -T copy-mode-vi y send -X copy-selection-and-cancel
+</code></pre>
+<h2>我的 dotfiles</h2>
+<p>如果你想体验一下效果，可以试试我的 dotfiles：</p>
+<p><a href="https://github.com/hanxi/dotfiles">https://github.com/hanxi/dotfiles</a></p>
+<p>在 Ubuntu22.04 系统上只要一行命令就能部署：</p>
+<pre class="notranslate"><code class="notranslate">curl https://raw.githubusercontent.com/hanxi/dotfiles/master/bootstrap.sh | bash
+</code></pre>
+<h2>参考</h2>
+<ul>
+<li><a href="https://www.laruence.com/2020/05/21/5880.html" rel="nofollow">使用OSC52实现iTerm2远程pbcopy</a></li>
+<li><a href="https://sspai.com/post/71018" rel="nofollow">一日一技 | SSH 下跨系统连通剪贴板</a></li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/85#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

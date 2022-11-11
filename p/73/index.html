@@ -48,7 +48,7 @@ Welcome to skynet console</pre></div>
 <p>当看到显示了 <code class="notranslate">Welcome to skynet console</code> 时，说明已经成功连上控制台了。</p>
 <h2>查看服务列表</h2>
 <p>输入 <code class="notranslate">list</code> 命令，可以看到正在运行中的服务列表。</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">Welcome to skynet console
+<div class="highlight highlight-text-adblock"><pre>Welcome to skynet console
 list
 :01000004       snlua cmaster
 :01000005       snlua cslave
@@ -60,12 +60,11 @@ list
 :0100000d       snlua simpledb
 :0100000e       snlua watchdog
 :0100000f       snlua gate
-&lt;CMD OK&gt;
-</code></pre>
+&lt;CMD OK&gt;</pre></div>
 <p>如上所示，<code class="notranslate">:01000004</code> 第一列冒号开头的是服务的地址，<code class="notranslate">snlua cmaster</code> 是服务启动参数。比如根据 <code class="notranslate">:0100000c snlua debug_console 8000</code> 可以查到 <code class="notranslate">debug_console</code> 服务的地址为 <code class="notranslate">:0100000c</code> 。</p>
 <h2>查看帮助</h2>
 <p><code class="notranslate">help</code> 命令很有用的，有时候忘记命令的格式了，输入 <code class="notranslate">help</code> 可以临时看看。</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">help
+<div class="highlight highlight-text-adblock"><pre>help
 call    call address ...
 clearcache      clear lua code cache
 cmem    Show C memory info
@@ -94,8 +93,7 @@ start   lanuch a new lua service
 stat    Dump all stats
 task    task address : show service task detail
 trace   trace address [proto] [on|off]
-uniqtask        task address : show service unique task detail
-</code></pre>
+uniqtask        task address : show service unique task detail</pre></div>
 <h2>call 命令的使用</h2>
 <p><code class="notranslate">call</code> 命令是对 <code class="notranslate">skynet.call</code> 接口的封装，执行效果和 <code class="notranslate">skynet.call</code> 效果一样，一般用于手动执行服务里的某个函数，且该函数是 <code class="notranslate">command</code> 里的接口。</p>
 <p>比如 <code class="notranslate">simpledb</code> 服务，代码位置： <code class="notranslate">examples/simpledb.lua</code> ，定义了 <code class="notranslate">GET</code> 和 <code class="notranslate">SET</code> 接口：</p>
@@ -109,14 +107,13 @@ uniqtask        task address : show service unique task detail
     <span class="pl-k">return</span> last
 <span class="pl-k">end</span></pre></div>
 <p>接下来我们在 debug console 里执行 <code class="notranslate">call</code> 指令查看效果：</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">call :0100000d "set", "A", 100
+<div class="highlight highlight-text-adblock"><pre>call :0100000d "set", "A", 100
 n       1
 &lt;CMD OK&gt;
 call :0100000d "get", "A"
 1       100
 n       1
-&lt;CMD OK&gt;
-</code></pre>
+&lt;CMD OK&gt;</pre></div>
 <p>首先是执行的 <code class="notranslate">set</code> 接口，命令格式为 <code class="notranslate">call 服务地址 "接口名", 参数1, 参数2</code> 。其中服务地址就是 <code class="notranslate">list</code> 命令显示出来的地址，接口名需要带引号，参数如果是字符串的时候，也需要有引号。</p>
 <p>然后执行的是 <code class="notranslate">get</code> 接口，返回的数据会输出到终端。</p>
 <p>可能已经发现了为什么定义的接口名是大写的，我们使用的时候却可以小写？这是因为 <code class="notranslate">simpledb</code> 对接口名做了处理，忽略大小写了。一般服务都没有处理这个的，所以需要注意保持相同的接口名。</p>
@@ -137,13 +134,11 @@ n       1
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> skynet <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet<span class="pl-pds">"</span></span>
 skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>I'm in inject<span class="pl-pds">"</span></span>)</pre></div>
 <p>然后在 debug console 里执行 <code class="notranslate">inject :0100000d ./testinject.lua</code> ，如下：</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">inject :0100000d ./testinject.lua
+<div class="highlight highlight-text-adblock"><pre>inject :0100000d ./testinject.lua
 
-&lt;CMD OK&gt;
-</code></pre>
+&lt;CMD OK&gt;</pre></div>
 <p>这时， <code class="notranslate">skynet</code> 进程那边会输出下面的日志：</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">[:0100000d] I'm in inject
-</code></pre>
+<div class="highlight highlight-text-adblock"><pre>[:0100000d] I'm in inject</pre></div>
 <p>这里只是测试了 <code class="notranslate">skynet.error</code> 接口，想执行任意接口都行的。 <code class="notranslate">local</code> 函数不是很方便执行的，需要根据 <code class="notranslate">upvalue</code> 去找，比较麻烦。所以一般只用来执行一些模块的接口。</p>
 <h2>参考文章</h2>
 <ul>

@@ -79,8 +79,7 @@ index 337ed3e..fd7ce50 100644
 }
 <span class="pl-c1">print</span>(cjson.<span class="pl-c1">encode</span>(tbl))</pre></div>
 <p>然后执行 <code class="notranslate">./3rd/lua/lua test/testcjson.lua</code> 就能看到下面的输出了：</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">{"a":1,"b":[3,2,3,4]}
-</code></pre>
+<div class="highlight highlight-text-adblock"><pre>{"a":1,"b":[3,2,3,4]}</pre></div>
 <p>接下来在 skynet 中测试下，新建 <code class="notranslate">examples/config.cjson</code> 文件：</p>
 <div class="highlight highlight-source-lua"><pre>thread <span class="pl-k">=</span> <span class="pl-c1">8</span>
 logger <span class="pl-k">=</span> <span class="pl-c1">nil</span>
@@ -89,15 +88,14 @@ start <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</spa
 bootstrap <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>snlua bootstrap<span class="pl-pds">"</span></span>	<span class="pl-c"><span class="pl-c">--</span> The service for bootstrap</span>
 luaservice <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>./service/?.lua;./test/?.lua;./examples/?.lua<span class="pl-pds">"</span></span></pre></div>
 <p>然后执行 <code class="notranslate">./skynet examples/config.cjson</code> 就能看到下面的输出：</p>
-<pre lang="txt" class="notranslate"><code class="notranslate">[:00000002] LAUNCH snlua bootstrap
+<div class="highlight highlight-text-adblock"><pre>[:00000002] LAUNCH snlua bootstrap
 [:00000003] LAUNCH snlua launcher
 [:00000004] LAUNCH snlua cdummy
 [:00000005] LAUNCH harbor 0 4
 [:00000006] LAUNCH snlua datacenterd
 [:00000007] LAUNCH snlua service_mgr
 [:00000008] LAUNCH snlua testcjson
-{"b":[3,2,3,4],"a":1}
-</code></pre>
+{"b":[3,2,3,4],"a":1}</pre></div>
 <h2>其他</h2>
 <ul>
 <li>代码分支： <a href="https://github.com/hanxi/skynet/tree/cjson">https://github.com/hanxi/skynet/tree/cjson</a></li>
