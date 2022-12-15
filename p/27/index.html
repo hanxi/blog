@@ -45,7 +45,7 @@ skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐�
 </blockquote>
 <p>为了正确的退出服务，需要选用 <code class="notranslate">skynet.exit()</code>，而且要确保没有挂起的 RPC。</p>
 <p>我们这里的例子是无状态服务，服务也比较简单，只做复杂计算，不会再发起 RPC 去其他地方请求数据(比如去数据库读取数据)。所以只需要这样写退出函数就行了。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">CMD.exit</span>()
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">CMD.exit</span>()
     skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>slave exit.<span class="pl-pds">"</span></span>)
     skynet.<span class="pl-c1">ret</span>()
     skynet.<span class="pl-c1">exit</span>()
@@ -53,7 +53,7 @@ skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐�
 <span class="pl-k">end</span></pre></div>
 <h3>负载均衡?</h3>
 <p>用数组 <code class="notranslate">slave</code> 把服务的地址存起来，然后在每调用一次计算接口 <code class="notranslate">calculate</code> 就换下一个服务。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> slave <span class="pl-k">=</span> {}
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> slave <span class="pl-k">=</span> {}
 <span class="pl-k">local</span> balance <span class="pl-k">=</span> <span class="pl-c1">1</span>
 
 <span class="pl-c"><span class="pl-c">--</span> 找一个 slave 帮忙做点复杂的计算</span>
@@ -67,7 +67,7 @@ skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐�
 <span class="pl-k">end</span></pre></div>
 <h3>动态伸缩服务数量?</h3>
 <p>取当前服务的数量 <code class="notranslate">#slave</code>, 数量相同就跳过，服务数量不够就开启新的服务，服务数量多了就干掉多余的服务。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">CMD.set_slave_count</span>(<span class="pl-smi">cnt</span>)
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">CMD.set_slave_count</span>(<span class="pl-smi">cnt</span>)
     <span class="pl-k">local</span> now_cnt <span class="pl-k">=</span> <span class="pl-k">#</span>slave
     <span class="pl-k">if</span> now_cnt <span class="pl-k">==</span> cnt <span class="pl-k">then</span>
         skynet.<span class="pl-c1">error</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>slave count is:%d<span class="pl-pds">"</span></span>, now_cnt))

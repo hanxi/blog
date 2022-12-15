@@ -35,7 +35,7 @@
 <h2>编译 Lua</h2>
 <p>为了能编译并使用扩展，需要在生成 <code class="notranslate">.dll</code> 的时候生成 <code class="notranslate">.lib</code> 文件。生成 DLL 使用 <code class="notranslate">/DLL</code> 参数。但是生成的 lib 文件有问题，编译扩展库的时候会出现 <code class="notranslate">unresolved xxx</code>。搜到这个 <a href="https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc" rel="nofollow">https://ci.appveyor.com/project/xpol/lua-rapidjson/build/0.1.0.4/job/93u2pxa808er1huc</a> 。最有用了，虽然是用 CMake 生成的 Make 日志，但是都把编译命令输出来了。需要添加 <code class="notranslate">-DLUA_BUILD_AS_DLL</code> ，至于为什么的话可以去 <code class="notranslate">src/luaconf.h</code> 中搜就知道了。</p>
 <p>下面的 makefile 就是使用 nmake 执行的。生成 Lua.exe 比较简单。生成 Lua.lib 主要是要加上面提到的预定义。</p>
-<div class="highlight highlight-source-makefile"><pre><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
+<div class="highlight highlight-source-makefile"><pre class="notranslate"><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Windows Kits\8.1\Include\um" <span class="pl-cce">\</span>
@@ -130,7 +130,7 @@
 Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个预定义的话还是要依据 <code class="notranslate">luaconf.h</code><br>
 也是根据而来。改了这么多还不够，还要改 <code class="notranslate">lbase64.c</code> 和 <code class="notranslate">luazip.c</code> 的 <code class="notranslate">xxx_open</code> 函数的定义，<br>
 需要在前面加上 <code class="notranslate">LUA_API</code>。<code class="notranslate">/MD</code> 需要改为 <code class="notranslate">/MT</code>，要不然移植到没有安装 vc++ 环境的机器上就跑不起来。历经N次尝试和谷歌搜索，就这样结束了。<code class="notranslate">luazip.c</code> 里面有行代码不兼容VC编译器：<code class="notranslate">char tmp[szfn];</code>，这是C99的用法，需要自行修改下。</p>
-<div class="highlight highlight-source-makefile"><pre><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
+<div class="highlight highlight-source-makefile"><pre class="notranslate"><span class="pl-smi">STD_INC</span>=/I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\atlmfc\include" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt" <span class="pl-cce">\</span>
 /I "C:\Program Files (x86)\Windows Kits\8.1\Include\um" <span class="pl-cce">\</span>

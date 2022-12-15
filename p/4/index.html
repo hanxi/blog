@@ -33,12 +33,12 @@
                 <h2>一、搭建环境</h2>
 <p><em>参考： <a href="http://alilua.com/docs.html" rel="nofollow">http://alilua.com/docs.html</a></em></p>
 <h3>下载和编译alilua</h3>
-<div class="highlight highlight-source-shell"><pre>$ git clone https://github.com/oneoo/alilua.git
+<div class="highlight highlight-source-shell"><pre class="notranslate">$ git clone https://github.com/oneoo/alilua.git
 $ <span class="pl-c1">cd</span> alilua
 $ make</pre></div>
 <h3>设定网站目录</h3>
 <p>这是调整后的目录，将alilua作为子工程放入工程目录。</p>
-<div class="highlight highlight-source-shell"><pre>project/
+<div class="highlight highlight-source-shell"><pre class="notranslate">project/
 ├── alilua/             <span class="pl-c"><span class="pl-c">#</span> alilua源码目录</span>
 ├── css/
 ├── js/
@@ -57,7 +57,7 @@ $ make</pre></div>
 <li>启动alilua的命令：<code class="notranslate">./alilua process=4 bind=9999 daemon host-route=host-route.lua</code></li>
 <li>关闭alilua的函数：</li>
 </ul>
-<div class="highlight highlight-source-shell"><pre><span class="pl-en">stop</span>()
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-en">stop</span>()
 {
     pid=<span class="pl-s"><span class="pl-pds">`</span>ps -ef<span class="pl-k">|</span> grep <span class="pl-s"><span class="pl-pds">"</span>alilua<span class="pl-pds">"</span></span> <span class="pl-k">|</span> grep -v grep <span class="pl-k">|</span> awk <span class="pl-s"><span class="pl-pds">'</span>{print $2}<span class="pl-pds">'</span></span> <span class="pl-pds">`</span></span>
     <span class="pl-k">if</span> [ <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$pid</span><span class="pl-pds">"</span></span>x <span class="pl-k">!=</span> x ]<span class="pl-k">;</span> <span class="pl-k">then</span>
@@ -127,7 +127,7 @@ $ make</pre></div>
 </ul>
 </li>
 </ul>
-<div class="highlight highlight-source-js"><pre><span class="pl-k">if</span><span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">sendAsBinary</span><span class="pl-kos">)</span><span class="pl-kos">{</span>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-k">if</span><span class="pl-kos">(</span><span class="pl-c1">!</span><span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-c1">sendAsBinary</span><span class="pl-kos">)</span><span class="pl-kos">{</span>
     <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">sendAsBinary</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">datastr</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
         <span class="pl-k">function</span> <span class="pl-en">byteValue</span><span class="pl-kos">(</span><span class="pl-s1">x</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
             <span class="pl-k">return</span> <span class="pl-s1">x</span><span class="pl-kos">.</span><span class="pl-en">charCodeAt</span><span class="pl-kos">(</span><span class="pl-c1">0</span><span class="pl-kos">)</span> <span class="pl-c1">&amp;</span> <span class="pl-c1">0xff</span><span class="pl-kos">;</span>

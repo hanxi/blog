@@ -64,7 +64,7 @@
 <p>为啥只需要一个 nextid 就可以了？不用保存 step 吗？因为 step 配置到代码里就行了的，就没必要入库了。</p>
 <h3>预生产池子</h3>
 <p>直接贴 Lua 的数据结构吧，就不画图了。</p>
-<div class="highlight highlight-source-lua"><pre>{
+<div class="highlight highlight-source-lua"><pre class="notranslate">{
    [idtype] <span class="pl-k">=</span> {
      blocks <span class="pl-k">=</span> {
         [start_idx] <span class="pl-k">=</span> len,  <span class="pl-c"><span class="pl-c">--</span> 有效数据, 表示从某段开始, 长度为len, 使用时段内自减</span>
@@ -81,7 +81,7 @@
 <li><code class="notranslate">ids_cnt</code> 用来维护池子的大小</li>
 </ul>
 <h3>从 db 取一段 ID</h3>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">new_db_id</span>(<span class="pl-smi">idtype</span>, <span class="pl-smi">step</span>)
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">new_db_id</span>(<span class="pl-smi">idtype</span>, <span class="pl-smi">step</span>)
     <span class="pl-k">local</span> ret <span class="pl-k">=</span> tbl_guid:<span class="pl-c1">findAndModify</span>({query <span class="pl-k">=</span> {idtype <span class="pl-k">=</span> idtype}, update <span class="pl-k">=</span> {[<span class="pl-s"><span class="pl-pds">"</span>$inc<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> {nextid <span class="pl-k">=</span> step}}, upsert <span class="pl-k">=</span> <span class="pl-c1">true</span>})
 
     <span class="pl-k">local</span> result <span class="pl-k">=</span> <span class="pl-c1">math.floor</span>(ret.<span class="pl-smi">ok</span>)

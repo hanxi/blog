@@ -79,7 +79,7 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <p>GitLab 官方给出的 Docker 方式安装 gitlab-runner 文档路径： <a href="https://docs.gitlab.com/runner/install/docker.html" rel="nofollow">https://docs.gitlab.com/runner/install/docker.html</a></p>
 <p>熟悉 docker-compose 的话，用 docker-compose 启动 gitlab-runner 更方便。</p>
 <p>docker-compose 文件路径在服务器代码目录： <code class="notranslate">tools/gitlab-runner/docker-compose.yml</code></p>
-<div class="highlight highlight-source-yaml"><pre><span class="pl-ent">gitlab-runner</span>:
+<div class="highlight highlight-source-yaml"><pre class="notranslate"><span class="pl-ent">gitlab-runner</span>:
   <span class="pl-ent">container_name</span>: <span class="pl-s">gitlab-runner</span>
   <span class="pl-ent">image</span>: <span class="pl-s"><span class="pl-pds">"</span>gitlab/gitlab-runner:latest<span class="pl-pds">"</span></span>
   <span class="pl-ent">restart</span>: <span class="pl-s">always</span>
@@ -106,7 +106,7 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <p>执行 <code class="notranslate">gitlab-runner register</code> 命令来注册。其中 url 和 registration-token 参数就是上面截图中的，docker-pull-policy 设置为 if-not-present 表示优先使用本地 docker 镜像，executor 设置运行方式为 docker ，docker-image 设置镜像名。</p>
 </li>
 </ol>
-<div class="highlight highlight-source-shell"><pre>docker <span class="pl-c1">exec</span> -it gitlab-runner gitlab-runner register --non-interactive \
+<div class="highlight highlight-source-shell"><pre class="notranslate">docker <span class="pl-c1">exec</span> -it gitlab-runner gitlab-runner register --non-interactive \
   --url <span class="pl-s"><span class="pl-pds">"</span>http://192.168.29.252/<span class="pl-pds">"</span></span> \
   --registration-token <span class="pl-s"><span class="pl-pds">"</span>uGmnn6P3mxxxxxxxxx<span class="pl-pds">"</span></span> \
   --docker-pull-policy <span class="pl-s"><span class="pl-pds">"</span>if-not-present<span class="pl-pds">"</span></span> \
@@ -116,16 +116,16 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <h3>3. 准备好运行环境的 docker 镜像</h3>
 <p>这节是介绍我们的 sim-server-build 镜像是如何生成的。</p>
 <p>脚本在服务器代码目录下： <code class="notranslate">tools/docker-build/</code></p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c1">.</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c1">.</span>
 ├── build.sh
 ├── create.sh
 ├── Dockerfile
 ├── id_rsa
 └── id_rsa.pub</pre></div>
 <p><code class="notranslate">create.sh</code> 就是一行创建镜像的命令，表示创建镜像名字为 <code class="notranslate">sim-server-build</code> 的 docker 镜像，最后的 <code class="notranslate">.</code> 表示使用当前目录下的 Dockerfile 文件来生成镜像。</p>
-<div class="highlight highlight-source-shell"><pre>sudo docker build -t sim-server-build <span class="pl-c1">.</span></pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">sudo docker build -t sim-server-build <span class="pl-c1">.</span></pre></div>
 <p><code class="notranslate">Dockerfile</code> 比较简单，主要就是执行 <code class="notranslate">build.sh</code> 文件来安装我们项目依赖的工具和库：</p>
-<div class="highlight highlight-source-dockerfile"><pre><span class="pl-k">FROM</span> centos:7.6.1810
+<div class="highlight highlight-source-dockerfile"><pre class="notranslate"><span class="pl-k">FROM</span> centos:7.6.1810
 
 <span class="pl-k">COPY</span> build.sh /tmp/build.sh
 
@@ -147,7 +147,7 @@ Travis CI 是在软件开发领域中的一个在线的，分布式的持续集�
 <p>通过配置 <code class="notranslate">.gitlab-ci.yml</code> 文件来告诉 CI 要对你的项目做什么，它位于仓库的根目录下。</p>
 <p>代码仓库一旦收到任何推送 (git push)，GitLab 将立即查找 <code class="notranslate">.gitlab-ci.yml</code> 文件，并根据文件的内容在 Runner 上启动作业。</p>
 <p>下面是我们服务器脚本代码的 ci 文件。</p>
-<div class="highlight highlight-source-yaml"><pre><span class="pl-ent">image</span>: <span class="pl-s">sim-server-build</span>
+<div class="highlight highlight-source-yaml"><pre class="notranslate"><span class="pl-ent">image</span>: <span class="pl-s">sim-server-build</span>
 
 <span class="pl-ent">variables</span>:
   <span class="pl-ent">GIT_SUBMODULE_STRATEGY</span>: <span class="pl-s">recursive</span>

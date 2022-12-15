@@ -31,7 +31,7 @@
             <div id="title">iptables 配置端口转发</div>
             <div id="content" class="markdown-body">
                 <h2>修改 /etc/sysconfig/iptables</h2>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> 10.12.1.222:9011 =&gt; 10.12.1.86:24800</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 10.12.1.222:9011 =&gt; 10.12.1.86:24800</span>
 <span class="pl-k">*</span>nat
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
@@ -49,7 +49,7 @@ COMMIT
 -A OUTPUT -j ACCEPT
 COMMIT</pre></div>
 <h2>修改 /etc/sysctl.conf</h2>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>net.ipv4.ip_forward = 1<span class="pl-pds">"</span></span> <span class="pl-k">&gt;&gt;</span> /etc/sysctl.conf 
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>net.ipv4.ip_forward = 1<span class="pl-pds">"</span></span> <span class="pl-k">&gt;&gt;</span> /etc/sysctl.conf 
 sysctl -p</pre></div>
             </div>
             <div id="comment">

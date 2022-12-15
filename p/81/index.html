@@ -37,31 +37,31 @@
 <li><a href="http://www.hechuangyi.com/install-sftp-server-on-centos7/" rel="nofollow">http://www.hechuangyi.com/install-sftp-server-on-centos7/</a></li>
 </ol>
 <h4>1. 创建用户 sftpuser，并禁止ssh登录，不创建家目录</h4>
-<div class="highlight highlight-source-shell"><pre>useradd -s /sbin/nologin -M sftpuser</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">useradd -s /sbin/nologin -M sftpuser</pre></div>
 <h4>2. 设置用户密码</h4>
-<div class="highlight highlight-source-shell"><pre>passwd sftpuser</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">passwd sftpuser</pre></div>
 <h4>3. 创建sftp根目录。</h4>
-<div class="highlight highlight-source-shell"><pre>mkdir /sftp</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">mkdir /sftp</pre></div>
 <h4>4. 设置目录权限，目录的权限设定有两个要点：</h4>
 <blockquote>
 <p>目录开始一直往上到系统根目录为止的目录拥有者都只能是root，<br>
 目录开始一直往上到系统根目录为止都不可以具有群组写入权限</p>
 </blockquote>
-<div class="highlight highlight-source-shell"><pre>chown root:root /sftp
+<div class="highlight highlight-source-shell"><pre class="notranslate">chown root:root /sftp
 chmod 755 /sftp</pre></div>
 <h4>5. 创建用户sftpuser根目录，目录名为用户名</h4>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> /sftp
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c1">cd</span> /sftp
 mkdir -p /sftp/sftpuser
 mkdir -p /sftp/sftpuser/upload</pre></div>
 <h4>6. 设置sftpuser目录权限和upload目录权限</h4>
-<div class="highlight highlight-source-shell"><pre>chown root:sftpuser /sftp/sftpuser
+<div class="highlight highlight-source-shell"><pre class="notranslate">chown root:sftpuser /sftp/sftpuser
 chmod 755 /sftp/sftpuser
 chown -R sftpuser:sftpuser /data0/sftp/sftpuser/upload</pre></div>
 <p>upload 目录为用户上传文件的目录</p>
 <h4>7. 配置sshd_config</h4>
-<div class="highlight highlight-source-shell"><pre>vi /etc/ssh/sshd_config</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">vi /etc/ssh/sshd_config</pre></div>
 <h4>8. 修改如下内容，并保存退出</h4>
-<div class="highlight highlight-text-adblock"><pre><span class="pl-c"># 注释掉这行</span>
+<div class="highlight highlight-text-adblock"><pre class="notranslate"><span class="pl-c"># 注释掉这行</span>
 <span class="pl-c"># Subsystem sftp /usr/libexec/openssh/sftp-server</span>
 <span class="pl-c"># 添加这行：</span>
 Subsystem sftp internal-sftp
@@ -72,9 +72,9 @@ Subsystem sftp internal-sftp
     X11Forwarding no
     AllowTcpForwarding no</pre></div>
 <h4>9. 重启sshd服务器</h4>
-<div class="highlight highlight-source-shell"><pre>systemctl restart sshd.service</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">systemctl restart sshd.service</pre></div>
 <h4>10. 配置 nginx 访问 upload 目录</h4>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> /var/www/html
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c1">cd</span> /var/www/html
 ln -s /sftp/sftpuser/upload upload
 usermod -a -G www-data sftpuser</pre></div>
 <p>主要是把 stfpuser 用户加入到 www-data 组里。</p>

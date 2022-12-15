@@ -55,7 +55,7 @@
 <h2>4. 信号 signal 的使用</h2>
 <p>skynet 处理了 SIGHUP 和 SIGPIPE 两个信号.</p>
 <p>SIGHUP 信号处理</p>
-<div class="highlight highlight-source-c"><pre>	<span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
+<div class="highlight highlight-source-c"><pre class="notranslate">	<span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
 	sa.sa_handler = &amp;handle_hup;
 	sa.sa_flags = SA_RESTART;
 	<span class="pl-en">sigfillset</span>(&amp;sa.sa_mask);
@@ -66,7 +66,7 @@
 <li>有些调用是不会自动恢复的： <a href="https://stackoverflow.com/questions/5405297/which-functions-are-interrupted-by-signals-even-with-sa-restart" rel="nofollow">https://stackoverflow.com/questions/5405297/which-functions-are-interrupted-by-signals-even-with-sa-restart</a></li>
 </ul>
 <p>SIGPIPE 信号处理</p>
-<div class="highlight highlight-source-c"><pre>    <span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
+<div class="highlight highlight-source-c"><pre class="notranslate">    <span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
 	sa.sa_handler = SIG_IGN; <span class="pl-c"><span class="pl-c">//</span> 信号被忽略</span>
 	sa.sa_flags = <span class="pl-c1">0</span>;
 	<span class="pl-en">sigemptyset</span>(&amp;sa.sa_mask);
@@ -90,7 +90,7 @@
 优先推荐使用 sigaction</p>
 </blockquote>
 <p>下面这段代码来自 Lua <code class="notranslate">lua.c</code> , 在 POSIX 平台优先使用 <code class="notranslate">sigaction</code> 。</p>
-<div class="highlight highlight-source-c"><pre>#<span class="pl-k">if</span> defined(LUA_USE_POSIX)   <span class="pl-c"><span class="pl-c">/*</span> { <span class="pl-c">*/</span></span>
+<div class="highlight highlight-source-c"><pre class="notranslate">#<span class="pl-k">if</span> defined(LUA_USE_POSIX)   <span class="pl-c"><span class="pl-c">/*</span> { <span class="pl-c">*/</span></span>
 
 <span class="pl-c"><span class="pl-c">/*</span></span>
 <span class="pl-c">** Use 'sigaction' when available.</span>
@@ -110,7 +110,7 @@
 #<span class="pl-k">endif</span>                      <span class="pl-c"><span class="pl-c">/*</span> } <span class="pl-c">*/</span></span></pre></div>
 <h2>5. skynet_handle.c 分析</h2>
 <p>skynet_handle 有两个用途，第一个是给服务分配一个正整数作为服务 id，第二个是给服务绑定名字。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> handle_name {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> handle_name {
 	<span class="pl-k">char</span> * name;
 	<span class="pl-c1">uint32_t</span> handle;
 };
@@ -146,7 +146,7 @@
 <p><code class="notranslate">skynet_handle_findname</code> 是通过名字查找服务 id ，采用二分查找，name 数组是按名字排序的。</p>
 <p><code class="notranslate">skynet_handle_namehandle</code> 给服务取个名字，先通过二分查找找到名字插入的位置 <code class="notranslate">before</code> ，然后插入空位。如果没空位了(s-&gt;name_count &gt;= s-&gt;name_cap) 就把数组扩容再插入。</p>
 <p><code class="notranslate">skynet_handle_init</code> 就是初始化 <code class="notranslate">static struct handle_storage *H</code>；</p>
-<div class="highlight highlight-source-c"><pre>s-&gt;slot_size = DEFAULT_SLOT_SIZE; <span class="pl-c"><span class="pl-c">//</span> 存放 context 的初始大小 4</span>
+<div class="highlight highlight-source-c"><pre class="notranslate">s-&gt;slot_size = DEFAULT_SLOT_SIZE; <span class="pl-c"><span class="pl-c">//</span> 存放 context 的初始大小 4</span>
 s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="pl-c">//</span> 存放名字的初始大小 2</span></pre></div>
 <p><code class="notranslate">struct rwlock lock;</code> 使用读写锁是因为读取比插入删除更频繁，每一条消息的处理都需要根据 handle 来取 skynet_context （<code class="notranslate">skynet_handle_grab</code>），如果是根据名字发送的消息，都是需要先通过名字查询到 handle (<code class="notranslate">skynet_handle_findname</code>)。</p>
 <p>一个崩溃问题重现：</p>
@@ -158,14 +158,14 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 <h2>6. monitor 分析</h2>
 <p>主要代码实现在 skynet_start.c 和 skynet_monitor.c 。启动入口为 start(int thread) 函数。 thread 为 worker 线程的数量，另外还有 3 个特殊线程，分别为 monitor 线程（监视 worker 线程），timer 线程， socket 线程。</p>
 <p>四种线程的入口函数如下：</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">0</span>], thread_monitor, m);
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">0</span>], thread_monitor, m);
 <span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">1</span>], thread_timer, m);
 <span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">2</span>], thread_socket, m);
 <span class="pl-en">create_thread</span>(&amp;pid[i+<span class="pl-c1">3</span>], thread_worker, &amp;wp[i]);</pre></div>
 <p>线程之间的关系如下：</p>
 <p><a target="_blank" rel="noopener noreferrer" href="assets/monitor.png"><img src="assets/monitor.png" alt="" style="max-width: 100%;"></a></p>
 <p>监视器的数据结构如下，进程内全局只有一个，跟 <code class="notranslate">struct handle_storage</code> 一样。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> monitor {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> monitor {
 	<span class="pl-k">int</span> count; <span class="pl-c"><span class="pl-c">//</span> worker 线程数量</span>
 	<span class="pl-k">struct</span> skynet_monitor ** m; <span class="pl-c"><span class="pl-c">//</span> 一个元素监视一个 worker 线程</span>
 	<span class="pl-c1">pthread_cond_t</span> cond; <span class="pl-c"><span class="pl-c">//</span> 条件变量，调度 worker 线程</span>
@@ -177,7 +177,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 <blockquote>
 <p>pthread_cond_wait 必须放在 pthread_mutex_lock 和 pthread_mutex_unlock 之间，因为他要根据共享变量的状态来决定是否要等待，而为了不永远等待下去所以必须要在 lock/unlock 队中。共享变量的状态改变必须遵守 lock/unlock 的规则。 pthread_cond_signal 既可以放在 pthread_mutex_lock 和 pthread_mutex_unlock 之间，也可以放在 pthread_mutex_lock 和 pthread_mutex_unlock 之后。</p>
 </blockquote>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> *
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
 <span class="pl-en">thread_monitor</span>(<span class="pl-k">void</span> *p) {
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 	<span class="pl-k">for</span> (;;) {
@@ -193,7 +193,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 }</pre></div>
 <p>monitor 线程的工作就是每 5 秒检测一次服务是否进入死循环 <code class="notranslate">skynet_monitor_check</code> , 过载会输出 "maybe in an endless loop" 日志，每秒也检测进程是否需要退出 CHECK_ABORT 。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> skynet_monitor {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_monitor {
 	ATOM_INT version; <span class="pl-c"><span class="pl-c">//</span> 当前版本号，处理消息前自增一次</span>
 	<span class="pl-k">int</span> check_version; <span class="pl-c"><span class="pl-c">//</span> 每次 check 时赋值</span>
 	<span class="pl-c1">uint32_t</span> source;
@@ -201,7 +201,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 };</pre></div>
 <p>version 自增， 5 秒后检测时 check_version 也会赋值为 version 一样的值。如果这个时候消息还没处理完，check_version 和 version 就会是相同的值，且处理消息的服务 destination 不为空，就会打印 "maybe in an endless loop" 。消息处理结束会把 destination 设置为 0 。也就是一个消息如果处理超过 5 秒就会输出告警。</p>
 <p>timer 线程除了负责本身的 timer 工作，还对 signal_hup 信号的处理，和以及 worker 线程和 socket 线程的退出。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> *
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
 <span class="pl-en">thread_timer</span>(<span class="pl-k">void</span> *p) {
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 	<span class="pl-k">for</span> (;;) {
@@ -226,7 +226,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 }</pre></div>
 <p>timer 线程每隔 2.5 毫秒会唤醒一条睡眠中的 worker 线程。timer 线程退出前，负责通知 socket 线程退出，和通知 worker 线程退出。</p>
 <p>socket 线程就是循环调用 skynet_socket_poll 接口，返回 0 的时候就是 timer 线程调用了 skynet_socket_exit 接口后发生的情况。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> *
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
 <span class="pl-en">thread_socket</span>(<span class="pl-k">void</span> *p) {
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 	<span class="pl-k">for</span> (;;) {
@@ -242,7 +242,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 	<span class="pl-k">return</span> <span class="pl-c1">NULL</span>;
 }</pre></div>
 <p>正常处理网络消息后，如果所有的 worker 线程都 sleep 了就换一个来处理看看有没有消息，防止 2.5 毫秒内，所有 worker 都睡眠的时候，收到网络消息时没有及时处理。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> *
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
 <span class="pl-en">thread_worker</span>(<span class="pl-k">void</span> *p) {
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 	<span class="pl-k">while</span> (!m-&gt;<span class="pl-smi">quit</span>) {
@@ -271,7 +271,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 </ul>
 <h2>7. skynet_module.c 分析</h2>
 <p>skynet_module 的数据结构就比较简单了，采用数组存放。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> modules {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> modules {
 	<span class="pl-k">int</span> count; <span class="pl-c"><span class="pl-c">//</span> 模块数量</span>
 	<span class="pl-k">struct</span> spinlock lock;
 	<span class="pl-k">const</span> <span class="pl-k">char</span> * path; <span class="pl-c"><span class="pl-c">//</span> 模块路径，类似于 lua_cpath，用 ? 做匹配</span>
@@ -292,7 +292,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 </blockquote>
 <p>从代码上看 create 和 release 接口是支持不实现的，但官方的出的 C 服务都实现了这两个接口。</p>
 <p>使用全局变量 M 来管理所有的 C 模块，模块和服务的关系就像类和对象的关系。创建服务的流程是先通过 skynet_module_query 查找到模块，然后 skynet_module_instance_create 创建服务的实体。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> skynet_context * 
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_context * 
 <span class="pl-en">skynet_context_new</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> * name, <span class="pl-k">const</span> <span class="pl-k">char</span> *param) {
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 	<span class="pl-k">void</span> *inst = <span class="pl-c1">skynet_module_instance_create</span>(mod);
@@ -301,7 +301,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 	<span class="pl-c"><span class="pl-c">//</span> ...</span>
 }</pre></div>
 <p>模块的查找就是普通的遍历查找了，因为 C 服务的上限定的是 32 ，一般只用到 snlua 这个 C 服务，也就越简单越好了。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> skynet_module * 
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_module * 
 <span class="pl-en">skynet_module_query</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> * name) {
 	<span class="pl-k">struct</span> skynet_module * result = <span class="pl-c1">_query</span>(name);
 	<span class="pl-k">if</span> (result)
@@ -326,7 +326,7 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 <p>已有结论 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4009797" data-permission-text="Title is private" data-url="https://github.com/cloudwu/skynet/discussions/1576" data-hovercard-type="discussion" data-hovercard-url="/cloudwu/skynet/discussions/1576/hovercard" href="https://github.com/cloudwu/skynet/discussions/1576">cloudwu/skynet#1576</a></p>
 </blockquote>
 <p>skynet_server.c 可以说是 skynet 服务的核心了。可以把它分两部分来分析，一部分是 skynet_context 的创建销毁和收发消息。另一部分是 skynet_command 接口用来操作 skynet_context 。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> skynet_node {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_node {
     ATOM_INT total; <span class="pl-c"><span class="pl-c">//</span> 服务的数量</span>
     <span class="pl-k">int</span> init; <span class="pl-c"><span class="pl-c">//</span> 初始化标记</span>
     <span class="pl-c1">uint32_t</span> monitor_exit; <span class="pl-c"><span class="pl-c">//</span> 监听服务退出的服务id</span>

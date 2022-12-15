@@ -38,7 +38,7 @@
 <p>网站的主页页面也就两个，一个主页，一个登录后的个人页面。后端采用的模板库是 bungle/lua-resty-template , 前端采用了 Bootstrap 库。登录成功后就能显示 JWT ，还弄了个自动安装客户端的命令。然后实现点击按钮复制命令的实现可看这里: <a href="https://blog.hanxi.info/?p=35" rel="nofollow">https://blog.hanxi.info/?p=35</a></p>
 <p>初版的 Linux 客户端的配置文件在 <code class="notranslate">$HOME/.oclip</code> ，安装位置在 <code class="notranslate">$HOME/.local/bin</code> 。实现过程中用到的一些 Bash 脚本关键点记录在这里: <a href="https://blog.hanxi.info/?p=33" rel="nofollow">https://blog.hanxi.info/?p=33</a></p>
 <p>到这里就已经实现了一个初步可用的远程剪切板了，使用流程为 进入到 <a href="https://oclip.hanxi.info" rel="nofollow">https://oclip.hanxi.info</a> ，然后用 GitHub 登录，再复制安装命令到系统终端执行(不用 root 账户)，然后就能使用 oclip 命令了。 oclip 的参数格式参考了 xclip。</p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> 复制</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 复制</span>
 <span class="pl-c1">echo</span> hello <span class="pl-k">|</span> oclip
 
 <span class="pl-c"><span class="pl-c">#</span> 粘贴</span>
@@ -85,7 +85,7 @@ IV = Second128bit(hash1_256)
 </code></pre>
 <p>等处理完数据加密解密，这个 Windows 客户端基本就基本完工了。</p>
 <p>更新: 本地数据加密解密函数封装如下</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">get_key_iv</span>(<span class="pl-smi">passwd</span>)
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">get_key_iv</span>(<span class="pl-smi">passwd</span>)
   hash_256 <span class="pl-k">=</span> digest.<span class="pl-c1">digest</span>(<span class="pl-s"><span class="pl-pds">'</span>sha256<span class="pl-pds">'</span></span>, passwd)
   <span class="pl-k">local</span> key <span class="pl-k">=</span> hash_256:<span class="pl-c1">sub</span>(<span class="pl-c1">1</span>, <span class="pl-c1">32</span>)
   <span class="pl-k">local</span> iv <span class="pl-k">=</span> hash_256:<span class="pl-c1">sub</span>(<span class="pl-c1">33</span>, <span class="pl-c1">64</span>)
@@ -106,14 +106,14 @@ IV = Second128bit(hash1_256)
   <span class="pl-k">return</span> cipher.<span class="pl-c1">encrypt</span>(<span class="pl-s"><span class="pl-pds">'</span>aes-128-cbc<span class="pl-pds">'</span></span>, data, key, iv)
 <span class="pl-k">end</span></pre></div>
 <p>对应 openssl 命令为:</p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-k">if</span> [ <span class="pl-smi">$oclip_type</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">"</span>copy<span class="pl-pds">"</span></span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-k">if</span> [ <span class="pl-smi">$oclip_type</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">"</span>copy<span class="pl-pds">"</span></span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
     cat -- <span class="pl-smi">$input_file</span> <span class="pl-k">|</span> openssl enc -e -aes-128-cbc -nosalt -pass pass:<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$passwd</span><span class="pl-pds">"</span></span> <span class="pl-k">|</span> curl  -H <span class="pl-s"><span class="pl-pds">"</span>Authorization: token <span class="pl-smi">$token</span><span class="pl-pds">"</span></span> -X POST --data-binary @- https://oclip.hanxi.info/clip
 <span class="pl-k">else</span>
     curl -s -H <span class="pl-s"><span class="pl-pds">"</span>Authorization: token <span class="pl-smi">$token</span><span class="pl-pds">"</span></span> https://oclip.hanxi.info/clip <span class="pl-k">|</span> openssl enc -d -aes-128-cbc -nosalt -pass pass:<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$passwd</span><span class="pl-pds">"</span></span>
 <span class="pl-k">fi</span></pre></div>
 <p>更新：<br>
 遇到 openssl 版本不一致的情况，导致生成的 key 和 iv 的结果不一致，于是改成手动采用 sha256 计算 key 和 iv。加密解密指令如下：</p>
-<div class="highlight highlight-source-shell"><pre>sha256code=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$passwd</span><span class="pl-pds">"</span></span> <span class="pl-k">|</span> openssl sha256 -hex -r <span class="pl-k">|</span> cut -b -64<span class="pl-pds">)</span></span>
+<div class="highlight highlight-source-shell"><pre class="notranslate">sha256code=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$passwd</span><span class="pl-pds">"</span></span> <span class="pl-k">|</span> openssl sha256 -hex -r <span class="pl-k">|</span> cut -b -64<span class="pl-pds">)</span></span>
 key=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$sha256code</span><span class="pl-pds">"</span></span> <span class="pl-k">|</span> cut -b -32<span class="pl-pds">)</span></span>
 iv=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$sha256code</span><span class="pl-pds">"</span></span> <span class="pl-k">|</span> cut -b 33-<span class="pl-pds">)</span></span>
 <span class="pl-k">if</span> [ <span class="pl-smi">$oclip_type</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">"</span>copy<span class="pl-pds">"</span></span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
@@ -125,7 +125,7 @@ iv=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><
 <p>再补充下服务器是如何同步最新的数据到客户端的。</p>
 <p>每个账号最新记录的版本号，采用 openresty 的 shared.DICT 存在内存中。每次有数据变化后，把版本加一。<br>
 用心跳去检查各个客户端的数据版本号是否已过期，过期则更新版本号再推送数据。</p>
-<div class="highlight highlight-source-lua"><pre> <span class="pl-c"><span class="pl-c">--</span> update data version id</span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"> <span class="pl-c"><span class="pl-c">--</span> update data version id</span>
 <span class="pl-k">local</span> clip_change <span class="pl-k">=</span> ngx.<span class="pl-smi">shared</span>.<span class="pl-smi">clip_change</span>
 <span class="pl-k">local</span> vid <span class="pl-k">=</span> clip_change:<span class="pl-c1">incr</span>(<span class="pl-c1">self</span>.<span class="pl-smi">uid</span>, <span class="pl-c1">1</span>, <span class="pl-c1">0</span>)
 <span class="pl-c1">self</span>.<span class="pl-smi">vid</span> <span class="pl-k">=</span> vi</pre></div>
@@ -137,7 +137,7 @@ iv=<span class="pl-s"><span class="pl-pds">$(</span>echo -n <span class="pl-s"><
 passwd=passwd
 </code></pre>
 <p>读取每行配置，用 gmatch 提取 key 和 value</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> line <span class="pl-k">=</span> f:<span class="pl-c1">read</span>(<span class="pl-s"><span class="pl-pds">"</span>l<span class="pl-pds">"</span></span>) 
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> line <span class="pl-k">=</span> f:<span class="pl-c1">read</span>(<span class="pl-s"><span class="pl-pds">"</span>l<span class="pl-pds">"</span></span>) 
 <span class="pl-k">while</span> line <span class="pl-k">do</span>
   <span class="pl-k">local</span> k,v <span class="pl-k">=</span> line:<span class="pl-c1">gmatch</span>(<span class="pl-s"><span class="pl-pds">"</span>(%w+)[^=]*=%s*(.*)<span class="pl-pds">"</span></span>)()
   <span class="pl-k">if</span> k <span class="pl-k">and</span> v <span class="pl-k">then</span>
@@ -154,7 +154,7 @@ passwd=passwd
 <li>使用 cl.exe 生成的 dll 或者 lib 无法链接到生成的 exe 文件，可能是某些参数问题。最后试了一个复杂的方法，把所有相关的 obj 文件放在一起 link，最后生成了可以运行的单个 exe 文件。</li>
 </ul>
 <p>最后又遇到了一个小问题 cacert.pem文件没有打包到 exe 文件，这个比较简单，写个 lua 函数把这个文件从字符串输出到临时文件就行。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> cacert_content <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">'</span>oclip.cacert<span class="pl-pds">'</span></span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> cacert_content <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">'</span>oclip.cacert<span class="pl-pds">'</span></span>
 <span class="pl-k">local</span> fname <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>cacert.pem<span class="pl-pds">'</span></span>
 
 <span class="pl-c"><span class="pl-c">--</span> 判断文件是否存在</span>
@@ -188,7 +188,7 @@ passwd=passwd
     <span class="pl-k">end</span>
 <span class="pl-k">end</span></pre></div>
 <p>生成 src/cacert.lua 的脚本如下：</p>
-<div class="highlight highlight-source-batchfile"><pre><span class="pl-c"><span class="pl-c">: </span>gen src/cacert.lua</span>
+<div class="highlight highlight-source-batchfile"><pre class="notranslate"><span class="pl-c"><span class="pl-c">: </span>gen src/cacert.lua</span>
 <span class="pl-k">cd</span> /d <span class="pl-smi">%cur_dir%</span>\..\..\src
 <span class="pl-k">echo</span> return [[ <span class="pl-k">&gt;</span> cacert.lua
 <span class="pl-k">type</span> cacert.pem <span class="pl-k">&gt;&gt;</span> cacert.lua
@@ -197,7 +197,7 @@ passwd=passwd
 <p>更新：</p>
 <p>文本的编码问题，统一转成 utf8</p>
 <p>编码问题进展: 采用下面两个函数对剪切板的内容转换，可以正常处理中文了，但是 emoji 处理不了。还得继续找找原因。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">char</span> *<span class="pl-en">asciitoutf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *lpstr)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">char</span> *<span class="pl-en">asciitoutf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *lpstr)
 {
     <span class="pl-k">int</span> ulen = <span class="pl-c1">MultiByteToWideChar</span>(CP_ACP, <span class="pl-c1">0</span>, lpstr, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
     <span class="pl-k">int</span> bytes = (ulen + <span class="pl-c1">1</span>) * <span class="pl-k">sizeof</span>(<span class="pl-c1">wchar_t</span>);
@@ -228,7 +228,7 @@ passwd=passwd
 <p>编码问题终于解决了,我傻逼了,主要原因是剪切板内容读取和设置的格式采用了 ASCII 格式 <code class="notranslate">CF_TEXT</code>. 所以还是相当于没有使用 <code class="notranslate">define UNICODE</code>. 今天试过 iconv 来转都是一样的效果,最后找到这个才发现需要改为 <code class="notranslate">CF_UNICODETEXT</code>.</p>
 <p><a href="https://github.com/ocornut/imgui/blob/f5243712ce9fb070370cdc847ccc1b8e655fb1ce/imgui.cpp#L9616-L9658">https://github.com/ocornut/imgui/blob/f5243712ce9fb070370cdc847ccc1b8e655fb1ce/imgui.cpp#L9616-L9658</a></p>
 <p>所以 utf8 和 utf16 互转的代码其实只要这样就行了</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">char</span> * <span class="pl-en">malloc_utf16_to_utf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *utf16text)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">char</span> * <span class="pl-en">malloc_utf16_to_utf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *utf16text)
 {
     <span class="pl-k">int</span> sz = <span class="pl-c1">WideCharToMultiByte</span>(CP_UTF8, <span class="pl-c1">0</span>, utf16text, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
     <span class="pl-k">char</span> *utf8text = <span class="pl-c1">malloc</span>(sz);
@@ -255,7 +255,7 @@ iconv windows 版本找的这个: <a href="https://github.com/kiyolee/libiconv-w
 <p>更正：</p>
 <p>getlantern/systray 使用的方法也是先把 icon 写入文件，然后再加载的。 <a href="https://github.com/getlantern/systray/blob/master/systray_windows.go#L658-L674">https://github.com/getlantern/systray/blob/master/systray_windows.go#L658-L674</a>  并且写入的文件名是根据 bytes 计算 MD5 拼接的。</p>
 <p>然后我就把 ltray 的文件名也改成不是固定的文件名了，用临时的文件名。程序结束时删除就行。</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">_set_default_icon</span>(<span class="pl-c1">wchar_t</span> *icon_path)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">_set_default_icon</span>(<span class="pl-c1">wchar_t</span> *icon_path)
 {
     <span class="pl-c1">memset</span>(icon_path, <span class="pl-c1">0</span>, MAX_PATH);
     <span class="pl-c1">_wtmpnam</span>(icon_path);
@@ -292,7 +292,7 @@ iconv windows 版本找的这个: <a href="https://github.com/kiyolee/libiconv-w
 <pre class="notranslate"><code class="notranslate">mklink "%userprofile%\Start Menu\Programs\Startup\%~nx0" "%~f0"
 </code></pre>
 <p>创建快捷方式遇到个权限问题，win10 需要管理员权限才能 mklink. 于是网上找了个 VBS 脚本调用 UAC 执行。代码有点绕，但是可以实现功能就行。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">_M.set_auto_startup</span>()
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">_M.set_auto_startup</span>()
   <span class="pl-k">local</span> create_dir_cmd <span class="pl-k">=</span> <span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">'</span>setlocal EnableExtensions &amp; mkdir %q<span class="pl-pds">'</span></span>, startup_dir)
   <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>create_dir_cmd:<span class="pl-pds">'</span></span>, create_dir_cmd)
   <span class="pl-c1">os.execute</span>(create_dir_cmd)
@@ -324,7 +324,7 @@ iconv windows 版本找的这个: <a href="https://github.com/kiyolee/libiconv-w
 <span class="pl-k">end</span></pre></div>
 <p>再更新：<br>
 既然已经用了 vbs 来创建快捷方式了，那干脆就不用 mklink 命令，所以也就不需要管理员权限了，直接改成下面的就可以了：</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> userprofile <span class="pl-k">=</span> <span class="pl-c1">os.getenv</span>(<span class="pl-s"><span class="pl-pds">'</span>USERPROFILE<span class="pl-pds">'</span></span>)
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> userprofile <span class="pl-k">=</span> <span class="pl-c1">os.getenv</span>(<span class="pl-s"><span class="pl-pds">'</span>USERPROFILE<span class="pl-pds">'</span></span>)
 <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>userprofile:<span class="pl-pds">'</span></span>, userprofile)
 <span class="pl-k">local</span> startup_dir <span class="pl-k">=</span>
   <span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">'</span>%s<span class="pl-cce">\\</span>AppData<span class="pl-cce">\\</span>Roaming<span class="pl-cce">\\</span>Microsoft<span class="pl-cce">\\</span>Windows<span class="pl-cce">\\</span>Start Menu<span class="pl-cce">\\</span>Programs<span class="pl-cce">\\</span>Startup<span class="pl-pds">'</span></span>, userprofile)
@@ -365,7 +365,7 @@ tmp\icon.res: tmp\icon.rc tmp\icon.ico
     rc.exe /l 0x404 /Fo"tmp\icon.res" tmp\icon.rc
 </code></pre>
 <p>处理了下打开配置文件的菜单，直接调用 notepad.exe 来编辑。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">_M.open_config</span>()
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">_M.open_config</span>()
   <span class="pl-k">local</span> fpath <span class="pl-k">=</span> cfg.<span class="pl-c1">get_config_file_path</span>()
   <span class="pl-k">local</span> cmd <span class="pl-k">=</span> <span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>call notepad.exe %s<span class="pl-pds">"</span></span>, fpath)
   <span class="pl-c1">os.execute</span>(cmd)
@@ -374,7 +374,7 @@ tmp\icon.res: tmp\icon.rc tmp\icon.ico
 <br>
 <p>更新08/23：<br>
 今天把经常断线的问题找到了， 粘贴板有新数据的回调函数不能直接把数据发出去，需要缓存起来，让主线程发送。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">on_cliboard_change</span>(<span class="pl-smi">text</span>, <span class="pl-smi">from</span>)
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">on_cliboard_change</span>(<span class="pl-smi">text</span>, <span class="pl-smi">from</span>)
   <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>on_cliboard_change<span class="pl-pds">'</span></span>, from, <span class="pl-k">#</span>text)
 
   <span class="pl-c"><span class="pl-c">--</span> do not send text in here. need in main thread</span>
@@ -396,7 +396,7 @@ Unix end of line sequence:     \n
 Mac end of line sequence:      \r
 </code></pre>
 <p>现在只支持从 '\r\n' 转 '\n' 和从 '\n' 转 '\r\n' . 单纯的 '\r' 不好转。</p>
-<div class="highlight highlight-source-lua"><pre>  <span class="pl-k">if</span> crlf <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>lf<span class="pl-pds">'</span></span> <span class="pl-k">then</span>
+<div class="highlight highlight-source-lua"><pre class="notranslate">  <span class="pl-k">if</span> crlf <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>lf<span class="pl-pds">'</span></span> <span class="pl-k">then</span>
     text <span class="pl-k">=</span> text:<span class="pl-c1">gsub</span>(<span class="pl-s"><span class="pl-pds">'</span><span class="pl-cce">\r</span><span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>)
   <span class="pl-k">elseif</span> crlf <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>crlf<span class="pl-pds">'</span></span> <span class="pl-k">then</span>
     text <span class="pl-k">=</span> text:<span class="pl-c1">gsub</span>(<span class="pl-s"><span class="pl-pds">'</span><span class="pl-cce">\r</span><span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>)
@@ -419,7 +419,7 @@ Mac end of line sequence:      \r
 <p>今天解决了 Windows 设置快捷方式的时候出现黑窗口的问题。</p>
 <p><a href="https://stackoverflow.com/questions/12554237/hiding-command-prompt-called-by-system/57798301#57798301" rel="nofollow">https://stackoverflow.com/questions/12554237/hiding-command-prompt-called-by-system/57798301#57798301</a></p>
 <p>用下面的函数替换 system 函数:</p>
-<div class="highlight highlight-source-c"><pre>#<span class="pl-k">define</span> <span class="pl-en">MAX_SYSTEM_PROGRAM</span> (<span class="pl-c1">4096</span>)
+<div class="highlight highlight-source-c"><pre class="notranslate">#<span class="pl-k">define</span> <span class="pl-en">MAX_SYSTEM_PROGRAM</span> (<span class="pl-c1">4096</span>)
 <span class="pl-k">static</span> <span class="pl-k">int</span> <span class="pl-en">windows_system</span>(<span class="pl-k">const</span> <span class="pl-c1">wchar_t</span> *cmd)
 {
     PROCESS_INFORMATION p_info;

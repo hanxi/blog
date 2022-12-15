@@ -41,11 +41,11 @@
 <ul>
 <li>把 dialog 设置为置顶</li>
 </ul>
-<div class="highlight highlight-source-c++"><pre><span class="pl-en">gtk_window_set_keep_above</span>(GTK_WINDOW(dialog), true);</pre></div>
+<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-en">gtk_window_set_keep_above</span>(GTK_WINDOW(dialog), true);</pre></div>
 <ul>
 <li>设置 dialog 失去焦点时就销毁</li>
 </ul>
-<div class="highlight highlight-source-c++"><pre><span class="pl-c"><span class="pl-c">//</span> desoty dialog when lost focus</span>
+<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-c"><span class="pl-c">//</span> desoty dialog when lost focus</span>
 <span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">dialogFocusOutCallback</span>(GtkWidget* widget, gpointer user_data)
 {
     <span class="pl-c1">gtk_widget_destroy</span>(widget);

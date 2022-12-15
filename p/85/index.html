@@ -36,12 +36,12 @@
 <p>首先需要选用 SSH 终端工具支持 OSC 52 这个功能，我选用的 <a href="https://github.com/wez/wezterm">wezterm</a> 是支持的。然后就是对远程的 neovim 和 tmux 进行配置了。</p>
 <h2>配置 neovim</h2>
 <p>我的 neovim 配置： <a href="https://github.com/hanxi/nvim-config">hanxi/nvim-config</a> ， 安装插件 <a href="https://github.com/ojroques/vim-oscyank">ojroques/vim-oscyank</a> ，如果是使用 [packer] 来管理插件的话，使用下面的命令加入插件。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-c1">use</span>({
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c1">use</span>({
       <span class="pl-s"><span class="pl-pds">"</span>ojroques/vim-oscyank<span class="pl-pds">"</span></span>,
       config <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">[[</span>require("plugins.oscyank")<span class="pl-pds">]]</span></span>,
     })</pre></div>
 <p>插件的配置我放到 <code class="notranslate">plugins/oscyank.lua</code> 文件了，内容如下：</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">copy</span>(<span class="pl-smi">lines</span>, <span class="pl-smi">_</span>)
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">copy</span>(<span class="pl-smi">lines</span>, <span class="pl-smi">_</span>)
   vim.<span class="pl-smi">fn</span>.<span class="pl-c1">OSCYankString</span>(<span class="pl-c1">table.concat</span>(lines, <span class="pl-s"><span class="pl-pds">"</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>))
 <span class="pl-k">end</span>
 

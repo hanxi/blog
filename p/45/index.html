@@ -48,7 +48,7 @@
 <p>对随机2名敌方单位造成90%伤害，并给自身增加15%的伤害</p>
 </blockquote>
 <p>这里我们根据行动目标的不同，把这个技能拆分两个操作。第一个操作是随机找到敌方2个英雄，第二个是对自己操作。伪代码如下：</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-c"><span class="pl-c">--</span> 随机 2 名敌方单位造成 90% 伤害</span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 随机 2 名敌方单位造成 90% 伤害</span>
 <span class="pl-k">local</span> targets <span class="pl-k">=</span> <span class="pl-c1">random_target</span>(heros, OTHER_SIDE, <span class="pl-c1">2</span>)
 <span class="pl-k">for</span> target <span class="pl-k">in</span> <span class="pl-c1">pairs</span>(targets) <span class="pl-k">do</span>
     <span class="pl-k">local</span> hurt <span class="pl-k">=</span> <span class="pl-c1">0.9</span> <span class="pl-k">*</span> my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span>
@@ -58,7 +58,7 @@
 <span class="pl-c"><span class="pl-c">--</span> 自身伤害属性增加 15%</span>
 my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class="pl-k">=</span> my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class="pl-k">*</span> <span class="pl-c1">1.15</span></pre></div>
 <p>直接这样把代码写死的话，需求变化，代码就需要频繁的变。所有我们要抽出不变的东西写成代码，把变化的东西做成配置 Excel 表格。不变的是什么呢？行动流程是不变的，可以这样写行动流程：</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-c"><span class="pl-c">--</span> 每回合的逻辑</span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 每回合的逻辑</span>
 <span class="pl-k">for</span> round<span class="pl-k">=</span><span class="pl-c1">1</span>,cfg.<span class="pl-smi">MAX_ROUND</span> <span class="pl-k">do</span>
     <span class="pl-c"><span class="pl-c">--</span> 每个英雄轮流出手</span>
     <span class="pl-k">for</span> heros <span class="pl-k">in</span> <span class="pl-c1">ipairs</span>(heros) <span class="pl-k">do</span>

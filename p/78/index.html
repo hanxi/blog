@@ -64,14 +64,14 @@
 </li>
 </ul>
 <p>计算九宫格：</p>
-<div class="highlight highlight-text-adblock"><pre>{-1,-1}, {0,-1}, {1,-1}
+<div class="highlight highlight-text-adblock"><pre class="notranslate">{-1,-1}, {0,-1}, {1,-1}
 {-1,0},  {0,0},  {1,0},
 {-1,1},  {0,1},  {1,1},</pre></div>
 <p>用当前格子坐标加上上面的二维数组就能找出周围的九个格子（包括自己），当然处于边界的时候需要判断坐标的范围。</p>
 <p>首先确定数据结构如下图：</p>
 <p><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png" alt="grid_struct" style="max-width: 100%;"></a></p>
 <p>数据结构的定义大概是下面这样的：</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> aoi_space {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> aoi_space {
     <span class="pl-k">int</span> w;
     <span class="pl-k">int</span> h;
     <span class="pl-k">int</span> nx;
@@ -91,7 +91,7 @@
 <li><code class="notranslate">object_map</code> 是一个 hash 表，因为 object id 是不连续的。</li>
 </ul>
 <p>再定义操作接口：</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-c"><span class="pl-c">//</span> op: 'e' enter</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-c"><span class="pl-c">//</span> op: 'e' enter</span>
 <span class="pl-c"><span class="pl-c">//</span> op: 'l' leave</span>
 <span class="pl-c"><span class="pl-c">//</span> op: 'm' move</span>
 <span class="pl-k">typedef</span> <span class="pl-en">void</span> (AoiCallback)(<span class="pl-k">int</span> watcher, <span class="pl-k">int</span> marker, <span class="pl-k">char</span> op);

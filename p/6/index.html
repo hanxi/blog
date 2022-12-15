@@ -44,7 +44,7 @@
 <li>这个方法是在 <a href="http://blog.hotoo.me/post/github-404-is-a-good-route" rel="nofollow">Github 的 404 页面是个好路由</a>学到的。</li>
 <li>从 url 中取出文章的 id</li>
 </ul>
-<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> <span class="pl-s1">id</span> <span class="pl-c1">=</span> <span class="pl-en">parseInt</span><span class="pl-kos">(</span><span class="pl-s1">location</span><span class="pl-kos">.</span><span class="pl-c1">pathname</span><span class="pl-kos">.</span><span class="pl-en">substring</span><span class="pl-kos">(</span><span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-k">var</span> <span class="pl-s1">id</span> <span class="pl-c1">=</span> <span class="pl-en">parseInt</span><span class="pl-kos">(</span><span class="pl-s1">location</span><span class="pl-kos">.</span><span class="pl-c1">pathname</span><span class="pl-kos">.</span><span class="pl-en">substring</span><span class="pl-kos">(</span><span class="pl-c1">1</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
 <ul>
 <li>调用接口 <code class="notranslate">GET /repos/:owner/:repo/issues/:number</code></li>
 <li>api 参考 <a href="https://developer.github.com/v3/issues/#get-a-single-issue">https://developer.github.com/v3/issues/#get-a-single-issue</a></li>
@@ -60,7 +60,7 @@
 <li>jQuery 封装了 ajax 和 好用的 getJSON，但是感觉这个小东西使用 jQuery 有点杀鸡用牛刀的感觉。</li>
 <li>然后自己封装了这两个接口</li>
 </ul>
-<div class="highlight highlight-source-js"><pre><span class="pl-en">getJSON</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-s1">callback</span><span class="pl-kos">)</span>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-en">getJSON</span> <span class="pl-c1">=</span> <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-s1">callback</span><span class="pl-kos">)</span>
 <span class="pl-kos">{</span>
     <span class="pl-k">var</span> <span class="pl-s1">xhr</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-smi">window</span><span class="pl-kos">.</span><span class="pl-c1">XMLHttpRequest</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
     <span class="pl-s1">xhr</span><span class="pl-kos">.</span><span class="pl-en">open</span><span class="pl-kos">(</span><span class="pl-s">"get"</span><span class="pl-kos">,</span> <span class="pl-s1">url</span><span class="pl-kos">,</span> <span class="pl-c1">true</span><span class="pl-kos">)</span><span class="pl-kos">;</span>

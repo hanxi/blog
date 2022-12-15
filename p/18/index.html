@@ -36,7 +36,7 @@
 <ul>
 <li>下载SDK：</li>
 </ul>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> Get the emsdk repo</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Get the emsdk repo</span>
 git clone https://github.com/juj/emsdk.git
 
 <span class="pl-c"><span class="pl-c">#</span> Enter that directory</span>
@@ -44,7 +44,7 @@ git clone https://github.com/juj/emsdk.git
 <ul>
 <li>下载依赖环境：</li>
 </ul>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> Fetch the latest version of the emsdk (not needed the first time you clone)</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Fetch the latest version of the emsdk (not needed the first time you clone)</span>
 git pull
 
 <span class="pl-c"><span class="pl-c">#</span> Download and install the latest SDK tools.</span>
@@ -61,11 +61,11 @@ git pull
 <p>参考了 <a href="http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html" rel="nofollow">http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html</a></p>
 <p>但是版本可能有点旧了，谷歌搜下报错也都能解决。</p>
 <p>新建 <code class="notranslate">t1.c</code> 文件，内容为：</p>
-<div class="highlight highlight-source-c"><pre><span class="pl-k">double</span> <span class="pl-en">SquareVal</span>(<span class="pl-k">double</span> val) {
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">double</span> <span class="pl-en">SquareVal</span>(<span class="pl-k">double</span> val) {
     <span class="pl-k">return</span> val * val;
 }</pre></div>
 <p>然后新建文件 <code class="notranslate">t1.html</code>，内容为：</p>
-<div class="highlight highlight-text-html-basic"><pre><span class="pl-c1">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"<span class="pl-kos">&gt;</span></span>
+<div class="highlight highlight-text-html-basic"><pre class="notranslate"><span class="pl-c1">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"<span class="pl-kos">&gt;</span></span>
 
 <span class="pl-kos">&lt;</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span>
     <span class="pl-kos">&lt;</span><span class="pl-ent">h1</span><span class="pl-kos">&gt;</span>Test File<span class="pl-kos">&lt;/</span><span class="pl-ent">h1</span><span class="pl-kos">&gt;</span>
@@ -82,7 +82,7 @@ git pull
 
 <span class="pl-kos">&lt;/</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span></pre></div>
 <p>执行命令：</p>
-<div class="highlight highlight-source-shell"><pre>emcc -s EXTRA_EXPORTED_RUNTIME_METHODS=<span class="pl-s"><span class="pl-pds">'</span>["cwrap"]<span class="pl-pds">'</span></span>  -s EXPORTED_FUNCTIONS=<span class="pl-s"><span class="pl-pds">"</span>['_SquareVal']<span class="pl-pds">"</span></span> t1.c -o t1.js
+<div class="highlight highlight-source-shell"><pre class="notranslate">emcc -s EXTRA_EXPORTED_RUNTIME_METHODS=<span class="pl-s"><span class="pl-pds">'</span>["cwrap"]<span class="pl-pds">'</span></span>  -s EXPORTED_FUNCTIONS=<span class="pl-s"><span class="pl-pds">"</span>['_SquareVal']<span class="pl-pds">"</span></span> t1.c -o t1.js
 python -m SimpleHTTPServer 8080</pre></div>
 <p>然后在浏览器中打开 <a href="http://localhost:8080/t1.html" rel="nofollow">http://localhost:8080/t1.html</a></p>
             </div>

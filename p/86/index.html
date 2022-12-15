@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">Docker入门</div>
+            <div id="content" class="markdown-body">
+                <h2>主要内容</h2>
+<ul>
+<li>Docker 原理</li>
+<li>Docker 使用</li>
+<li>Dockerfile 语法</li>
+<li>Docker compose</li>
+<li>K8s</li>
+</ul>
+<h2>Docker 原理</h2>
+<ul>
+<li><strong><a href="https://coolshell.cn/articles/17010.html" rel="nofollow">DOCKER基础技术：LINUX NAMESPACE（上）</a></strong></li>
+<li><strong><a href="https://coolshell.cn/articles/17029.html" rel="nofollow">DOCKER基础技术：LINUX NAMESPACE（下）</a></strong></li>
+<li><strong><a href="https://coolshell.cn/articles/17049.html" rel="nofollow">DOCKER基础技术：LINUX CGROUP</a></strong></li>
+<li><strong><a href="https://coolshell.cn/articles/17061.html" rel="nofollow">DOCKER基础技术：AUFS</a></strong></li>
+<li><strong><a href="https://coolshell.cn/articles/17200.html" rel="nofollow">DOCKER基础技术：DEVICEMAPPER</a></strong></li>
+<li><a href="https://github.com/hanxi/learn-docker-base">跟着陈皓学习 Docker 基础原理</a></li>
+<li>延申知识点
+<ul>
+<li>私有 docker-registry 的搭建</li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924367-de043e44-a708-4c58-9eaa-d1cccbc0824f.png"><img src="https://user-images.githubusercontent.com/1185757/207924367-de043e44-a708-4c58-9eaa-d1cccbc0824f.png" alt="image (7)" style="max-width: 100%;"></a><br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924371-9710d656-b773-4e34-bde7-5fb78402cf33.png"><img src="https://user-images.githubusercontent.com/1185757/207924371-9710d656-b773-4e34-bde7-5fb78402cf33.png" alt="image (6)" style="max-width: 100%;"></a><br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924375-7e2dc86a-3cee-49e4-ab45-2a38046193a8.png"><img src="https://user-images.githubusercontent.com/1185757/207924375-7e2dc86a-3cee-49e4-ab45-2a38046193a8.png" alt="image (5)" style="max-width: 100%;"></a><br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924386-95369f83-478a-49c2-9f40-e932bfb551f1.png"><img src="https://user-images.githubusercontent.com/1185757/207924386-95369f83-478a-49c2-9f40-e932bfb551f1.png" alt="image (4)" style="max-width: 100%;"></a><br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924392-cb401404-a376-409f-8466-0d5ea7c5bb4b.png"><img src="https://user-images.githubusercontent.com/1185757/207924392-cb401404-a376-409f-8466-0d5ea7c5bb4b.png" alt="image (3)" style="max-width: 100%;"></a><br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924398-55cfc624-bc9e-4937-8698-6529cd964d66.jpeg"><img src="https://user-images.githubusercontent.com/1185757/207924398-55cfc624-bc9e-4937-8698-6529cd964d66.jpeg" alt="image" style="max-width: 100%;"></a><br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/207924404-5fff49bc-ac8c-478e-a178-7eee6241454e.png"><img src="https://user-images.githubusercontent.com/1185757/207924404-5fff49bc-ac8c-478e-a178-7eee6241454e.png" alt="image (2)" style="max-width: 100%;"></a></p>
+<h2>Dockerfile</h2>
+<ul>
+<li><a href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/" rel="nofollow">Dockerfile最佳实践</a></li>
+<li>如何制作精简的 docker image (瘦容器)
+<ul>
+<li>image 大小对比
+<ul>
+<li><a href="https://github.com/GoogleContainerTools/distroless">Distroless</a> (2 MiB)  &lt;  <a href="https://hub.docker.com/_/alpine" rel="nofollow">Alpine</a> (5 MiB) &lt; <a href="https://hub.docker.com/_/debian" rel="nofollow">debian</a> (124 MiB)</li>
+</ul>
+</li>
+<li>个人建议
+<ul>
+<li>开发用胖容器（All in One)，线上用瘦容器</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如何让 Dockerfile 缓存经常有效</li>
+<li><a href="https://github.com/hexops/dockerfile">编写具有生产价值的 Docker 镜像的 Dockerfile 最佳实践</a>
+<ul>
+<li>Run as a non-root user
+<ul>
+<li>使用最小需要的权限 <a href="https://docs.docker.com/engine/security/#linux-kernel-capabilities" rel="nofollow">https://docs.docker.com/engine/security/#linux-kernel-capabilities</a></li>
+</ul>
+</li>
+<li>Do not use latest, pin your image tags
+<ul>
+<li>固定版本</li>
+</ul>
+</li>
+<li>Use tini as your ENTRYPOINT
+<ul>
+<li>docker 最新版已支持 <code class="notranslate">--init</code> 参数</li>
+<li>如果 K8s 不是使用 docker 容器，则建议继续使用 tini</li>
+</ul>
+</li>
+<li>Only store arguments in CMD</li>
+</ul>
+</li>
+</ul>
+<h2>Docker compose</h2>
+<ul>
+<li>最新版 docker 已经集成 <code class="notranslate">docker compose</code> 子命令</li>
+<li><a href="https://docs.docker.com/compose/gettingstarted/" rel="nofollow">https://docs.docker.com/compose/gettingstarted/</a></li>
+<li>个人环境建议采用挂载本地目录的方式，毕竟 volume 的内容不方便本地查看</li>
+</ul>
+<h2>有趣的 Docker 项目</h2>
+<ul>
+<li><a href="https://github.com/remote-android/redroid-doc">ReDroid (Remote-Android)</a> 是一个多架构、支持 GPU 的 Android 云端解决方案，适用于云游戏、虚拟电话、自动化测试等。</li>
+<li><a href="https://github.com/ygcaicn/docker-deepin">docker-deepin</a> 把 QQ 和微信放在 Docker 里运行，原理还是基于 Wine 的，使用 Docker 封装能比较好的解决依赖的问题。</li>
+<li><a href="https://github.com/sickcodes/Docker-OSX">Docker-OSX</a> 在 Docker 中运行 macOS 虚拟机。</li>
+<li>其他好玩服务
+<ul>
+<li>网盘
+<ul>
+<li><a href="https://manual.seafile.com/docker/deploy_seafile_with_docker/" rel="nofollow">seafile</a></li>
+<li><a href="https://filebrowser.org/installation" rel="nofollow">filebrowser</a></li>
+<li><a href="https://hub.docker.com/r/dperson/samba" rel="nofollow">samba</a></li>
+</ul>
+</li>
+<li>代理工具
+<ul>
+<li><a href="https://hub.docker.com/r/v2fly/v2fly-core" rel="nofollow">v2ray</a></li>
+</ul>
+</li>
+<li>Git
+<ul>
+<li><a href="https://hub.docker.com/r/gitea/gitea" rel="nofollow">gitea</a></li>
+<li><a href="https://docs.gitlab.com/ee/install/docker.html" rel="nofollow">gitlab</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2>Docker 其他资料</h2>
+<ul>
+<li><a href="https://github.com/veggiemonk/awesome-docker">https://github.com/veggiemonk/awesome-docker</a></li>
+<li><a href="https://github.com/ramitsurana/awesome-kubernetes">https://github.com/ramitsurana/awesome-kubernetes</a></li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/86#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

@@ -31,7 +31,7 @@
             <div id="title">Deepin 安装和使用 anbox</div>
             <div id="content" class="markdown-body">
                 <h2>1. 安装 anbox</h2>
-<div class="highlight highlight-source-shell"><pre>sudo add-apt-repository ppa:morphis/anbox-support
+<div class="highlight highlight-source-shell"><pre class="notranslate">sudo add-apt-repository ppa:morphis/anbox-support
 sudo apt update
 sudo apt install anbox-modules-dkms
 sudo modprobe ashmem_linux
@@ -43,7 +43,7 @@ sudo snap install --edge --devmode anbox</pre></div>
 <blockquote>
 <p>参考这里的解决方法 <a href="https://unix.stackexchange.com/questions/520715/deepin-15-10-error-could-not-find-a-distribution-template-for-deepin-stable" rel="nofollow">https://unix.stackexchange.com/questions/520715/deepin-15-10-error-could-not-find-a-distribution-template-for-deepin-stable</a></p>
 </blockquote>
-<div class="highlight highlight-source-shell"><pre>sudo vim /usr/share/python-apt/templates/Deepin.info</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">sudo vim /usr/share/python-apt/templates/Deepin.info</pre></div>
 <p>修改这个</p>
 <pre class="notranslate"><code class="notranslate">Suite: unstable
 </code></pre>
@@ -60,7 +60,7 @@ sudo snap install --edge --devmode anbox</pre></div>
 <pre class="notranslate"><code class="notranslate">deb http://ppa.launchpad.net/morphis/anbox-support/ubuntu disco main
 </code></pre>
 <h3>问题3: sudo snap install --edge --devmode anbox 下载超级慢</h3>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> 开始设置代理</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 开始设置代理</span>
 $ sudo systemctl edit snapd
 加上：
 [Service]
@@ -74,13 +74,13 @@ $ sudo systemctl restart snapd</pre></div>
 <blockquote>
 <p>下载这里的脚本 <a href="https://github.com/geeks-r-us/anbox-playstore-installer">https://github.com/geeks-r-us/anbox-playstore-installer</a></p>
 </blockquote>
-<div class="highlight highlight-source-shell"><pre>sudo bash install-houdini-only.sh 
+<div class="highlight highlight-source-shell"><pre class="notranslate">sudo bash install-houdini-only.sh 
 sudo bash install-playstore.sh</pre></div>
 <h3>问题4: 上不了 google? 如何配置代理呢？</h3>
 <blockquote>
 <p>解决方法来自这里 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="247914225" data-permission-text="Title is private" data-url="https://github.com/anbox/anbox/issues/398" data-hovercard-type="issue" data-hovercard-url="/anbox/anbox/issues/398/hovercard" href="https://github.com/anbox/anbox/issues/398">anbox/anbox#398</a></p>
 </blockquote>
-<div class="highlight highlight-source-shell"><pre>adb shell settings put global http_proxy 192.168.2.2:8080</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">adb shell settings put global http_proxy 192.168.2.2:8080</pre></div>
 <p>自测目前可以正常使用 GooglePlay Store 里的微信。</p>
             </div>
             <div id="comment">

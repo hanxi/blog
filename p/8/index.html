@@ -31,7 +31,7 @@
             <div id="title">使用 ssh 借助外网机器实现内网穿透实现远程登录</div>
             <div id="content" class="markdown-body">
                 <h3>在内网机器上执行下面的命令</h3>
-<div class="highlight highlight-source-shell"><pre>ssh -p22 -f -N -R 0.0.0.0:2222:localhost:22 root@127.0.0.1</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ssh -p22 -f -N -R 0.0.0.0:2222:localhost:22 root@127.0.0.1</pre></div>
 <ul>
 <li><code class="notranslate">-p22</code> 用于指定外网机器的 sshd 端口</li>
 <li><code class="notranslate">2222</code> 是指定开放内网机器的端口（可随机定义）</li>
@@ -40,13 +40,13 @@
 <li><code class="notranslate">127.0.0.1</code> 是外网机器的 ip</li>
 </ul>
 <h3>现在就可以在外网机器上执行下面的命令即可登录到内网机器</h3>
-<div class="highlight highlight-source-shell"><pre>ssh -p2222 root@localhost</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ssh -p2222 root@localhost</pre></div>
 <ul>
 <li><code class="notranslate">root</code> 是内网机器的用户</li>
 </ul>
 <h3>为了防止连接断开，编写一个脚本在 crontab 中执行</h3>
 <p>crontab 每分钟执行一次 auto_remote.sh</p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-k">*</span>/1 <span class="pl-k">*</span> <span class="pl-k">*</span> <span class="pl-k">*</span> <span class="pl-k">*</span> bash /root/auto_remote.sh <span class="pl-k">&gt;&gt;</span>/dev/null <span class="pl-k">2&gt;&amp;1</span></pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-k">*</span>/1 <span class="pl-k">*</span> <span class="pl-k">*</span> <span class="pl-k">*</span> <span class="pl-k">*</span> bash /root/auto_remote.sh <span class="pl-k">&gt;&gt;</span>/dev/null <span class="pl-k">2&gt;&amp;1</span></pre></div>
 <p>auto_remote.sh</p>
 <pre class="notranslate"><code class="notranslate">#/bin/bash
 

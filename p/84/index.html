@@ -41,7 +41,7 @@
 </ul>
 <h2>创造一个 coredump 条件</h2>
 <p>从原有的 C 库下手比较好搞，直接改了 md5 库的代码，搞个 NULL 指针， diff 如下：</p>
-<div class="highlight highlight-source-diff"><pre><span class="pl-c1">diff --git a/3rd/lua-md5/md5lib.c b/3rd/lua-md5/md5lib.c</span>
+<div class="highlight highlight-source-diff"><pre class="notranslate"><span class="pl-c1">diff --git a/3rd/lua-md5/md5lib.c b/3rd/lua-md5/md5lib.c</span>
 index 2580b6a..7117eb9 100644
 <span class="pl-md">--- a/3rd/lua-md5/md5lib.c</span>
 <span class="pl-mi1">+++ b/3rd/lua-md5/md5lib.c</span>

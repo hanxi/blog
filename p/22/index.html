@@ -31,7 +31,7 @@
             <div id="title">VimL 读取命令结果到变量</div>
             <div id="content" class="markdown-body">
                 <p>在我的 vimrc 配置中有这样一个函数，作用是按两次 <code class="notranslate">Ctrl + C</code> 关闭素有插件窗口。</p>
-<div class="highlight highlight-source-viml"><pre><span class="pl-k">function</span><span class="pl-k">!</span> <span class="pl-en">ClosePluginWindow</span>()
+<div class="highlight highlight-source-viml"><pre class="notranslate"><span class="pl-k">function</span><span class="pl-k">!</span> <span class="pl-en">ClosePluginWindow</span>()
 <span class="pl-c">    <span class="pl-c">"</span> Close quickfix</span>
     <span class="pl-c1">cclose</span>
 
@@ -54,7 +54,7 @@
 <p>可以通过 <code class="notranslate">ls!</code> 命令取到所有的 <code class="notranslate">buffer</code> 列表，但是如何拿到这个结果呢？</p>
 <p>这时候就要用到 <code class="notranslate">redir</code> 命令了，详细的使用方法可以 <code class="notranslate">:help redir</code> 查看。这里只解释下上面是如何用的。</p>
 <p><code class="notranslate">:redi[r] =&gt; {var} </code> 这个语法是把输出重定向到 <code class="notranslate">var</code> 变量。</p>
-<div class="highlight highlight-source-viml"><pre>    <span class="pl-c1">redir</span> <span class="pl-k">=</span>&gt; message
+<div class="highlight highlight-source-viml"><pre class="notranslate">    <span class="pl-c1">redir</span> <span class="pl-k">=</span>&gt; message
         <span class="pl-c1">silent</span> <span class="pl-c1">execute</span> <span class="pl-s"><span class="pl-pds">"</span>ls!<span class="pl-pds">"</span></span>
     <span class="pl-c1">redir</span> END</pre></div>
 <p><code class="notranslate">ls!</code> 命令的输出内容就会赋值给变量 <code class="notranslate">message</code>。</p>

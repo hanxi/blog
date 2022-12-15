@@ -31,9 +31,9 @@
             <div id="title">7z 加密备份文件</div>
             <div id="content" class="markdown-body">
                 <p>备份 <code class="notranslate">backup</code> 目录到 <code class="notranslate">backup.tar.7z</code> , 分卷 <code class="notranslate">500M</code> ,  密码 <code class="notranslate">secret</code></p>
-<div class="highlight highlight-source-shell"><pre>sudo tar cpf - backup <span class="pl-k">|</span> 7z a -si backup.tar.7z -v500m -psecret -mhe</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate">sudo tar cpf - backup <span class="pl-k">|</span> 7z a -si backup.tar.7z -v500m -psecret -mhe</pre></div>
 <p>解压</p>
-<div class="highlight highlight-source-shell"><pre>mkdir -p tmp
+<div class="highlight highlight-source-shell"><pre class="notranslate">mkdir -p tmp
 <span class="pl-c1">cd</span> tmp
 7z x -so ../backup.tar.7z.001 -psecret <span class="pl-k">|</span> tar xf -</pre></div>
             </div>

@@ -35,11 +35,11 @@
 <p><a href="https://yd.51zhy.cn/ebook/reader/static/js/0.f4c9028886a7b391c0df.1574068669001.js" rel="nofollow">https://yd.51zhy.cn/ebook/reader/static/js/0.f4c9028886a7b391c0df.1574068669001.js</a></p>
 <p>搜索 <code class="notranslate">AES.decrypt</code> 跟踪到 pdf 解密流程是根据 <code class="notranslate">this.v.authorKey</code> 来解密的。如何计算 <code class="notranslate">this.v.authorKey</code> 呢？</p>
 <p>继续搜索 <code class="notranslate">authorKey </code>  找到</p>
-<div class="highlight highlight-source-js"><pre><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">authorKey</span> <span class="pl-c1">=</span> <span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-en">makeKey</span><span class="pl-kos">(</span><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">readData</span><span class="pl-kos">.</span><span class="pl-c1">devicekey</span><span class="pl-kos">,</span> <span class="pl-s1">e</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">)</span></pre></div>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">authorKey</span> <span class="pl-c1">=</span> <span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-en">makeKey</span><span class="pl-kos">(</span><span class="pl-s1">r</span><span class="pl-kos">.</span><span class="pl-c1">readData</span><span class="pl-kos">.</span><span class="pl-c1">devicekey</span><span class="pl-kos">,</span> <span class="pl-s1">e</span><span class="pl-kos">.</span><span class="pl-c1">Data</span><span class="pl-kos">.</span><span class="pl-c1">Key</span><span class="pl-kos">)</span></pre></div>
 <p>断点调试得到 <code class="notranslate">devicekey</code> 为： <code class="notranslate">LQBhm1oQvo2pDGBO</code></p>
 <p><code class="notranslate">Data.Key</code> 为 <code class="notranslate">9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=</code></p>
 <p>查看 <code class="notranslate">makeKey</code> 的实现如下：</p>
-<div class="highlight highlight-source-js"><pre><span class="pl-s1">makeKey</span>: <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">,</span> <span class="pl-s1">t</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-s1">makeKey</span>: <span class="pl-k">function</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">,</span> <span class="pl-s1">t</span><span class="pl-kos">)</span> <span class="pl-kos">{</span>
     <span class="pl-s1">e</span> <span class="pl-c1">=</span> <span class="pl-s1">e</span><span class="pl-kos">;</span>
     <span class="pl-k">var</span> <span class="pl-s1">n</span> <span class="pl-c1">=</span> <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">enc</span><span class="pl-kos">.</span><span class="pl-c1">Utf8</span><span class="pl-kos">.</span><span class="pl-en">parse</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
     <span class="pl-k">return</span> <span class="pl-s1">_</span><span class="pl-kos">.</span><span class="pl-c1">a</span><span class="pl-kos">.</span><span class="pl-c1">AES</span><span class="pl-kos">.</span><span class="pl-en">decrypt</span><span class="pl-kos">(</span><span class="pl-s1">t</span><span class="pl-kos">,</span> <span class="pl-s1">n</span><span class="pl-kos">,</span> <span class="pl-kos">{</span>
@@ -48,11 +48,11 @@
     <span class="pl-kos">}</span><span class="pl-kos">)</span>
 <span class="pl-kos">}</span><span class="pl-kos">,</span></pre></div>
 <p>用 openssl 命令就是这样的：</p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">'</span>9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=<span class="pl-pds">'</span></span> <span class="pl-k">|</span> openssl enc -d -aes-128-ecb -a -K 4c5142686d316f51766f32704447424f</pre></div>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">'</span>9TWh4BIVxRJMrYnyw1wlx8Huz/eLPe6H0Y5VRHmOl90=<span class="pl-pds">'</span></span> <span class="pl-k">|</span> openssl enc -d -aes-128-ecb -a -K 4c5142686d316f51766f32704447424f</pre></div>
 <p>其中 <code class="notranslate">4c5142686d316f51766f32704447424f</code> 是 <code class="notranslate">LQBhm1oQvo2pDGBO</code> 的 hex 形式。</p>
 <p>算出结果为 <code class="notranslate">DzglNMjfYapT9XGy</code>, 再算出对应的 hex 为 <code class="notranslate">447a676c4e4d6a665961705439584779</code></p>
 <p>然后再从 chrome dev tools 的 network 里找到 pdf 的下载链接，右键拷贝出 curl 命令，然后把页码换成下面的变量 <code class="notranslate">$i</code>，批量下载。最后用 pdf 工具合并搞定，合并工具我选的 <a href="http://community.coherentpdf.com/" rel="nofollow">cpdf</a>。</p>
-<div class="highlight highlight-source-shell"><pre>for<span class="pl-s"><span class="pl-pds">((</span>i<span class="pl-k">=</span><span class="pl-c1">1</span>;i<span class="pl-k">&lt;=</span><span class="pl-c1">432</span>;i<span class="pl-k">++</span><span class="pl-pds">))</span></span><span class="pl-k">;</span><span class="pl-k">do</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate">for<span class="pl-s"><span class="pl-pds">((</span>i<span class="pl-k">=</span><span class="pl-c1">1</span>;i<span class="pl-k">&lt;=</span><span class="pl-c1">432</span>;i<span class="pl-k">++</span><span class="pl-pds">))</span></span><span class="pl-k">;</span><span class="pl-k">do</span>
     <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$i</span><span class="pl-pds">"</span></span>.pdf
 
     <span class="pl-c"><span class="pl-c">#</span> 下载 pdf</span>
@@ -68,7 +68,7 @@
 <p>上面的方法仅用于学习目的，强烈建议不要用来做爬虫。</p>
 <p>20200206更新：<br>
 上面走了点弯路，用下面的 tampermonkey 脚本方法更方便。</p>
-<div class="highlight highlight-source-js"><pre><span class="pl-c">// ==UserScript==</span>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-c">// ==UserScript==</span>
 <span class="pl-c">// <span class="pl-k">@name</span>         bridge.51zhy.cn</span>
 <span class="pl-c">// <span class="pl-k">@namespace</span>    http://tampermonkey.net/</span>
 <span class="pl-c">// <span class="pl-k">@version</span>      0.1</span>
@@ -118,7 +118,7 @@
     <span class="pl-kos">}</span><span class="pl-kos">;</span>
 <span class="pl-kos">}</span><span class="pl-kos">)</span><span class="pl-kos">(</span><span class="pl-v">XMLHttpRequest</span><span class="pl-kos">.</span><span class="pl-c1">prototype</span><span class="pl-kos">.</span><span class="pl-c1">open</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
 <p>然后粘贴到脚本下载和解密</p>
-<div class="highlight highlight-source-shell"><pre>authorKey=<span class="pl-s"><span class="pl-pds">'</span>594c4528626731776a79304867436243<span class="pl-pds">'</span></span>
+<div class="highlight highlight-source-shell"><pre class="notranslate">authorKey=<span class="pl-s"><span class="pl-pds">'</span>594c4528626731776a79304867436243<span class="pl-pds">'</span></span>
 url=<span class="pl-s"><span class="pl-pds">'</span>https://file.51zhy.cn/files/encryptfiles/59c/40181f28a7f5e76f2974cdb747fec68598844e26.pdf<span class="pl-pds">'</span></span>
 isbn=<span class="pl-s"><span class="pl-pds">'</span>978-7-121-27637-8<span class="pl-pds">'</span></span>
 title=<span class="pl-s"><span class="pl-pds">'</span>游戏中的数学<span class="pl-pds">'</span></span>
@@ -127,7 +127,7 @@ curl <span class="pl-smi">$url</span> --compressed -o <span class="pl-s"><span c
 openssl enc -d -aes-128-ecb -K <span class="pl-smi">$authorKey</span> -in <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$title</span><span class="pl-pds">"</span></span>.pdf.aes -out <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$title</span><span class="pl-pds">"</span></span>.pdf</pre></div>
 <p>202002061714 更新：<br>
 这东西见光就死了，现在 js 代码里的字符串被转正 hex 格式了，解密算法应该也修改了，断点调试还是一样的，只是搜索字符串麻烦了点，需要先转成字符串看看要搜的东西是啥，比如下面这个脚本是将 hex 转成字符串的：</p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#</span> tostr.sh</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> tostr.sh</span>
 TESTDATA=<span class="pl-s"><span class="pl-pds">$(</span>echo <span class="pl-smi">$1</span> <span class="pl-k">|</span> tr <span class="pl-s"><span class="pl-pds">'</span>\\x<span class="pl-pds">'</span></span> <span class="pl-s"><span class="pl-pds">'</span>0x <span class="pl-pds">'</span></span><span class="pl-pds">)</span></span>
 <span class="pl-c1">echo</span> <span class="pl-smi">$TESTDATA</span>
 <span class="pl-k">for</span> <span class="pl-smi">c</span> <span class="pl-k">in</span> <span class="pl-smi">$TESTDATA</span><span class="pl-k">;</span> <span class="pl-k">do</span>

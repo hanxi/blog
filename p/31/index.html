@@ -31,7 +31,7 @@
             <div id="title">JS ArrayBuff to Base64 and Python Base64 to Binary</div>
             <div id="content" class="markdown-body">
                 <h3>JS ArrayBuff to Base64</h3>
-<div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">_arrayBufferToBase64</span><span class="pl-kos">(</span> <span class="pl-s1">buffer</span> <span class="pl-kos">)</span> <span class="pl-kos">{</span>
+<div class="highlight highlight-source-js"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">_arrayBufferToBase64</span><span class="pl-kos">(</span> <span class="pl-s1">buffer</span> <span class="pl-kos">)</span> <span class="pl-kos">{</span>
     <span class="pl-k">var</span> <span class="pl-s1">binary</span> <span class="pl-c1">=</span> <span class="pl-s">''</span><span class="pl-kos">;</span>
     <span class="pl-k">var</span> <span class="pl-s1">bytes</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">Uint8Array</span><span class="pl-kos">(</span> <span class="pl-s1">buffer</span> <span class="pl-kos">)</span><span class="pl-kos">;</span>
     <span class="pl-k">var</span> <span class="pl-s1">len</span> <span class="pl-c1">=</span> <span class="pl-s1">bytes</span><span class="pl-kos">.</span><span class="pl-c1">byteLength</span><span class="pl-kos">;</span>
@@ -55,7 +55,7 @@
         <span class="pl-s1">reader</span><span class="pl-kos">.</span><span class="pl-en">readAsArrayBuffer</span><span class="pl-kos">(</span><span class="pl-s1">file</span><span class="pl-kos">)</span>
  </pre></div>
 <h3>Python Base64 to Binary</h3>
-<div class="highlight highlight-source-python"><pre>    <span class="pl-k">import</span> <span class="pl-s1">base64</span>
+<div class="highlight highlight-source-python"><pre class="notranslate">    <span class="pl-k">import</span> <span class="pl-s1">base64</span>
     <span class="pl-k">with</span> <span class="pl-en">open</span>(<span class="pl-s1">fpath</span>, <span class="pl-s">'wb'</span>) <span class="pl-k">as</span> <span class="pl-s1">f</span>: 
         <span class="pl-s1">bin_data</span> <span class="pl-c1">=</span> <span class="pl-s1">base64</span>.<span class="pl-en">b64decode</span>(<span class="pl-s1">fcontent</span>)
         <span class="pl-s1">f</span>.<span class="pl-en">write</span>(<span class="pl-s1">bin_data</span>)</pre></div>

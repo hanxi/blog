@@ -32,7 +32,7 @@
             <div id="content" class="markdown-body">
                 <p><a href="https://github.com/wez/wezterm">wezterm</a> 是采用 Rust 实现和 Lua 配置的终端软件，我之前一段时间都是使用 Windows terminal ，发现 wezterm 是采用 Lua 配置的，很方便自定义功能。比如之前给 Windows terminal 提过的一个很小的需求，<a href="https://github.com/microsoft/terminal/issues/9031" data-hovercard-type="issue" data-hovercard-url="/microsoft/terminal/issues/9031/hovercard">像 vscode 一样自动读取 .ssh/config 文件的主机配置</a> ，然而却却迟迟没有实现，Windows terminal 采用 JSON 配置的（如果是 JavaScript 的话还有可能），不能像 wezterm 一样使用 Lua 语言一样能动态生成配置。</p>
 <p>下面几行配置就能实现自动读取 ssh 的配置文件，生成主机列表供选择进入，而且 wezterm 的启动菜单是支持查找的，这样只要主机名定义的有规范，就可以方便搜索进入了，就能更方便的作为远程主机管理工具了。wezterm 的配置文档也挺齐全的，参考 <a href="https://wezfurlong.org/wezterm/config/launch.html" rel="nofollow">wezterm/config/launch</a> 。</p>
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> wezterm <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wezterm<span class="pl-pds">"</span></span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> wezterm <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wezterm<span class="pl-pds">"</span></span>
 
 <span class="pl-k">local</span> launch_menu <span class="pl-k">=</span> {}
 

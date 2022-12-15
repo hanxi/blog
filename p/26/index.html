@@ -90,7 +90,7 @@ trans-localfile = true
 <li>在 Windows 上粘贴</li>
 </ol>
 <h4>2.3 配置 NeoVim 使用 lemonade</h4>
-<div class="highlight highlight-source-viml"><pre><span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>clipboard</span> <span class="pl-k">=</span> {
+<div class="highlight highlight-source-viml"><pre class="notranslate"><span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>clipboard</span> <span class="pl-k">=</span> {
             <span class="pl-cce">\'</span><span class="pl-c1">copy</span><span class="pl-s"><span class="pl-pds">'</span>: { <span class="pl-pds">'</span></span><span class="pl-k">+</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">copy</span><span class="pl-s"><span class="pl-pds">'</span>, <span class="pl-pds">'</span></span><span class="pl-k">*</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">copy</span>' },
             <span class="pl-cce">\'</span><span class="pl-c1">paste</span><span class="pl-s"><span class="pl-pds">'</span>: { <span class="pl-pds">'</span></span><span class="pl-k">+</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">paste</span><span class="pl-s"><span class="pl-pds">'</span>, <span class="pl-pds">'</span></span><span class="pl-k">*</span><span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade <span class="pl-c1">paste</span>' },
             <span class="pl-cce">\'</span>name<span class="pl-s"><span class="pl-pds">'</span>: <span class="pl-pds">'</span></span>lemonade',
@@ -109,7 +109,7 @@ bind-key ] run-shell "~/.local/bin/lemonade paste | tmux load-buffer -" \; paste
 <pre class="notranslate"><code class="notranslate">lemonade open https://github.com/hanxi/lemonade
 </code></pre>
 <p>这个功能配合 Vim 插件 <code class="notranslate">iamcco/markdown-preview.nvim</code> 非常好用，编辑 Markdown 实时预览。Vim 里这样配置即可:</p>
-<div class="highlight highlight-source-viml"><pre><span class="pl-c"><span class="pl-c">"</span>{markdown-preview</span>
+<div class="highlight highlight-source-viml"><pre class="notranslate"><span class="pl-c"><span class="pl-c">"</span>{markdown-preview</span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_to_the_world</span> <span class="pl-k">=</span> <span class="pl-c1">1</span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_ip</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>192.168.29.251<span class="pl-pds">'</span></span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_port</span> <span class="pl-k">=</span> <span class="pl-c1">6060</span>
@@ -119,7 +119,7 @@ bind-key ] run-shell "~/.local/bin/lemonade paste | tmux load-buffer -" \; paste
 <p>当然，如果 Linux 的 ip 是不固定的，也可以用 Putty 的端口映射方法。把 Windows 的 6060 映射到 Linux 的 6060.</p>
 <p><code class="notranslate">L6060 localhost:6060</code></p>
 <p>vim 则需要这样配置</p>
-<div class="highlight highlight-source-viml"><pre><span class="pl-c"><span class="pl-c">"</span>{markdown-preview</span>
+<div class="highlight highlight-source-viml"><pre class="notranslate"><span class="pl-c"><span class="pl-c">"</span>{markdown-preview</span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_to_the_world</span> <span class="pl-k">=</span> <span class="pl-c1">1</span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_open_ip</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>localhost<span class="pl-pds">'</span></span>
 <span class="pl-k">let</span> <span class="pl-smi"><span class="pl-k">g:</span>mkdp_port</span> <span class="pl-k">=</span> <span class="pl-c1">6060</span>
@@ -133,7 +133,7 @@ bind-key ] run-shell "~/.local/bin/lemonade paste | tmux load-buffer -" \; paste
 <h3>为何又一次推荐？</h3>
 <p>之前推荐过一次 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="378121849" data-permission-text="Title is private" data-url="https://github.com/hanxi/blog/issues/17" data-hovercard-type="issue" data-hovercard-url="/hanxi/blog/issues/17/hovercard" href="https://github.com/hanxi/blog/issues/17">hanxi/blog#17</a></p>
 <p>因为被我重写了 RPC 协议，采用 HTTP REST API。不安装 lemonade 客户端也能用 <code class="notranslate">curl</code> 或 <code class="notranslate">nc</code> 实现，比如就这么简单的实现了 client 的 <code class="notranslate">copy</code> 和 <code class="notranslate">paste</code> 功能</p>
-<div class="highlight highlight-source-shell"><pre><span class="pl-c"><span class="pl-c">#!</span>/bin/sh</span>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#!</span>/bin/sh</span>
 
 <span class="pl-k">if</span> [ <span class="pl-smi">$1</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>copy<span class="pl-pds">'</span></span> ]<span class="pl-k">;</span> <span class="pl-k">then</span>
     curl -X POST --data <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$2</span><span class="pl-pds">"</span></span> http://127.0.0.1:2489/copy
