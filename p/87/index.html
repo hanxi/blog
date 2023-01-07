@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">使用 Docker compose 搭建 wlua 开发环境</div>
+            <div id="content" class="markdown-body">
+                <blockquote>
+<p>仿造这里的： <a href="https://docs.docker.com/compose/gettingstarted/" rel="nofollow">https://docs.docker.com/compose/gettingstarted/</a></p>
+</blockquote>
+<h2>前置要求</h2>
+<p>You need to have Docker Engine and Docker Compose on your machine. You can either:</p>
+<ul>
+<li>Install <a href="https://docs.docker.com/get-docker/" rel="nofollow">Docker Engine</a> and <a href="https://docs.docker.com/compose/install/" rel="nofollow">Docker Compose</a> as standalone binaries</li>
+<li>Install <a href="https://docs.docker.com/desktop/" rel="nofollow">Docker Desktop</a> which includes both Docker Engine and Docker Compose</li>
+</ul>
+<h2>第 1 步：写段 wlua 代码</h2>
+<ol>
+<li>创建一个工程目录：</li>
+</ol>
+<div class="highlight highlight-source-shell"><pre class="notranslate">$ mkdir composetest
+$ <span class="pl-c1">cd</span> composetest</pre></div>
+<ol start="2">
+<li>在工程目录下新键文件 <code class="notranslate">main.lua</code> ，代码如下：</li>
+</ol>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> wlua <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wlua<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> redis <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet.db.redis<span class="pl-pds">"</span></span>
+
+<span class="pl-k">local</span> g_db
+<span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">getdb</span>()
+    <span class="pl-k">if</span> g_db <span class="pl-k">then</span> <span class="pl-k">return</span> g_db <span class="pl-k">end</span>
+    <span class="pl-k">local</span> conf <span class="pl-k">=</span> { host <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span>, port <span class="pl-k">=</span> <span class="pl-c1">6379</span>, db <span class="pl-k">=</span> <span class="pl-c1">0</span>, }
+    g_db <span class="pl-k">=</span> redis.<span class="pl-c1">connect</span>(conf)
+    <span class="pl-k">return</span> g_db
+<span class="pl-k">end</span>
+
+<span class="pl-k">local</span> app <span class="pl-k">=</span> wlua:<span class="pl-c1">default</span>()
+app:<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</span>/<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">c</span>)
+    <span class="pl-k">local</span> db <span class="pl-k">=</span> <span class="pl-c1">getdb</span>()
+    <span class="pl-k">local</span> count <span class="pl-k">=</span> db:<span class="pl-c1">incr</span>(<span class="pl-s"><span class="pl-pds">"</span>hits<span class="pl-pds">"</span></span>)
+    c:<span class="pl-c1">send</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello World! I have been seen %d times.<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, count))
+<span class="pl-k">end</span>)
+
+app:<span class="pl-c1">run</span>()</pre></div>
+<p>在这个例子中， <code class="notranslate">"redis"</code> 是 redis 容器的网络名字，我们使用的默认的 Redis 端口 <code class="notranslate">6379</code> 和默认的数据库 <code class="notranslate">0</code> 。</p>
+<h2>第 2 步：创建一个 Dockerfile 文件</h2>
+<p>Dockerfile 用于构建一个 Docker 镜像，在你的 <code class="notranslate">composetest</code> 目录创建一个名为 <code class="notranslate">Dockerfile</code> 的文件，内容如下：</p>
+<div class="highlight highlight-source-dockerfile"><pre class="notranslate"><span class="pl-k">FROM</span> hanxi/wlua
+<span class="pl-k">RUN</span> cd / &amp;&amp; wlua new code
+<span class="pl-k">WORKDIR</span> /code
+<span class="pl-k">EXPOSE</span> 8081
+<span class="pl-k">CMD</span> [ <span class="pl-s">"bash"</span>, <span class="pl-s">"-c"</span>, <span class="pl-s">"wlua start &amp;&amp; tail -F log/wlua.log"</span> ]</pre></div>
+<p>这几行告诉 Docker 干这些事：</p>
+<ul>
+<li>从镜像 <code class="notranslate">hanxi/wlua</code> 的基础上构建一个新的镜像。</li>
+<li>在根目录执行 <code class="notranslate">wlua new code</code> 命令，用于创建 <code class="notranslate">/code</code> 工程目录。</li>
+<li>设置工作目录为 <code class="notranslate">/code</code> 。</li>
+<li>在镜像中添加元数据来描述容器正在监听 8081 端口。</li>
+<li>使用 <code class="notranslate">bash</code> 执行命令：启动 wlua 和输出日志。</li>
+</ul>
+<h2>第 3 步：在 Compose 文件中定义服务</h2>
+<p>在 <code class="notranslate">composetest</code> 目录创建名为 <code class="notranslate">docker-compose.yml</code> 的文件，内容如下：</p>
+<div class="highlight highlight-source-yaml"><pre class="notranslate"><span class="pl-ent">version</span>: <span class="pl-s"><span class="pl-pds">"</span>3.9<span class="pl-pds">"</span></span>
+<span class="pl-ent">services</span>:
+  <span class="pl-ent">web</span>:
+    <span class="pl-ent">build</span>: <span class="pl-s">.</span>
+    <span class="pl-ent">ports</span>:
+      - <span class="pl-s"><span class="pl-pds">"</span>8000:8081<span class="pl-pds">"</span></span>
+    <span class="pl-ent">volumes</span>:
+      - <span class="pl-s">./main.lua:/code/app/main.lua</span>
+  <span class="pl-ent">redis</span>:
+    <span class="pl-ent">image</span>: <span class="pl-s"><span class="pl-pds">"</span>redis:alpine<span class="pl-pds">"</span></span></pre></div>
+<p>这个 Compose 文件定义了 2个服务： <code class="notranslate">web</code>  和 <code class="notranslate">redis</code> 。</p>
+<p><code class="notranslate">web</code> 服务使用从当前目录中的 <code class="notranslate">Dockerfile</code> 构建的镜像。然后它将容器和主机绑定到公开的端口 <code class="notranslate">8000</code>。此示例服务使用 wlua Web 服务器的默认端口 <code class="notranslate">8081</code>。 还挂载了主机的 <code class="notranslate">main.lua</code> 文件到容器中。</p>
+<p><code class="notranslate">redis</code> 服务使用从 Docker Hub 镜像仓库中提取的公共 <code class="notranslate">Redis</code> 镜像。</p>
+<h2>第 4 步：使用 Compose 构建并运行您的应用</h2>
+<ol>
+<li>在你的 <code class="notranslate">composetest</code> 目录执行命令 <code class="notranslate">docker compose up</code> ：</li>
+</ol>
+<div class="highlight highlight-source-shell"><pre class="notranslate">$ docker compose up
+Creating network <span class="pl-s"><span class="pl-pds">"</span>composetest_default<span class="pl-pds">"</span></span> with the default driver
+Creating composetest_web_1   ... <span class="pl-k">done</span>
+Creating composetest_redis_1 ... <span class="pl-k">done</span>
+Attaching to composetest_redis_1, composetest_web_1
+redis_1  <span class="pl-k">|</span> 1:C 07 Jan 2023 07:29:35.235 <span class="pl-c"><span class="pl-c">#</span> oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo</span>
+redis_1  <span class="pl-k">|</span> 1:C 07 Jan 2023 07:29:35.235 <span class="pl-c"><span class="pl-c">#</span> Redis version=7.0.7, bits=64, commit=00000000, modified=0, pid=1, just started</span>
+redis_1  <span class="pl-k">|</span> 1:C 07 Jan 2023 07:29:35.235 <span class="pl-c"><span class="pl-c">#</span> Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf</span>
+redis_1  <span class="pl-k">|</span> 1:M 07 Jan 2023 07:29:35.236 <span class="pl-k">*</span> monotonic clock: POSIX clock_gettime
+redis_1  <span class="pl-k">|</span> 1:M 07 Jan 2023 07:29:35.236 <span class="pl-k">*</span> Running mode=standalone, port=6379.
+redis_1  <span class="pl-k">|</span> 1:M 07 Jan 2023 07:29:35.236 <span class="pl-c"><span class="pl-c">#</span> Server initialized</span>
+redis_1  <span class="pl-k">|</span> 1:M 07 Jan 2023 07:29:35.236 <span class="pl-c"><span class="pl-c">#</span> WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.</span>
+redis_1  <span class="pl-k">|</span> 1:M 07 Jan 2023 07:29:35.237 <span class="pl-k">*</span> Ready to accept connections
+web_1    <span class="pl-k">|</span> start server
+web_1    <span class="pl-k">|</span> tail: cannot open <span class="pl-s"><span class="pl-pds">'</span>log/wlua.log<span class="pl-pds">'</span></span> <span class="pl-k">for</span> reading: No such file or directory
+web_1    <span class="pl-k">|</span> tail: <span class="pl-s"><span class="pl-pds">'</span>log/wlua.log<span class="pl-pds">'</span></span> has appeared<span class="pl-k">;</span>  following new file
+web_1    <span class="pl-k">|</span> [0000000a][2023-01-07 07:29:36] LAUNCH snlua main
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] LAUNCH snlua app/main http 1
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [DEBUG] wlua new.
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [DEBUG] routergroup new
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [DEBUG] combine_handlers. n: 1
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [DEBUG] calculate_absolute_path / /
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [DEBUG] combine_handlers. n: 1
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [DEBUG] add_route: GET / 2
+web_1    <span class="pl-k">|</span> [0000000b][2023-01-07 07:29:36] [INFO] Open wlua agent. protocol: http , agent_id: 1
+web_1    <span class="pl-k">|</span> [0000000a][2023-01-07 07:29:36] [INFO] Start web. host: 0.0.0.0 ,port: 8081
+web_1    <span class="pl-k">|</span> [0000000a][2023-01-07 07:29:36] [WARN] Disable https server.
+web_1    <span class="pl-k">|</span> [0000000a][2023-01-07 07:29:36] [INFO] Hello wlua.
+web_1    <span class="pl-k">|</span> [00000002][2023-01-07 07:29:36] KILL self</pre></div>
+<ol start="2">
+<li>Enter <a href="http://localhost:8000/" rel="nofollow">http://localhost:8000/</a> in a browser to see the application running.</li>
+</ol>
+<p>If this doesn’t resolve, you can also try <a href="http://127.0.0.1:8000" rel="nofollow">http://127.0.0.1:8000</a>.</p>
+<p>You should see a message in your browser saying:</p>
+<pre class="notranslate"><code class="notranslate">Hello World! I have been seen 1 times.
+</code></pre>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/211139930-db0857b9-acf2-4b92-895c-2adf9d253b70.png"><img src="https://user-images.githubusercontent.com/1185757/211139930-db0857b9-acf2-4b92-895c-2adf9d253b70.png" alt="image" style="max-width: 100%;"></a></p>
+<ol start="3">
+<li>Refresh the page.</li>
+</ol>
+<p>The number should increment.</p>
+<pre class="notranslate"><code class="notranslate">Hello World! I have been seen 2 times.
+</code></pre>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/211139950-9c2a6c00-5f1c-40c2-9fd5-eb61b786eea6.png"><img src="https://user-images.githubusercontent.com/1185757/211139950-9c2a6c00-5f1c-40c2-9fd5-eb61b786eea6.png" alt="image" style="max-width: 100%;"></a></p>
+<h2>最后</h2>
+<p><code class="notranslate">composetest</code>  工程地址： <a href="https://github.com/hanxi/docker-compose-wlua">https://github.com/hanxi/docker-compose-wlua</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/87#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
