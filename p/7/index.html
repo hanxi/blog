@@ -33,7 +33,7 @@
                 <h3>1. 调用其他输入框程序实现</h3>
 <p>调用 zenity 实现，使用 <code class="notranslate">popen</code> 系统调用，参考：<a href="http://sourceforge.net/projects/tinyfiledialogs/" rel="nofollow">tinyfiledialogs</a> 的实现。</p>
 <p>zenity 的文本输入框介绍在<a href="https://help.gnome.org/users/zenity/stable/entry.html.zh_CN" rel="nofollow">这里</a></p>
-<p>实现已经放到评论区：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85513342" data-permission-text="Title is private" data-url="https://github.com/hanxi/blog/issues/7" data-hovercard-type="issue" data-hovercard-url="/hanxi/blog/issues/7/hovercard?comment_id=109287336&amp;comment_type=issue_comment" href="https://github.com/hanxi/blog/issues/7#issuecomment-109287336">hanxi/blog#7 (comment)</a></p>
+<p>实现已经放到评论区：<a aria-label="Issue #7" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85513342" data-permission-text="Title is private" data-url="https://github.com/hanxi/blog/issues/7" data-hovercard-type="issue" data-hovercard-url="/hanxi/blog/issues/7/hovercard?comment_id=109287336&amp;comment_type=issue_comment" href="https://github.com/hanxi/blog/issues/7#issuecomment-109287336">hanxi/blog#7 (comment)</a></p>
 <h3>2. 最后采用了 GTK+ 的 dialog 实现</h3>
 <p>这种实现更像 windows 下的 dialog。而且查了 <a href="http://www.glfw.org/" rel="nofollow">glfw</a> 的 <a href="http://www.glfw.org/faq.html#will-message-box-support-be-added-to-glfw" rel="nofollow">FAQ</a>，建议使用 GTK+ 实现 messge box。</p>
 <p>需要安装 gtk 库：<code class="notranslate">sudo apt-get install libgtk-3-dev</code></p>
@@ -54,7 +54,7 @@
 ...
 <span class="pl-en">g_signal_connect</span>(dialog, <span class="pl-s"><span class="pl-pds">"</span>focus-out-event<span class="pl-pds">"</span></span>, G_CALLBACK(dialogFocusOutCallback), NULL);
 </pre></div>
-<p>我也是试过去找到 dialog 的父窗口，然后设置模态等等，使 dialog 为子窗口。可是没能成功的实现。现在我的这种实现也能满足基本的需求，代码在这里：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85717463" data-permission-text="Title is private" data-url="https://github.com/cocos2d/cocos2d-x/issues/12220" data-hovercard-type="pull_request" data-hovercard-url="/cocos2d/cocos2d-x/pull/12220/hovercard" href="https://github.com/cocos2d/cocos2d-x/pull/12220">cocos2d/cocos2d-x#12220</a></p>
+<p>我也是试过去找到 dialog 的父窗口，然后设置模态等等，使 dialog 为子窗口。可是没能成功的实现。现在我的这种实现也能满足基本的需求，代码在这里：<a aria-label="Pull request #12220" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85717463" data-permission-text="Title is private" data-url="https://github.com/cocos2d/cocos2d-x/issues/12220" data-hovercard-type="pull_request" data-hovercard-url="/cocos2d/cocos2d-x/pull/12220/hovercard" href="https://github.com/cocos2d/cocos2d-x/pull/12220">cocos2d/cocos2d-x#12220</a></p>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/7#new_comment_field"> 点击进入评论 ... </a>

@@ -110,7 +110,7 @@ $ make</pre></div>
 <li>如果直接在<code class="notranslate">db.lua</code>中执行<code class="notranslate">mysql</code>的<code class="notranslate">connect</code>函数，不能使用<code class="notranslate">require</code>包含文件，因为</li>
 </ul>
 <blockquote>
-<p>参考：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="59430680" data-permission-text="Title is private" data-url="https://github.com/oneoo/alilua/issues/27" data-hovercard-type="issue" data-hovercard-url="/oneoo/alilua/issues/27/hovercard" href="https://github.com/oneoo/alilua/issues/27">oneoo/alilua#27</a></p>
+<p>参考：<a aria-label="Issue #27" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="59430680" data-permission-text="Title is private" data-url="https://github.com/oneoo/alilua/issues/27" data-hovercard-type="issue" data-hovercard-url="/oneoo/alilua/issues/27/hovercard" href="https://github.com/oneoo/alilua/issues/27">oneoo/alilua#27</a></p>
 <p>因为 require 过程中产生的 Lua 运行环境不是一个协程，所以会报 <code class="notranslate">attempt to yield across C-call boundary</code> 错误。</p>
 <p>你把 require 改为 dofile 就可以运行的。</p>
 </blockquote>

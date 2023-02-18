@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">调试 Lua 的 C 库报错记录</div>
+            <div id="content" class="markdown-body">
+                <p>最近在写一个 Lua 库，用于打印报错堆栈上的函数参数和 upvalue，最开始用 Lua 实现了一个版本，运行效果还可以。想着用 C 来实现一遍，经过一段时间的奋战，终于能跑了。</p>
+<h2>运行效果展示</h2>
+<p>测试代码：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> tb <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>traceback.c<span class="pl-pds">"</span></span>
+debug.<span class="pl-smi">traceback</span> <span class="pl-k">=</span> tb.<span class="pl-smi">traceback</span>
+
+<span class="pl-k">local</span> a <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>test upvalue a<span class="pl-pds">"</span></span>
+
+<span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">f</span>(<span class="pl-smi">a</span>, <span class="pl-smi">b</span>, <span class="pl-smi">c</span>, <span class="pl-smi">d</span>, <span class="pl-smi">e</span>)
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>in f<span class="pl-pds">"</span></span>)
+    <span class="pl-k">local</span> x <span class="pl-k">=</span> a
+    <span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>my test error<span class="pl-pds">"</span></span>)
+<span class="pl-k">end</span>
+
+<span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">f1</span>(<span class="pl-smi">a</span>, <span class="pl-smi">b</span>, <span class="pl-smi">c</span>, <span class="pl-smi">d</span>, <span class="pl-smi">e</span>)
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>in f1<span class="pl-pds">"</span></span>)
+    <span class="pl-c1">f</span>(a,b,c,d,e)
+<span class="pl-k">end</span>
+
+<span class="pl-k">local</span> c <span class="pl-k">=</span> {<span class="pl-c1">2</span>,<span class="pl-c1">2.22</span>}
+<span class="pl-k">local</span> a <span class="pl-k">=</span> {
+    b <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>x<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>y<span class="pl-pds">"</span></span>},
+    c <span class="pl-k">=</span> c,
+}
+a.<span class="pl-smi">b</span>.<span class="pl-smi">xx</span> <span class="pl-k">=</span> c
+a.<span class="pl-smi">c</span>.<span class="pl-smi">yy</span> <span class="pl-k">=</span> a.<span class="pl-smi">b</span>
+a.<span class="pl-smi">c</span>.<span class="pl-smi">zz</span> <span class="pl-k">=</span> a.<span class="pl-smi">b</span>.<span class="pl-smi">xx</span>
+
+<span class="pl-k">local</span> ok, msg <span class="pl-k">=</span> <span class="pl-c1">xpcall</span>(f1, debug.<span class="pl-smi">traceback</span>, a, <span class="pl-s"><span class="pl-pds">"</span>xs<span class="pl-pds">"</span></span>, <span class="pl-c1">1.22</span>, <span class="pl-c1">100</span>)
+<span class="pl-c1">print</span>(msg)</pre></div>
+<p>运行效果大概是这样的：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">test.lua:9: my test error
+stack traceback:
+        [C]: in function 'error'
+        test.lua:9: in upvalue 'f'
+                &lt;arg 1&gt; a = {['c']={[1]=2,[2]=2.22,,['yy']={...}},}
+                        a['c']['zz'] = a['c']
+                        a['b'] = a['c']['yy']
+                &lt;arg 2&gt; b = "xs"
+                &lt;arg 3&gt; c = 1.22
+                &lt;arg 4&gt; d = 100
+                &lt;arg 5&gt; e = nil
+                &lt;upv 1&gt; _ENV = {['os']={['difftime']=function: 0x560853d17e20,['date']=function: 0x560853d18250,['setlocale']=function: 0x560853d17bf0,['clock']=function: 0x560853d17e70...},['rawlen']=function: 0x560853d11520,['tostring']=function: 0x560853d112e0,['warn']=function: 0x560853d115d0,['select']=function: 0x560853d11310...}
+        test.lua:14: in function &lt;test.lua:12&gt;
+                &lt;arg 1&gt; a = {['c']={[1]=2,[2]=2.22,,['yy']={...}},}
+                        a['c']['zz'] = a['c']
+                        a['b'] = a['c']['yy']
+                &lt;arg 2&gt; b = "xs"
+                &lt;arg 3&gt; c = 1.22
+                &lt;arg 4&gt; d = 100
+                &lt;arg 5&gt; e = nil
+                &lt;upv 1&gt; _ENV = {['os']={['difftime']=function: 0x560853d17e20,['date']=function: 0x560853d18250,['setlocale']=function: 0x560853d17bf0,['clock']=function: 0x560853d17e70...},['rawlen']=function: 0x560853d11520,['tostring']=function: 0x560853d112e0,['warn']=function: 0x560853d115d0,['select']=function: 0x560853d11310...}
+                &lt;upv 2&gt; f = function: 0x560853f186f0
+        [C]: in function 'xpcall'
+        test.lua:26: in main chunk
+                &lt;upv 1&gt; _ENV = {['os']={['difftime']=function: 0x560853d17e20,['date']=function: 0x560853d18250,['setlocale']=function: 0x560853d17bf0,['clock']=function: 0x560853d17e70...},['rawlen']=function: 0x560853d11520,['tostring']=function: 0x560853d112e0,['warn']=function: 0x560853d115d0,['select']=function: 0x560853d11310...}
+        [C]: in ?</pre></div>
+<h2>遇到问题</h2>
+<p>但是会偶然的出现 core dumped 。由于是偶现的， gdb 好像也不好调试，就只能加打印，批量重试了。<br>
+写个脚本批量运行，把 core 文件和日志文件对应起来。</p>
+<pre class="notranslate"><code class="notranslate">while true; do
+    ../lua-5.4.4/src/lua test.lua &gt; tmp.log 2&gt;&amp;1 &amp;
+    pid=$!
+    wait $!
+    err=$?
+    if [ $err -ne 0 ]; then
+        mv tmp.log log.$pid
+        exit 1
+    fi
+    sleep 2
+done
+</code></pre>
+<p>遇到报错就停下来。<br>
+然后也借助 gdb 来查看 core 文件，发现 gdb 竟然有个 TUI 界面。使用 <code class="notranslate">tui enable</code> 开启 TUI 界面，界面是会自动显示当前代码文件的，按方向键上下滚动代码。<br>
+![[Pasted image 20230211143947.png]]<br>
+使用 <code class="notranslate">up/down</code> 切换堆栈层级，代码会跟着切换。</p>
+<h2>排除法定位问题</h2>
+<p>怀疑是 lua_Buffer 的问题，注释部分代码试试看。怀疑 luaL_tolstring 函数会影响，先修改不调用这个函数。</p>
+<p>怀疑 lua_Buffer 的问题，可以把 lua_Buffer 注释掉，只打印序列化出的数据，或者用其他方法来存储序列化后的数据。怀疑 lua_Buffer 的原因是调试的时候发现 lua_pushvalue 经常会把 buffer 的数据弄成乱码，可能是 <code class="notranslate">_ENV</code> 里有特殊字符。</p>
+<p>通过注释 lua_Buffer 相关代码，目前跑了一天还没遇到过报错。</p>
+<p>或许是不是不能同时使用 2 个 buffer 呢？可以研究一下 lua_Buffer 的代码。</p>
+<p>通过排除法，已经定位到是 Buffer 的问题，具体是加了什么特殊字符问题引起的还没定位到。特殊字符可能是 <code class="notranslate">_ENV</code> 里的。</p>
+<p>再使用排除法，只保留</p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span>
+<span class="pl-en">seri_other</span>(lua_State *L, <span class="pl-k">int</span> index, luaL_Buffer *b) {
+    <span class="pl-c1">size_t</span> len;
+    <span class="pl-k">const</span> <span class="pl-k">char</span> *str = <span class="pl-c1">luaL_tolstring</span>(L, <span class="pl-c1">index</span>, &amp;len);
+    <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>seri_other:<span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, str);
+    <span class="pl-c1">luaL_addvalue</span>(b);
+}
+
+<span class="pl-c"><span class="pl-c">//</span> 另外保留一些插入明显是字符或者字符串的</span>
+<span class="pl-en">luaL_addstring</span>(b, <span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span>);
+<span class="pl-en">luaL_addchar</span>(b, <span class="pl-s"><span class="pl-pds">'</span>"<span class="pl-pds">'</span></span>);</pre></div>
+<p>已经重现到。</p>
+<p>再试试只序列化 ENV 的情况，不处理堆栈的情况。终于知道原因了，原来几年前就遇到过。<br>
+<a aria-label="Issue #1" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="581241802" data-permission-text="Title is private" data-url="https://github.com/hanxi/lua-seri/issues/1" data-hovercard-type="issue" data-hovercard-url="/hanxi/lua-seri/issues/1/hovercard" href="https://github.com/hanxi/lua-seri/issues/1">hanxi/lua-seri#1</a></p>
+<blockquote>
+<p>During its normal operation, a string buffer uses a variable number of stack slots. So, while using a buffer, <strong>you cannot assume that you know where the top of the stack is</strong>.<br>
+一般的操作过程中，字符串缓存会使用不定量的栈槽。 因此，在使用缓存中，你不能假定目前栈顶在哪。 在对缓存操作的函数调用间，你都可以使用栈，只需要保证栈平衡即可； 即，在你做一次缓存操作调用时，当时的栈位置和上次调用缓存操作后的位置相同。 （对于 <a href="http://cloudwu.github.io/lua53doc/manual.html#luaL_addvalue" rel="nofollow"><code class="notranslate">luaL_addvalue</code></a> 是个唯一的例外。） 在调用完 <a href="http://cloudwu.github.io/lua53doc/manual.html#luaL_pushresult" rel="nofollow"><code class="notranslate">luaL_pushresult</code></a> 后， 栈会恢复到缓存初始化时的位置上，并在顶部压入最终的字符串。</p>
+</blockquote>
+<p>终于理解这句话的意思了，就是每次操作 buffer 前后，需要保持栈不变。所以解决方法也就是 issues 里提出的 2 个，自己实现一个 buffer 或者把数据缓存到一个表里，最后才使用 buffer 合并。甚至包括 luaL_bufferinit ，这也就说明，必须保证 buffer 在栈顶了。因为无法使用此办法来序列化了。</p>
+<p>还特意去 Lua 邮件列表里问了这个 buffer 的用法：<br>
+<a href="http://lua-users.org/lists/lua-l/2023-02/msg00082.html" rel="nofollow">http://lua-users.org/lists/lua-l/2023-02/msg00082.html</a></p>
+<p>最终的解决办法是使用 <code class="notranslate">luaL_buffinitsize</code> 申请一段固定长度的 buffer， 采用 <code class="notranslate">memcpy</code> 写入数据。</p>
+<p>最终成果： <a href="https://github.com/hanxi/ltraceback">https://github.com/hanxi/ltraceback</a></p>
+<p>顺便把之前写的一个序列化 lua 数据的库的 bug 修复好了。<br>
+<a href="https://github.com/hanxi/lua-seri">https://github.com/hanxi/lua-seri</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/88#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

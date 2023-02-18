@@ -74,8 +74,8 @@ sys     0m0.097s
 <li><code class="notranslate">crypto.digest</code> 函数漏了 <code class="notranslate">raw</code> 参数没有往下面传递。</li>
 </ul>
 <p>然后我都提了 issues 并修复了。</p>
-<p><a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="484080367" data-permission-text="Title is private" data-url="https://github.com/zhaozg/lua-openssl/issues/179" data-hovercard-type="issue" data-hovercard-url="/zhaozg/lua-openssl/issues/179/hovercard" href="https://github.com/zhaozg/lua-openssl/issues/179">zhaozg/lua-openssl#179</a></p>
-<p><a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="484291462" data-permission-text="Title is private" data-url="https://github.com/zhaozg/lua-openssl/issues/180" data-hovercard-type="issue" data-hovercard-url="/zhaozg/lua-openssl/issues/180/hovercard" href="https://github.com/zhaozg/lua-openssl/issues/180">zhaozg/lua-openssl#180</a></p>
+<p><a aria-label="Issue #179" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="484080367" data-permission-text="Title is private" data-url="https://github.com/zhaozg/lua-openssl/issues/179" data-hovercard-type="issue" data-hovercard-url="/zhaozg/lua-openssl/issues/179/hovercard" href="https://github.com/zhaozg/lua-openssl/issues/179">zhaozg/lua-openssl#179</a></p>
+<p><a aria-label="Issue #180" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="484291462" data-permission-text="Title is private" data-url="https://github.com/zhaozg/lua-openssl/issues/180" data-hovercard-type="issue" data-hovercard-url="/zhaozg/lua-openssl/issues/180/hovercard" href="https://github.com/zhaozg/lua-openssl/issues/180">zhaozg/lua-openssl#180</a></p>
 <p>接下来就是遇到 <code class="notranslate">openssl enc</code> 加密的数据， lua-openssl 解密不了的问题。这里需要去理解 <code class="notranslate">-K -iv</code> 参数的生成规则才行。</p>
 <p>参考这里： <a href="https://www.jianshu.com/p/813e184b56bd" rel="nofollow">https://www.jianshu.com/p/813e184b56bd</a></p>
 <p>AES-128-CBC 的 Key 和 iv 生成规则</p>
