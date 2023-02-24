@@ -80,7 +80,7 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 <span class="pl-k">def</span> <span class="pl-en">branch</span>(<span class="pl-s1">request</span>):
     <span class="pl-k">return</span> <span class="pl-s1">request</span>.<span class="pl-s1">config</span>.<span class="pl-en">getoption</span>(<span class="pl-s">"--branch"</span>)</pre></div>
 <p>并使用 <code class="notranslate">pytest.fixture</code> 装饰器新增一个 <code class="notranslate">branch</code> 参数给测试用例使用。</p>
-<h2>配置测试用例直接的依赖关系</h2>
+<h2>配置测试用例之间的依赖关系</h2>
 <p>想要某些测试用例依赖某些测试用例成功执行，可以使用 <code class="notranslate">pytest.mark.skipif</code> 实现，在满足第一个参数为 <code class="notranslate">True</code> 时跳过用例。</p>
 <p>新键文件 <code class="notranslate">src/init_test.py</code> ，pytest 是会自动执行以 test 开始或者结尾的 py 文件的。</p>
 <p>首先定义一个全局变量 <code class="notranslate">g_init_succ</code> 用来标记是否初始化完毕，然后用这个全局变量创建一个装饰器 <code class="notranslate">checkinit = pytest.mark.skipif(not g_init_succ, reason='初始化失败')</code> 。</p>
