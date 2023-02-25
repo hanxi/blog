@@ -142,11 +142,73 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 翻译成果： <a href="https://github.com/hanxi/pytest-html-cn">https://github.com/hanxi/pytest-html-cn</a><br>
 效果预览：</p>
 <p><a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/221254411-b30265ae-b944-4532-bed0-05b09ceac9d1.png"><img src="https://user-images.githubusercontent.com/1185757/221254411-b30265ae-b944-4532-bed0-05b09ceac9d1.png" alt="Pasted image 20230225014023" style="max-width: 100%;"></a></p>
-<h2>待修改的地方</h2>
-<ul class="contains-task-list">
-<li class="task-list-item"><input type="checkbox" id="" disabled="" class="task-list-item-checkbox"> 检查列显示内容优化，标题内容可以从单元测试的代码中获取</li>
-<li class="task-list-item"><input type="checkbox" id="" disabled="" class="task-list-item-checkbox"> 详情内容优化，只显示 Captured stdout call 就够了，主要是因为上面的信息会自动输出 env 变量，里面含有 svn 密码这些敏感信息。下面的信息是手动打印出来的，可以由代码自由控制。</li>
-</ul>
+<h2>删除检查列和link列，新增描述列</h2>
+<p>跟前面删除 link 列一样，使用 <code class="notranslate">pytest_html_results_table_header</code> 和 <code class="notranslate">pytest_html_results_table_row</code> 接口实现。<br>
+并通过 <code class="notranslate">pytest_runtest_makereport</code> 接口新增列所需的数据。</p>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">from</span> <span class="pl-s1">py</span>.<span class="pl-s1">xml</span> <span class="pl-k">import</span> <span class="pl-s1">html</span>
+<span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_header</span>(<span class="pl-s1">cells</span>):
+    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">1</span>)  <span class="pl-c"># 删除检查列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>) <span class="pl-c"># 删除link列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-en">insert</span>(<span class="pl-c1">1</span>, <span class="pl-s1">html</span>.<span class="pl-en">th</span>(<span class="pl-s">"描述"</span>))
+
+<span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_row</span>(<span class="pl-s1">report</span>, <span class="pl-s1">cells</span>):
+    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">1</span>)  <span class="pl-c"># 删除检查列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>) <span class="pl-c"># 删除link列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-en">insert</span>(<span class="pl-c1">1</span>, <span class="pl-s1">html</span>.<span class="pl-en">td</span>(<span class="pl-s1">report</span>.<span class="pl-s1">description</span>))
+
+<span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-en">hookimpl</span>(<span class="pl-s1">hookwrapper</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)</span>
+<span class="pl-k">def</span> <span class="pl-en">pytest_runtest_makereport</span>(<span class="pl-s1">item</span>, <span class="pl-s1">call</span>):
+    <span class="pl-s1">outcome</span> <span class="pl-c1">=</span> <span class="pl-k">yield</span>
+    <span class="pl-s1">report</span> <span class="pl-c1">=</span> <span class="pl-s1">outcome</span>.<span class="pl-en">get_result</span>()
+    <span class="pl-s1">report</span>.<span class="pl-s1">description</span> <span class="pl-c1">=</span> <span class="pl-en">str</span>(<span class="pl-s1">item</span>.<span class="pl-s1">function</span>.<span class="pl-s1">__doc__</span>)</pre></div>
+<h2>自动折叠</h2>
+<p>自动折叠通过和跳过，之前翻译漏了这部分导致自动折叠会有问题的。</p>
+<p><a class="commit-link" data-hovercard-type="commit" data-hovercard-url="https://github.com/hanxi/pytest-html-cn/commit/5055c5b7b5f312894a98ff3dd2e2efe154b59b72/hovercard" href="https://github.com/hanxi/pytest-html-cn/commit/5055c5b7b5f312894a98ff3dd2e2efe154b59b72">hanxi/pytest-html-cn@<tt>5055c5b</tt></a></p>
+<h2>隐藏不想要的复选框</h2>
+<p>比如错误，预期失败，预期通过我暂时用不上，就屏蔽了。</p>
+<p><a class="commit-link" data-hovercard-type="commit" data-hovercard-url="https://github.com/hanxi/pytest-html-cn/commit/4c85de932c673eaa96304e863e0b0597a330dc8a/hovercard" href="https://github.com/hanxi/pytest-html-cn/commit/4c85de932c673eaa96304e863e0b0597a330dc8a">hanxi/pytest-html-cn@<tt>4c85de9</tt></a></p>
+<h2>修改详情</h2>
+<p>使用 <code class="notranslate">pytest_html_results_table_html</code> 接口修改详情，先清空 data ，然后重新构造 data 。</p>
+<p>比如 skipped 的情况下，默认打印格式是这样的：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">('/home/hanxi/work/pytest-demo/src/init_test.py', 21, 'Skipped: 初始化失败')</pre></div>
+<p>我只想打印跳过的原因，就删除首位括号，然后切割字符串，只打印最后一个元素。</p>
+<p>想要隐藏 failed 的时候输出的报错堆栈，就不输出堆栈数据。</p>
+<p>从 report.sections 获取 stdout 数据，然后又不输出标题。</p>
+<p>这些都是从 <code class="notranslate">def _populate_html_log_div</code> 函数的实现里修改过来的：</p>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_html</span>(<span class="pl-s1">report</span>, <span class="pl-s1">data</span>):
+    <span class="pl-k">del</span> <span class="pl-s1">data</span>[:]
+    <span class="pl-s1">log</span> <span class="pl-c1">=</span> <span class="pl-s1">html</span>.<span class="pl-en">div</span>(<span class="pl-s1">class_</span><span class="pl-c1">=</span><span class="pl-s">"log"</span>)
+    <span class="pl-k">if</span> <span class="pl-s1">report</span>.<span class="pl-s1">skipped</span> <span class="pl-c1">and</span> <span class="pl-s1">report</span>.<span class="pl-s1">longrepr</span>:
+        <span class="pl-s1">arr</span> <span class="pl-c1">=</span> <span class="pl-s1">report</span>.<span class="pl-s1">longreprtext</span>.<span class="pl-en">strip</span>(<span class="pl-s">"()"</span>).<span class="pl-en">split</span>(<span class="pl-s">","</span>)
+        <span class="pl-s1">skip_msg</span> <span class="pl-c1">=</span> <span class="pl-s1">arr</span>[<span class="pl-en">len</span>(<span class="pl-s1">arr</span>)<span class="pl-c1">-</span><span class="pl-c1">1</span>]
+        <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">span</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">skip_msg</span>))))
+    <span class="pl-k">elif</span> <span class="pl-s1">report</span>.<span class="pl-s1">failed</span> <span class="pl-c1">and</span> <span class="pl-s1">report</span>.<span class="pl-s1">longrepr</span>:
+        <span class="pl-k">pass</span>
+    <span class="pl-k">elif</span> <span class="pl-s1">report</span>.<span class="pl-s1">longrepr</span>:
+        <span class="pl-s1">text</span> <span class="pl-c1">=</span> <span class="pl-s1">report</span>.<span class="pl-s1">longreprtext</span> <span class="pl-c1">or</span> <span class="pl-s1">report</span>.<span class="pl-s1">full_text</span>
+        <span class="pl-k">for</span> <span class="pl-s1">line</span> <span class="pl-c1">in</span> <span class="pl-s1">text</span>.<span class="pl-en">splitlines</span>():
+            <span class="pl-s1">separator</span> <span class="pl-c1">=</span> <span class="pl-s1">line</span>.<span class="pl-en">startswith</span>(<span class="pl-s">"_ "</span> <span class="pl-c1">*</span> <span class="pl-c1">10</span>)
+            <span class="pl-k">if</span> <span class="pl-s1">separator</span>:
+                <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">line</span>[:<span class="pl-c1">80</span>])
+            <span class="pl-k">else</span>:
+                <span class="pl-s1">exception</span> <span class="pl-c1">=</span> <span class="pl-s1">line</span>.<span class="pl-en">startswith</span>(<span class="pl-s">"E   "</span>)
+                <span class="pl-k">if</span> <span class="pl-s1">exception</span>:
+                    <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">span</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">line</span>)), <span class="pl-s1">class_</span><span class="pl-c1">=</span><span class="pl-s">"error"</span>))
+                <span class="pl-k">else</span>:
+                    <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">line</span>)))
+            <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">br</span>())
+
+    <span class="pl-k">for</span> <span class="pl-s1">section</span> <span class="pl-c1">in</span> <span class="pl-s1">report</span>.<span class="pl-s1">sections</span>:
+        <span class="pl-s1">header</span>, <span class="pl-s1">content</span> <span class="pl-c1">=</span> <span class="pl-en">map</span>(<span class="pl-s1">escape</span>, <span class="pl-s1">section</span>)
+
+        <span class="pl-s1">converter</span> <span class="pl-c1">=</span> <span class="pl-v">Ansi2HTMLConverter</span>(
+            <span class="pl-s1">inline</span><span class="pl-c1">=</span><span class="pl-c1">False</span>, <span class="pl-s1">escaped</span><span class="pl-c1">=</span><span class="pl-c1">False</span>,
+        )
+        <span class="pl-s1">content</span> <span class="pl-c1">=</span> <span class="pl-s1">converter</span>.<span class="pl-en">convert</span>(<span class="pl-s1">content</span>, <span class="pl-s1">full</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
+
+        <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-en">raw</span>(<span class="pl-s1">content</span>))
+        <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">br</span>())
+    <span class="pl-s1">data</span>.<span class="pl-en">append</span>(<span class="pl-s1">log</span>)</pre></div>
 <h2>最后</h2>
 <p>工具地址： <a href="https://github.com/hanxi/version-check-tool">https://github.com/hanxi/version-check-tool</a></p>
             </div>
