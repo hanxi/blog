@@ -1,0 +1,733 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">golang脏数据模块</div>
+            <div id="content" class="markdown-body">
+                <h2>第一种方案</h2>
+<p>方案研究：</p>
+<ul>
+<li>采用 protobuf 做数据格式定义
+<ul>
+<li><a href="https://pkg.go.dev/google.golang.org/protobuf" rel="nofollow">https://pkg.go.dev/google.golang.org/protobuf</a></li>
+</ul>
+</li>
+<li>语法采用 proto3</li>
+<li>需要修改 protoc-gen-go 代码
+<ul>
+<li>新增生成 Setter 接口</li>
+<li>Field 改为下划线加小写字母开头的私有字段</li>
+<li>参考 <a class="commit-link" data-hovercard-type="commit" data-hovercard-url="https://github.com/jspiro/protobuf/commit/348d24f662a77d13e21dd77385d74575b7fc547e/hovercard" href="https://github.com/jspiro/protobuf/commit/348d24f662a77d13e21dd77385d74575b7fc547e">jspiro/protobuf@<tt>348d24f</tt></a></li>
+<li>在 Setter 接口添加数据写脏逻辑
+<ul>
+<li>采用观察者模式</li>
+<li><a href="https://refactoringguru.cn/design-patterns/observer/go/example" rel="nofollow">https://refactoringguru.cn/design-patterns/observer/go/example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>假设数据格式定义如下：</p>
+<pre lang="proto3" class="notranslate"><code class="notranslate">syntax = "proto3";
+
+package example;
+
+option go_package = "github.com/hanxi/godata/example";
+
+message PhoneNumber {
+    string number = 1;
+}
+</code></pre>
+<p>生成代码如下:</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> example
+
+<span class="pl-k">type</span> <span class="pl-smi">Observer</span> <span class="pl-k">interface</span> {
+    <span class="pl-c1">OnDirty</span>(<span class="pl-k">interface</span>{})
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">PhoneNumber</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">_number</span> <span class="pl-smi">string</span> <span class="pl-s">`protobuf:"bytes,1,opt,name=number,proto3" json:"number,omitempty"`</span>
+	<span class="pl-c1">observer</span> <span class="pl-smi">Observer</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">GetNumber</span>() <span class="pl-smi">string</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">x</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-s1">x</span>.<span class="pl-c1">_number</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s">""</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">SetNumber</span>(<span class="pl-s1">_number</span> <span class="pl-smi">string</span>) {
+	<span class="pl-s1">x</span>.<span class="pl-c1">_number</span> <span class="pl-c1">=</span> <span class="pl-s1">_number</span>
+	<span class="pl-s1">x</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">NotifyDirty</span>() {
+	<span class="pl-k">if</span> <span class="pl-s1">observer</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+	    <span class="pl-s1">observer</span>.<span class="pl-en">OnDirty</span>(<span class="pl-s1">x</span>)
+    }
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">Attach</span>(<span class="pl-s1">o</span> <span class="pl-smi">Observer</span>) {
+    <span class="pl-s1">x</span>.<span class="pl-c1">observer</span> <span class="pl-c1">=</span> <span class="pl-s1">o</span>
+}</pre></div>
+<p>实现一个观察者</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> godata
+
+<span class="pl-k">type</span> <span class="pl-smi">Customer</span> <span class="pl-k">struct</span> {}
+
+<span class="pl-k">func</span> (<span class="pl-s1">c</span> <span class="pl-c1">*</span><span class="pl-smi">Customer</span>) <span class="pl-en">OnDirty</span>(<span class="pl-s1">i</span> <span class="pl-k">interface</span> {}) {
+	<span class="pl-s1">fmt</span>.<span class="pl-en">Println</span>(<span class="pl-s">"OnDirty"</span>, <span class="pl-s1">i</span>)
+}</pre></div>
+<p>测试代码</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> main
+
+<span class="pl-k">func</span> <span class="pl-en">main</span>() {
+	<span class="pl-s1">pn</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span>pb.<span class="pl-smi">PhoneNumber</span>{}
+    <span class="pl-s1">observer</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">Customer</span>{}
+    <span class="pl-s1">pn</span>.<span class="pl-en">Attach</span>(<span class="pl-s1">observer</span>)
+	<span class="pl-s1">pn</span>.<span class="pl-en">SetNumber</span>(<span class="pl-s">"123"</span>)
+}</pre></div>
+<p>关于写脏后的处理逻辑，只对 root 节点处理，这样就需要每个子节点存放 root 节点的信息。对于子节点，预计导出接口如下：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">type</span> <span class="pl-smi">PhoneNumber</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">_my</span>     <span class="pl-c1">*</span><span class="pl-smi">User</span>             <span class="pl-s">`protobuf:"bytes,3,opt,name=my,proto3" json:"my,omitempty"`</span>
+	<span class="pl-c1">_root</span> <span class="pl-k">interface</span>{}
+}
+
+<span class="pl-c">// 初始化自己的时候让 root 为自己</span>
+<span class="pl-k">func</span> <span class="pl-en">NewPhoneNumber</span>() <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span> {
+	<span class="pl-s1">this</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">PhoneNumber</span> {}
+	<span class="pl-s1">this</span>.<span class="pl-c1">_root</span> <span class="pl-c1">=</span> <span class="pl-s1">this</span>
+	<span class="pl-k">return</span> <span class="pl-s1">this</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">GetMy</span>() <span class="pl-c1">*</span><span class="pl-smi">User</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">x</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-s1">x</span>.<span class="pl-c1">_my</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-c1">nil</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">SetMy</span>(<span class="pl-s1">user</span> <span class="pl-c1">*</span><span class="pl-smi">User</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">x</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">x</span>.<span class="pl-c1">_my</span> <span class="pl-c1">=</span> <span class="pl-s1">user</span>
+		<span class="pl-c">// user 的 root 为 x 的 root</span>
+		<span class="pl-s1">user</span>.<span class="pl-c1">_root</span> <span class="pl-c1">=</span> <span class="pl-s1">x</span>.<span class="pl-c1">_root</span>
+		<span class="pl-s1">x</span>.<span class="pl-en">NotifyDirty</span>()
+	}
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">NotifyDirty</span>() {
+	<span class="pl-k">if</span> <span class="pl-s1">observer</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+	    <span class="pl-s1">observer</span>.<span class="pl-en">OnDirty</span>(<span class="pl-s1">x</span>)
+    }
+	<span class="pl-k">if</span> <span class="pl-s1">x</span>.<span class="pl-c1">_root</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">x</span>.<span class="pl-c1">_root</span>.<span class="pl-en">NotifyDirty</span>()
+	}
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">User</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">_name</span> <span class="pl-smi">string</span> <span class="pl-s">`protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`</span>
+	<span class="pl-c1">_age</span>  <span class="pl-smi">uint32</span> <span class="pl-s">`protobuf:"varint,2,opt,name=age,proto3" json:"age,omitempty"`</span>
+	<span class="pl-c1">_root</span> <span class="pl-k">interface</span>{}
+}
+
+<span class="pl-k">func</span> <span class="pl-en">NewUser</span>() <span class="pl-c1">*</span><span class="pl-smi">User</span> {
+	<span class="pl-s1">this</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">User</span> {}
+	<span class="pl-s1">this</span>.<span class="pl-c1">_root</span> <span class="pl-c1">=</span> <span class="pl-s1">this</span>
+	<span class="pl-k">return</span> <span class="pl-s1">this</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">User</span>) <span class="pl-en">NotifyDirty</span>() {
+	<span class="pl-k">if</span> <span class="pl-s1">observer</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+	    <span class="pl-s1">observer</span>.<span class="pl-en">OnDirty</span>(<span class="pl-s1">x</span>)
+    }
+	<span class="pl-k">if</span> <span class="pl-s1">x</span>.<span class="pl-c1">_root</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">x</span>.<span class="pl-c1">_root</span>.<span class="pl-en">NotifyDirty</span>()
+	}
+}</pre></div>
+<p>这样一直往 root 传递 dirty 。只需要在 root 节点 attach 即可。</p>
+<p>接下来说说如何处理 map 类型，对 map 类型进行封装</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">type</span> <span class="pl-smi">DataObject</span> <span class="pl-k">interface</span> {
+	<span class="pl-c1">NotifyDirty</span>()
+	<span class="pl-c1">Attach</span>()
+}
+<span class="pl-k">type</span> <span class="pl-smi">PhoneNumber</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">_number</span> <span class="pl-smi">string</span>            <span class="pl-s">`protobuf:"bytes,1,opt,name=number,proto3" json:"number,omitempty"`</span>
+	<span class="pl-c1">_users</span>  <span class="pl-k">map</span>[<span class="pl-smi">uint32</span>]<span class="pl-smi">string</span> <span class="pl-s">`protobuf:"bytes,2,rep,name=users,proto3" json:"users,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`</span>
+	<span class="pl-c1">_wrap_users</span> <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span>
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">WrapMapUsers</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">_parent</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>
+	<span class="pl-c1">_root</span> <span class="pl-smi">DataObject</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">w</span> <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span>) <span class="pl-en">Set</span>(<span class="pl-s1">key</span> <span class="pl-smi">uint32</span>, <span class="pl-s1">value</span> <span class="pl-smi">string</span>) {
+	<span class="pl-s1">w</span>.<span class="pl-c1">_parent</span>.<span class="pl-c1">_users</span>[<span class="pl-s1">key</span>] <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">w</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">w</span> <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span>) <span class="pl-en">Delete</span>(<span class="pl-s1">key</span> <span class="pl-smi">uint32</span>) {
+	<span class="pl-en">delete</span>(<span class="pl-s1">w</span>.<span class="pl-c1">_parent</span>.<span class="pl-c1">_users</span>, <span class="pl-s1">key</span>)
+	<span class="pl-s1">w</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">w</span> <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span>) <span class="pl-en">Get</span>(<span class="pl-s1">key</span> <span class="pl-smi">uint32</span>) <span class="pl-smi">sting</span> {
+	<span class="pl-k">return</span> <span class="pl-s1">w</span>.<span class="pl-c1">_parent</span>.<span class="pl-c1">_users</span>[<span class="pl-s1">key</span>]
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">GetUsers</span>() <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">x</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-s1">x</span>.<span class="pl-c1">_wrap_users</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-c1">nil</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-en">SetUsers</span>(<span class="pl-s1">v</span> <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">x</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">x</span>.<span class="pl-c1">_wrap_users</span> <span class="pl-c1">=</span> <span class="pl-s1">v</span>
+		<span class="pl-c">// v 的 root 为 x 的 root</span>
+		<span class="pl-s1">v</span>.<span class="pl-c1">_root</span> <span class="pl-c1">=</span> <span class="pl-s1">x</span>.<span class="pl-c1">_root</span>
+		<span class="pl-s1">x</span>.<span class="pl-en">NotifyDirty</span>()
+	}
+}
+<span class="pl-k">func</span> <span class="pl-en">NewWrapMapUsers</span>(<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">PhoneNumber</span>) <span class="pl-c1">*</span><span class="pl-smi">WrapMapUsers</span> {
+	<span class="pl-s1">this</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">WrapMapUsers</span> {}
+	<span class="pl-s1">this</span>.<span class="pl-c1">_root</span> <span class="pl-c1">=</span> <span class="pl-s1">this</span>
+	<span class="pl-s1">this</span>.<span class="pl-c1">_parent</span> <span class="pl-c1">=</span> <span class="pl-s1">x</span>
+	<span class="pl-k">return</span> <span class="pl-s1">this</span>
+}</pre></div>
+<p>处理 map 的难点在于如何修改 protoc-gen-go ，使其可以生成 wrap map 结构，数据还是存储在当前节点， wrap 结构里没有数据，这样可以做到不修改 protobuf 的数据打包和解包。</p>
+<p>map 的 key 只需要支持 int 和 sting 这些基础数据即可，value 可以是自定义的结构，跟前面的 <code class="notranslate">_my     *User</code> 处理方式类似。</p>
+<p>slice 结构就先不考虑了，处理方式和 map 差不多。</p>
+<hr>
+<p>今天先研究到这里，下次先把上面的代码手写让其可以正常运行，需要写完 dirty 后所作的事情，比如 dirty 后把数据写入 redis 或者 mysql 或者 mongodb（如果是要实现 mongodb 的部分 set，需要修改数据结构，每个节点得有 parent，一直追溯到 root 拼接成 set 的 key ），然后再想办法写代码生成。</p>
+<hr>
+<p>脏树： dirty tree</p>
+<p>首次写脏操作：</p>
+<ul>
+<li>a.b.x = p1</li>
+<li>a.b.y = p2</li>
+<li>a.c.z = p3</li>
+</ul>
+<p>写脏结果：<br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/236642187-de34d518-2aba-4f33-a96b-661d3badf213.png"><img src="https://user-images.githubusercontent.com/1185757/236642187-de34d518-2aba-4f33-a96b-661d3badf213.png" alt="Pasted image 20230416003949" style="max-width: 100%;"></a></p>
+<p>再次写脏操作：</p>
+<ul>
+<li>a.b.x.t = p4 (不更新脏节点，因为a.b.x 已经脏了)</li>
+<li>a.c = p5（更新脏节点，把 z 节点标记为不脏了）</li>
+</ul>
+<p>写脏结果：<br>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://user-images.githubusercontent.com/1185757/236642194-362edad0-677a-4370-962b-bd760c5d5aac.png"><img src="https://user-images.githubusercontent.com/1185757/236642194-362edad0-677a-4370-962b-bd760c5d5aac.png" alt="Pasted image 20230416004042" style="max-width: 100%;"></a></p>
+<hr>
+<p>example 基本逻辑已完成 <a href="https://github.com/hanxi/godata/blob/main/example_test.go">https://github.com/hanxi/godata/blob/main/example_test.go</a></p>
+<p>接下来先写一个定时落地数据库的逻辑，选 MongoDB 。</p>
+<p>数据结构：</p>
+<pre class="notranslate"><code class="notranslate">// user
+{
+	uid: 1,
+	account: "xxx",
+	baseinfo: {
+		name: "hanxi",
+		age: 18
+	},
+	prop:{
+		[proptype]: {
+			[propvalue]: size,
+		}
+	},
+	wanfa1:{
+		updatetime: 0
+	}
+}
+</code></pre>
+<hr>
+<h2>另一种方案</h2>
+<p>golang 的 ast 库可以很好的解析代码和生成代码，考虑使用 ast 来生成代码。</p>
+<p>定义输入的数据结构：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">type</span> <span class="pl-smi">Person</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">name</span>    <span class="pl-smi">string</span>
+	<span class="pl-c1">age</span>     <span class="pl-smi">int</span>
+	<span class="pl-c1">friends</span> []<span class="pl-c1">*</span><span class="pl-smi">Person</span>
+	<span class="pl-c1">peoples</span> <span class="pl-k">map</span>[<span class="pl-smi">string</span>]<span class="pl-c1">*</span><span class="pl-smi">Person</span>
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">User</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">baseInfo</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>
+	<span class="pl-c1">score</span>    <span class="pl-smi">uint32</span>
+}</pre></div>
+<p>为了防止 slice 和 map 在外部直接使用，需要将其包裹起来，期望生成的代码是下面的样子：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">type</span> <span class="pl-smi">Person</span> <span class="pl-k">struct</span> {
+	<span class="pl-smi">Base</span>
+	<span class="pl-c1">name</span>          <span class="pl-smi">string</span>
+	<span class="pl-c1">age</span>           <span class="pl-smi">int</span>
+	<span class="pl-c1">_wrap_friends</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span>
+	<span class="pl-c1">_wrap_peoples</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span>
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">WrapPersonFriends</span> <span class="pl-k">struct</span> {
+	<span class="pl-smi">Base</span>
+	<span class="pl-c1">friends</span> []<span class="pl-c1">*</span><span class="pl-smi">Person</span>
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">WrapPersonPeoples</span> <span class="pl-k">struct</span> {
+	<span class="pl-smi">Base</span>
+	<span class="pl-c1">peoples</span> <span class="pl-k">map</span>[<span class="pl-smi">string</span>]<span class="pl-c1">*</span><span class="pl-smi">Person</span>
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">User</span> <span class="pl-k">struct</span> {
+	<span class="pl-smi">Base</span>
+	<span class="pl-c1">baseInfo</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>
+	<span class="pl-c1">score</span>    <span class="pl-smi">uint32</span>
+}</pre></div>
+<p>Base 为固定的代码：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">type</span> <span class="pl-smi">Observer</span> <span class="pl-k">interface</span> {
+	<span class="pl-c1">OnDirty</span>(<span class="pl-k">interface</span>{})
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">DataObject</span> <span class="pl-k">interface</span> {
+	<span class="pl-c1">NotifyDirty</span>()
+	<span class="pl-c1">Attach</span>(<span class="pl-s1">o</span> <span class="pl-smi">Observer</span>)
+}
+
+<span class="pl-k">type</span> <span class="pl-smi">Base</span> <span class="pl-k">struct</span> {
+	<span class="pl-smi">DataObject</span>
+	<span class="pl-c1">observer</span> <span class="pl-smi">Observer</span>
+	<span class="pl-c1">root</span>     <span class="pl-smi">DataObject</span>
+	<span class="pl-c1">self</span>     <span class="pl-smi">DataObject</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">Base</span>) <span class="pl-en">NotifyDirty</span>() {
+	<span class="pl-k">if</span> <span class="pl-s1">x</span>.<span class="pl-c1">observer</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">x</span>.<span class="pl-c1">observer</span>.<span class="pl-en">OnDirty</span>(<span class="pl-s1">x</span>)
+	}
+	<span class="pl-k">if</span> <span class="pl-s1">x</span>.<span class="pl-c1">root</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> <span class="pl-c1">&amp;&amp;</span> <span class="pl-s1">x</span>.<span class="pl-c1">root</span> <span class="pl-c1">!=</span> <span class="pl-s1">x</span>.<span class="pl-c1">self</span> {
+		<span class="pl-c">// 非根节点往上传递消息</span>
+		<span class="pl-s1">x</span>.<span class="pl-c1">root</span>.<span class="pl-en">NotifyDirty</span>()
+	}
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">x</span> <span class="pl-c1">*</span><span class="pl-smi">Base</span>) <span class="pl-en">Attach</span>(<span class="pl-s1">o</span> <span class="pl-smi">Observer</span>) {
+	<span class="pl-s1">x</span>.<span class="pl-c1">observer</span> <span class="pl-c1">=</span> <span class="pl-s1">o</span>
+}</pre></div>
+<p>期望非 wrap 部分生成的代码如下：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> <span class="pl-en">NewPerson</span>() <span class="pl-c1">*</span><span class="pl-smi">Person</span> {
+	<span class="pl-s1">p</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">Person</span>{}
+	<span class="pl-s1">p</span>.<span class="pl-c1">self</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">SetName</span>(<span class="pl-s1">value</span> <span class="pl-smi">string</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">name</span> <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">GetName</span>() <span class="pl-smi">string</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-s">""</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">name</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">SetAge</span>(<span class="pl-s1">value</span> <span class="pl-smi">int</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">age</span> <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">GetAge</span>() <span class="pl-smi">int</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-c1">0</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">age</span>
+}
+
+<span class="pl-k">func</span> <span class="pl-en">NewUser</span>() <span class="pl-c1">*</span><span class="pl-smi">User</span> {
+	<span class="pl-s1">p</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">User</span>{}
+	<span class="pl-s1">p</span>.<span class="pl-c1">self</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">User</span>) <span class="pl-en">SetBaseInfo</span>(<span class="pl-s1">value</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">baseInfo</span> <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">value</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">root</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">User</span>) <span class="pl-en">GetBaseInfo</span>() <span class="pl-c1">*</span><span class="pl-smi">Person</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-c1">nil</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">baseInfo</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">User</span>) <span class="pl-en">SetScore</span>(<span class="pl-s1">value</span> <span class="pl-smi">uint32</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">score</span> <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">User</span>) <span class="pl-en">GetScore</span>() <span class="pl-smi">uint32</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-c1">0</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">score</span>
+}</pre></div>
+<p>wrap 部分需要慎重考虑，set 的参数只能是包裹好的数据，get 返回的也只是包裹好的数据，不提供接口获取到包裹里的 slice 和 map 。</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">SetFriends</span>(<span class="pl-s1">value</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">_wrap_friends</span> <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">value</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">root</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">GetFriends</span>() <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-c1">nil</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">_wrap_friends</span>
+}</pre></div>
+<p>可以给两个 New 方法，方便不同的情况初始化：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> <span class="pl-en">NewWrapPersonFriends</span>() <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span> {
+	<span class="pl-s1">p</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">WrapPersonFriends</span>{}
+	<span class="pl-s1">p</span>.<span class="pl-c1">friends</span> <span class="pl-c1">=</span> <span class="pl-en">make</span>([]<span class="pl-c1">*</span><span class="pl-smi">Person</span>, <span class="pl-c1">0</span>)
+	<span class="pl-s1">p</span>.<span class="pl-c1">self</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>
+}
+
+<span class="pl-k">func</span> <span class="pl-en">NewWrapPersonFriendsFromSlice</span>(<span class="pl-s1">friends</span> []<span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span> {
+	<span class="pl-s1">p</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">WrapPersonFriends</span>{}
+	<span class="pl-s1">p</span>.<span class="pl-c1">friends</span> <span class="pl-c1">=</span> <span class="pl-en">make</span>([]<span class="pl-c1">*</span><span class="pl-smi">Person</span>, <span class="pl-c1">0</span>)
+	<span class="pl-s1">p</span>.<span class="pl-c1">friends</span> <span class="pl-c1">=</span> <span class="pl-en">append</span>(<span class="pl-s1">p</span>.<span class="pl-c1">friends</span>, <span class="pl-s1">friends</span><span class="pl-c1">...</span>)
+	<span class="pl-s1">p</span>.<span class="pl-c1">self</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>
+}</pre></div>
+<p>给 wrap slice 加个 append 方法：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span>) <span class="pl-en">Append</span>(<span class="pl-s1">value</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">friends</span> <span class="pl-c1">=</span> <span class="pl-en">append</span>(<span class="pl-s1">p</span>.<span class="pl-c1">friends</span>, <span class="pl-s1">value</span>)
+	<span class="pl-s1">value</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">root</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}</pre></div>
+<p>由于不允许直接获取到 slice ，所以新增一个 foreach 方法用于遍历：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonFriends</span>) <span class="pl-en">Foreach</span>(<span class="pl-s1">f</span> <span class="pl-k">func</span>(<span class="pl-c1">*</span><span class="pl-smi">Person</span>)) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-k">for</span> <span class="pl-s1">_</span>, <span class="pl-s1">v</span> <span class="pl-c1">:=</span> <span class="pl-k">range</span> <span class="pl-s1">p</span>.<span class="pl-c1">friends</span> {
+		<span class="pl-en">f</span>(<span class="pl-s1">v</span>)
+	}
+}</pre></div>
+<p>对于 map 类型，预期是这样的：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">SetPeoples</span>(<span class="pl-s1">value</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">_wrap_peoples</span> <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">value</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">root</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-en">GetPeoples</span>() <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span> <span class="pl-c1">nil</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">_wrap_peoples</span>
+}
+
+<span class="pl-k">func</span> <span class="pl-en">NewWrapPersonPeoples</span>() <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span> {
+	<span class="pl-s1">p</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">WrapPersonPeoples</span>{}
+	<span class="pl-s1">p</span>.<span class="pl-c1">peoples</span> <span class="pl-c1">=</span> <span class="pl-en">make</span>(<span class="pl-k">map</span>[<span class="pl-smi">string</span>]<span class="pl-c1">*</span><span class="pl-smi">Person</span>)
+	<span class="pl-s1">p</span>.<span class="pl-c1">self</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>
+}
+
+<span class="pl-k">func</span> <span class="pl-en">NewWrapPersonPeoplesFromMap</span>(<span class="pl-s1">peoples</span> <span class="pl-k">map</span>[<span class="pl-smi">string</span>]<span class="pl-c1">*</span><span class="pl-smi">Person</span>) <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span> {
+	<span class="pl-s1">p</span> <span class="pl-c1">:=</span> <span class="pl-c1">&amp;</span><span class="pl-smi">WrapPersonPeoples</span>{}
+	<span class="pl-s1">p</span>.<span class="pl-c1">peoples</span> <span class="pl-c1">=</span> <span class="pl-en">make</span>(<span class="pl-k">map</span>[<span class="pl-smi">string</span>]<span class="pl-c1">*</span><span class="pl-smi">Person</span>)
+	<span class="pl-k">for</span> <span class="pl-s1">k</span>,<span class="pl-s1">v</span> <span class="pl-c1">:=</span> <span class="pl-k">range</span> <span class="pl-s1">peoples</span> {
+		<span class="pl-s1">p</span>.<span class="pl-c1">peoples</span>[<span class="pl-s1">k</span>] <span class="pl-c1">=</span> <span class="pl-s1">v</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">self</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>
+}</pre></div>
+<p>再提供 Set , Get , Delete, Foreach 接口：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span>) <span class="pl-en">Get</span>(<span class="pl-s1">key</span> <span class="pl-smi">string</span>) <span class="pl-c1">*</span><span class="pl-smi">Person</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">p</span>.<span class="pl-c1">peoples</span>[<span class="pl-s1">key</span>]
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span>) <span class="pl-en">Set</span>(<span class="pl-s1">key</span> <span class="pl-smi">string</span>, <span class="pl-s1">value</span> <span class="pl-c1">*</span><span class="pl-smi">Person</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-s1">p</span>.<span class="pl-c1">peoples</span>[<span class="pl-s1">key</span>] <span class="pl-c1">=</span> <span class="pl-s1">value</span>
+	<span class="pl-s1">value</span>.<span class="pl-c1">root</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">root</span>
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span>) <span class="pl-en">Delete</span>(<span class="pl-s1">key</span> <span class="pl-smi">string</span>) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-en">delete</span>(<span class="pl-s1">p</span>.<span class="pl-c1">peoples</span>, <span class="pl-s1">key</span>)
+	<span class="pl-s1">p</span>.<span class="pl-en">NotifyDirty</span>()
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">WrapPersonPeoples</span>) <span class="pl-en">Foreach</span>(<span class="pl-s1">f</span> <span class="pl-k">func</span>(<span class="pl-smi">string</span>, <span class="pl-c1">*</span><span class="pl-smi">Person</span>)) {
+	<span class="pl-k">if</span> <span class="pl-s1">p</span> <span class="pl-c1">==</span> <span class="pl-c1">nil</span> {
+		<span class="pl-k">return</span>
+	}
+	<span class="pl-k">for</span> <span class="pl-s1">k</span>, <span class="pl-s1">v</span> <span class="pl-c1">:=</span> <span class="pl-k">range</span> <span class="pl-s1">p</span>.<span class="pl-c1">peoples</span> {
+		<span class="pl-en">f</span>(<span class="pl-s1">k</span>, <span class="pl-s1">v</span>)
+	}
+}</pre></div>
+<h2>再设计一下文件目录结构</h2>
+<p>输入目录：<br>
+dirty_tmpl/user.tmpl<br>
+dirty_tmpl/wanfa1.tmpl<br>
+dirty_tmpl/wanfa2.tmpl</p>
+<p>输出目录：<br>
+包名：dirty_out<br>
+dirty_out/base.go # 固定文件<br>
+dirty_out/user.go<br>
+dirty_out/wanfa1.go</p>
+<p>工具使用 bash 脚本调用</p>
+<p>gen_dirty.sh</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ls dirty_tmpl <span class="pl-k">|</span> <span class="pl-k">while</span> <span class="pl-c1">read</span> line<span class="pl-k">;</span> <span class="pl-k">do</span>
+    name=<span class="pl-smi">${line<span class="pl-k">%%</span>.<span class="pl-k">*</span>}</span>
+    <span class="pl-c1">echo</span> dirty_gen -tmpl=dirty_tmpl/<span class="pl-smi">$line</span> -out=dirty_out/<span class="pl-smi">$name</span>.go
+<span class="pl-k">done</span></pre></div>
+<p>就是对每个文件生成对应代码：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">dirty_gen -tmpl=dirty_tmpl/user.tmpl -out=dirty_out/user.go
+dirty_gen -tmpl=dirty_tmpl/wanfa1.tmpl -out=dirty_out/wanfa1.go
+dirty_gen -tmpl=dirty_tmpl/wanfa2.tmpl -out=dirty_out/wanfa2.go</pre></div>
+<p>其他地方使用可以这样：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">import</span> dirty_out<span class="pl-s"></span>
+
+<span class="pl-s1">dirty_out</span>.<span class="pl-en">NewXXX</span>()
+</pre></div>
+<p>进展：目前就差实现 dirty_gen 程序了，初版的 dirty_gen.go 如下：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> main
+
+<span class="pl-k">import</span> (
+	<span class="pl-s">"bytes"</span>
+	<span class="pl-s">"flag"</span>
+	<span class="pl-s">"fmt"</span>
+	<span class="pl-s">"go/ast"</span>
+	<span class="pl-s">"go/format"</span>
+	<span class="pl-s">"go/parser"</span>
+	<span class="pl-s">"go/token"</span>
+	<span class="pl-s">"io/ioutil"</span>
+	<span class="pl-s">"strings"</span>
+)
+
+<span class="pl-k">func</span> <span class="pl-en">main</span>() {
+	<span class="pl-k">var</span> <span class="pl-s1">filename</span> <span class="pl-smi">string</span>
+	<span class="pl-s1">flag</span>.<span class="pl-en">StringVar</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">filename</span>, <span class="pl-s">"filename"</span>, <span class="pl-s">"example.go"</span>, <span class="pl-s">"The input struct file."</span>)
+	<span class="pl-s1">flag</span>.<span class="pl-en">Parse</span>()
+
+	<span class="pl-s1">src</span>, <span class="pl-s1">err</span> <span class="pl-c1">:=</span> <span class="pl-s1">ioutil</span>.<span class="pl-en">ReadFile</span>(<span class="pl-s1">filename</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">err</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-en">panic</span>(<span class="pl-s1">err</span>)
+	}
+
+	<span class="pl-s1">fset</span> <span class="pl-c1">:=</span> <span class="pl-s1">token</span>.<span class="pl-en">NewFileSet</span>()
+	<span class="pl-s1">f</span>, <span class="pl-s1">err</span> <span class="pl-c1">:=</span> <span class="pl-s1">parser</span>.<span class="pl-en">ParseFile</span>(<span class="pl-s1">fset</span>, <span class="pl-s">""</span>, <span class="pl-s1">src</span>, <span class="pl-c1">0</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">err</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-en">panic</span>(<span class="pl-s1">err</span>)
+	}
+
+	<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"package %s<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">f</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>)
+
+	<span class="pl-k">for</span> <span class="pl-s1">_</span>, <span class="pl-s1">decl</span> <span class="pl-c1">:=</span> <span class="pl-k">range</span> <span class="pl-s1">f</span>.<span class="pl-c1">Decls</span> {
+		<span class="pl-s1">genDecl</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">decl</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">GenDecl</span>)
+		<span class="pl-k">if</span> <span class="pl-c1">!</span><span class="pl-s1">ok</span> <span class="pl-c1">||</span> <span class="pl-s1">genDecl</span>.<span class="pl-c1">Tok</span> <span class="pl-c1">!=</span> <span class="pl-s1">token</span>.<span class="pl-c1">TYPE</span> {
+			<span class="pl-k">continue</span>
+		}
+
+		<span class="pl-k">for</span> <span class="pl-s1">_</span>, <span class="pl-s1">spec</span> <span class="pl-c1">:=</span> <span class="pl-k">range</span> <span class="pl-s1">genDecl</span>.<span class="pl-c1">Specs</span> {
+			<span class="pl-s1">typeSpec</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">spec</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">TypeSpec</span>)
+			<span class="pl-k">if</span> <span class="pl-c1">!</span><span class="pl-s1">ok</span> {
+				<span class="pl-k">continue</span>
+			}
+
+			<span class="pl-s1">structType</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Type</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">StructType</span>)
+			<span class="pl-k">if</span> <span class="pl-c1">!</span><span class="pl-s1">ok</span> {
+				<span class="pl-k">continue</span>
+			}
+
+			<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func New%s() *%s {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p := &amp;%s{}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.self = p<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.root = p<span class="pl-cce">\n</span><span class="pl-cce">\t</span>return p<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>)
+
+			<span class="pl-k">for</span> <span class="pl-s1">_</span>, <span class="pl-s1">field</span> <span class="pl-c1">:=</span> <span class="pl-k">range</span> <span class="pl-s1">structType</span>.<span class="pl-c1">Fields</span>.<span class="pl-c1">List</span> {
+				<span class="pl-k">if</span> <span class="pl-en">len</span>(<span class="pl-s1">field</span>.<span class="pl-c1">Names</span>) <span class="pl-c1">==</span> <span class="pl-c1">0</span> {
+					<span class="pl-k">continue</span>
+				}
+				<span class="pl-s1">fieldName</span> <span class="pl-c1">:=</span> <span class="pl-s1">field</span>.<span class="pl-c1">Names</span>[<span class="pl-c1">0</span>].<span class="pl-c1">Name</span>
+				<span class="pl-s1">fieldType</span> <span class="pl-c1">:=</span> <span class="pl-en">getTypeString</span>(<span class="pl-s1">fset</span>, <span class="pl-s1">field</span>.<span class="pl-c1">Type</span>)
+
+				<span class="pl-c">// Generate Get and Set methods for all fields</span>
+				<span class="pl-k">if</span> <span class="pl-en">fieldIsStarStruct</span>(<span class="pl-s1">field</span>) {
+					<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Set%s(value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s = value<span class="pl-cce">\n</span><span class="pl-cce">\t</span>value.root = p.root<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">fieldType</span>, <span class="pl-s1">fieldName</span>)
+				} <span class="pl-k">else</span> {
+					<span class="pl-k">if</span> <span class="pl-en">fieldIsArrayStarStruct</span>(<span class="pl-s1">field</span>) <span class="pl-c1">||</span> <span class="pl-en">fieldIsMapStarStruct</span>(<span class="pl-s1">field</span>) {
+						<span class="pl-s1">setRoot</span> <span class="pl-c1">:=</span> <span class="pl-s">"<span class="pl-cce">\n</span><span class="pl-cce">\t</span>for _,v := range value {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>v.root = p.root<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}"</span>
+						<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Set%s(value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s = value%s<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">fieldType</span>, <span class="pl-s1">fieldName</span>, <span class="pl-s1">setRoot</span>)
+					} <span class="pl-k">else</span> {
+						<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Set%s(value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s = value<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">fieldType</span>, <span class="pl-s1">fieldName</span>)
+					}
+				}
+				<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Get%s() %s {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return %s<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>return p.%s<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">fieldType</span>, <span class="pl-en">getZeroValue</span>(<span class="pl-s1">fieldType</span>), <span class="pl-s1">fieldName</span>)
+
+				<span class="pl-c">// Generate Append method for slice fields</span>
+				<span class="pl-s1">arrType</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">field</span>.<span class="pl-c1">Type</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">ArrayType</span>)
+				<span class="pl-k">if</span> <span class="pl-s1">ok</span> {
+					<span class="pl-k">if</span> <span class="pl-en">isStarStruct</span>(<span class="pl-s1">arrType</span>.<span class="pl-c1">Elt</span>) {
+						<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Append%s(value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s = append(p.%s, value)<span class="pl-cce">\n</span><span class="pl-cce">\t</span>value.root = p.root<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">fieldType</span>[<span class="pl-c1">2</span>:], <span class="pl-s1">fieldName</span>, <span class="pl-s1">fieldName</span>)
+					} <span class="pl-k">else</span> {
+						<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Append%s(value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s = append(p.%s, value)<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">fieldType</span>[<span class="pl-c1">2</span>:], <span class="pl-s1">fieldName</span>, <span class="pl-s1">fieldName</span>)
+					}
+				}
+
+				<span class="pl-c">// Generate Get and Set methods for map fields</span>
+				<span class="pl-s1">mapType</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">field</span>.<span class="pl-c1">Type</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">MapType</span>)
+				<span class="pl-k">if</span> <span class="pl-s1">ok</span> {
+					<span class="pl-s1">keyType</span> <span class="pl-c1">:=</span> <span class="pl-en">getTypeString</span>(<span class="pl-s1">fset</span>, <span class="pl-s1">mapType</span>.<span class="pl-c1">Key</span>)
+					<span class="pl-s1">valueType</span> <span class="pl-c1">:=</span> <span class="pl-en">getTypeString</span>(<span class="pl-s1">fset</span>, <span class="pl-s1">mapType</span>.<span class="pl-c1">Value</span>)
+
+					<span class="pl-k">if</span> <span class="pl-en">isStarStruct</span>(<span class="pl-s1">mapType</span>.<span class="pl-c1">Value</span>) {
+						<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Put%s(key %s, value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s[key] = value<span class="pl-cce">\n</span><span class="pl-cce">\t</span>value.root = p.root<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">keyType</span>, <span class="pl-s1">valueType</span>, <span class="pl-s1">fieldName</span>)
+					} <span class="pl-k">else</span> {
+						<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Put%s(key %s, value %s) {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.%s[key] = value<span class="pl-cce">\n</span><span class="pl-cce">\t</span>p.NotifyDirty()<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">keyType</span>, <span class="pl-s1">valueType</span>, <span class="pl-s1">fieldName</span>)
+					}
+
+					<span class="pl-s1">fmt</span>.<span class="pl-en">Printf</span>(<span class="pl-s">"func (p *%s) Lookup%s(key %s) %s {<span class="pl-cce">\n</span><span class="pl-cce">\t</span>if p == nil {<span class="pl-cce">\n</span><span class="pl-cce">\t</span><span class="pl-cce">\t</span>return %s<span class="pl-cce">\n</span><span class="pl-cce">\t</span>}<span class="pl-cce">\n</span><span class="pl-cce">\t</span>return p.%s[key]<span class="pl-cce">\n</span>}<span class="pl-cce">\n</span><span class="pl-cce">\n</span>"</span>, <span class="pl-s1">typeSpec</span>.<span class="pl-c1">Name</span>.<span class="pl-c1">Name</span>, <span class="pl-s1">strings</span>.<span class="pl-en">Title</span>(<span class="pl-s1">fieldName</span>), <span class="pl-s1">keyType</span>, <span class="pl-s1">valueType</span>, <span class="pl-en">getZeroValue</span>(<span class="pl-s1">valueType</span>), <span class="pl-s1">fieldName</span>)
+				}
+			}
+		}
+	}
+}
+
+<span class="pl-k">func</span> <span class="pl-en">getTypeString</span>(<span class="pl-s1">fset</span> <span class="pl-c1">*</span>token.<span class="pl-smi">FileSet</span>, <span class="pl-s1">expr</span> ast.<span class="pl-smi">Expr</span>) <span class="pl-smi">string</span> {
+	<span class="pl-k">var</span> <span class="pl-s1">buf</span> bytes.<span class="pl-smi">Buffer</span>
+	<span class="pl-k">if</span> <span class="pl-s1">err</span> <span class="pl-c1">:=</span> <span class="pl-s1">format</span>.<span class="pl-en">Node</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">buf</span>, <span class="pl-s1">fset</span>, <span class="pl-s1">expr</span>); <span class="pl-s1">err</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-en">panic</span>(<span class="pl-s1">err</span>)
+	}
+	<span class="pl-k">return</span> <span class="pl-s1">buf</span>.<span class="pl-en">String</span>()
+}
+
+<span class="pl-k">func</span> <span class="pl-en">getZeroValue</span>(<span class="pl-s1">fieldType</span> <span class="pl-smi">string</span>) <span class="pl-smi">string</span> {
+	<span class="pl-k">switch</span> <span class="pl-s1">fieldType</span> {
+	<span class="pl-k">case</span> <span class="pl-s">"int"</span>, <span class="pl-s">"int8"</span>, <span class="pl-s">"int16"</span>, <span class="pl-s">"int32"</span>, <span class="pl-s">"int64"</span>:
+		<span class="pl-k">return</span> <span class="pl-s">"0"</span>
+	<span class="pl-k">case</span> <span class="pl-s">"uint"</span>, <span class="pl-s">"uint8"</span>, <span class="pl-s">"uint16"</span>, <span class="pl-s">"uint32"</span>, <span class="pl-s">"uint64"</span>:
+		<span class="pl-k">return</span> <span class="pl-s">"0"</span>
+	<span class="pl-k">case</span> <span class="pl-s">"float32"</span>, <span class="pl-s">"float64"</span>:
+		<span class="pl-k">return</span> <span class="pl-s">"0.0"</span>
+	<span class="pl-k">case</span> <span class="pl-s">"bool"</span>:
+		<span class="pl-k">return</span> <span class="pl-s">"false"</span>
+	<span class="pl-k">case</span> <span class="pl-s">"string"</span>:
+		<span class="pl-k">return</span> <span class="pl-s">"<span class="pl-cce">\"</span><span class="pl-cce">\"</span>"</span>
+	<span class="pl-k">default</span>:
+		<span class="pl-k">return</span> <span class="pl-s">"nil"</span>
+	}
+}
+
+<span class="pl-k">func</span> <span class="pl-en">fieldIsStarStruct</span>(<span class="pl-s1">field</span> <span class="pl-c1">*</span>ast.<span class="pl-smi">Field</span>) <span class="pl-smi">bool</span> {
+	<span class="pl-k">return</span> <span class="pl-en">isStarStruct</span>(<span class="pl-s1">field</span>.<span class="pl-c1">Type</span>)
+}
+
+<span class="pl-k">func</span> <span class="pl-en">isStarStruct</span>(<span class="pl-s1">expr</span> ast.<span class="pl-smi">Expr</span>) <span class="pl-smi">bool</span> {
+	<span class="pl-s1">starExpr</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">expr</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">StarExpr</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">ok</span> {
+		<span class="pl-s1">_</span>, <span class="pl-s1">ok</span> <span class="pl-c1">=</span> <span class="pl-s1">starExpr</span>.<span class="pl-c1">X</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">Ident</span>)
+		<span class="pl-k">if</span> <span class="pl-s1">ok</span> {
+			<span class="pl-k">return</span> <span class="pl-c1">true</span>
+		}
+	}
+
+	<span class="pl-k">return</span> <span class="pl-c1">false</span>
+}
+
+<span class="pl-k">func</span> <span class="pl-en">fieldIsArrayStarStruct</span>(<span class="pl-s1">field</span> <span class="pl-c1">*</span>ast.<span class="pl-smi">Field</span>) <span class="pl-smi">bool</span> {
+	<span class="pl-s1">arrType</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">field</span>.<span class="pl-c1">Type</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">ArrayType</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">ok</span> {
+		<span class="pl-k">if</span> <span class="pl-en">isStarStruct</span>(<span class="pl-s1">arrType</span>.<span class="pl-c1">Elt</span>) {
+			<span class="pl-k">return</span> <span class="pl-c1">true</span>
+		}
+	}
+	<span class="pl-k">return</span> <span class="pl-c1">false</span>
+}
+
+<span class="pl-k">func</span> <span class="pl-en">fieldIsMapStarStruct</span>(<span class="pl-s1">field</span> <span class="pl-c1">*</span>ast.<span class="pl-smi">Field</span>) <span class="pl-smi">bool</span> {
+	<span class="pl-s1">mapType</span>, <span class="pl-s1">ok</span> <span class="pl-c1">:=</span> <span class="pl-s1">field</span>.<span class="pl-c1">Type</span>.(<span class="pl-c1">*</span>ast.<span class="pl-smi">MapType</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">ok</span> {
+		<span class="pl-k">if</span> <span class="pl-en">isStarStruct</span>(<span class="pl-s1">mapType</span>.<span class="pl-c1">Value</span>) {
+			<span class="pl-k">return</span> <span class="pl-c1">true</span>
+		}
+	}
+	<span class="pl-k">return</span> <span class="pl-c1">false</span>
+}</pre></div>
+<p>这个版本是没有把 slice 和 map 包裹起来的，后续再根据前面设计的格式重新写一版。<br>
+代码地址： <a href="https://github.com/hanxi/dirty-go">https://github.com/hanxi/dirty-go</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/90#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

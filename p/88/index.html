@@ -126,7 +126,7 @@ done
 <span class="pl-en">luaL_addchar</span>(b, <span class="pl-s"><span class="pl-pds">'</span>"<span class="pl-pds">'</span></span>);</pre></div>
 <p>已经重现到。</p>
 <p>再试试只序列化 ENV 的情况，不处理堆栈的情况。终于知道原因了，原来几年前就遇到过。<br>
-<a aria-label="Issue #1" class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="581241802" data-permission-text="Title is private" data-url="https://github.com/hanxi/lua-seri/issues/1" data-hovercard-type="issue" data-hovercard-url="/hanxi/lua-seri/issues/1/hovercard" href="https://github.com/hanxi/lua-seri/issues/1">hanxi/lua-seri#1</a></p>
+<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="581241802" data-permission-text="Title is private" data-url="https://github.com/hanxi/lua-seri/issues/1" data-hovercard-type="issue" data-hovercard-url="/hanxi/lua-seri/issues/1/hovercard" href="https://github.com/hanxi/lua-seri/issues/1">hanxi/lua-seri#1</a></p>
 <blockquote>
 <p>During its normal operation, a string buffer uses a variable number of stack slots. So, while using a buffer, <strong>you cannot assume that you know where the top of the stack is</strong>.<br>
 一般的操作过程中，字符串缓存会使用不定量的栈槽。 因此，在使用缓存中，你不能假定目前栈顶在哪。 在对缓存操作的函数调用间，你都可以使用栈，只需要保证栈平衡即可； 即，在你做一次缓存操作调用时，当时的栈位置和上次调用缓存操作后的位置相同。 （对于 <a href="http://cloudwu.github.io/lua53doc/manual.html#luaL_addvalue" rel="nofollow"><code class="notranslate">luaL_addvalue</code></a> 是个唯一的例外。） 在调用完 <a href="http://cloudwu.github.io/lua53doc/manual.html#luaL_pushresult" rel="nofollow"><code class="notranslate">luaL_pushresult</code></a> 后， 栈会恢复到缓存初始化时的位置上，并在顶部压入最终的字符串。</p>
