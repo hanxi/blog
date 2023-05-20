@@ -717,8 +717,91 @@ dirty_gen -tmpl=dirty_tmpl/wanfa2.tmpl -out=dirty_out/wanfa2.go</pre></div>
 	}
 	<span class="pl-k">return</span> <span class="pl-c1">false</span>
 }</pre></div>
-<p>这个版本是没有把 slice 和 map 包裹起来的，后续再根据前面设计的格式重新写一版。<br>
-代码地址： <a href="https://github.com/hanxi/dirty-go">https://github.com/hanxi/dirty-go</a></p>
+<p>这个版本是没有把 slice 和 map 包裹起来的，后续再根据前面设计的格式重新写一版。</p>
+<h2>支持JSON序列化</h2>
+<p>为了支持数据落地，就需要对数据序列化，首先拿 JSON 做尝试，其他的应该都类似。</p>
+<p>假设原始定义的数据如下：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> dirty_tmpl
+
+<span class="pl-k">type</span> <span class="pl-smi">BaseInfo</span> <span class="pl-k">struct</span> {
+	<span class="pl-c1">Lv</span>  <span class="pl-smi">uint32</span> <span class="pl-s">`json:"lv"`</span>
+	<span class="pl-c1">Exp</span> <span class="pl-smi">uint32</span> <span class="pl-s">`json:"exp"`</span>
+}</pre></div>
+<p>生成的数据如下（剔除了前面脏数据相关的接口）：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> dirty_out
+
+<span class="pl-k">import</span> (
+	<span class="pl-s">"encoding/json"</span>
+	<span class="pl-s">"github.com/hanxi/dirty-go/dirty_tmpl"</span>
+)
+
+<span class="pl-k">type</span> <span class="pl-smi">BaseInfo</span> <span class="pl-k">struct</span> {
+	<span class="pl-smi">Base</span>
+	<span class="pl-c1">lv</span>  <span class="pl-smi">uint32</span>
+	<span class="pl-c1">exp</span> <span class="pl-smi">uint32</span>
+	<span class="pl-c1">_origin</span> dirty_tmpl.<span class="pl-smi">BaseInfo</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">BaseInfo</span>) <span class="pl-en">UnmarshalJSON</span>(<span class="pl-s1">data</span> []<span class="pl-smi">byte</span>) <span class="pl-smi">error</span> {
+	<span class="pl-k">if</span> <span class="pl-s1">err</span> <span class="pl-c1">:=</span> <span class="pl-s1">json</span>.<span class="pl-en">Unmarshal</span>(<span class="pl-s1">data</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">p</span>.<span class="pl-c1">_origin</span>); <span class="pl-s1">err</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+        <span class="pl-k">return</span> <span class="pl-s1">err</span>
+    }
+	<span class="pl-s1">p</span>.<span class="pl-c1">lv</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">_origin</span>.<span class="pl-c1">Lv</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">exp</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">_origin</span>.<span class="pl-c1">Exp</span>
+    <span class="pl-k">return</span> <span class="pl-c1">nil</span>
+}
+
+<span class="pl-k">func</span> (<span class="pl-s1">p</span> <span class="pl-c1">*</span><span class="pl-smi">BaseInfo</span>) <span class="pl-en">MarshalJSON</span>() ([]<span class="pl-smi">byte</span>, <span class="pl-smi">error</span>) {
+	<span class="pl-s1">p</span>.<span class="pl-c1">_origin</span>.<span class="pl-c1">Lv</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">lv</span>
+	<span class="pl-s1">p</span>.<span class="pl-c1">_origin</span>.<span class="pl-c1">Exp</span> <span class="pl-c1">=</span> <span class="pl-s1">p</span>.<span class="pl-c1">exp</span>
+    <span class="pl-k">return</span> <span class="pl-s1">json</span>.<span class="pl-en">Marshal</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">p</span>.<span class="pl-c1">_origin</span>)
+}</pre></div>
+<p>为 <code class="notranslate">BaseInfo</code> 结构定义 <code class="notranslate">UnmarshalJSON</code> 和 <code class="notranslate">MarshalJSON</code> 方法，就可以使用 json 库来序列化和反序列化了。</p>
+<p>测试代码如下：</p>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">func</span> <span class="pl-en">TestUserJsonMarshal</span>(<span class="pl-s1">t</span> <span class="pl-c1">*</span>testing.<span class="pl-smi">T</span>) {
+	<span class="pl-s1">baseInfo</span> <span class="pl-c1">:=</span> <span class="pl-s1">dirty_out</span>.<span class="pl-en">NewBaseInfo</span>()
+	<span class="pl-s1">baseInfo</span>.<span class="pl-en">SetLv</span>(<span class="pl-c1">10</span>)
+	<span class="pl-s1">baseInfo</span>.<span class="pl-en">SetExp</span>(<span class="pl-c1">100</span>)
+	<span class="pl-s1">b</span>, <span class="pl-s1">err</span> <span class="pl-c1">:=</span> <span class="pl-s1">json</span>.<span class="pl-en">Marshal</span>(<span class="pl-s1">baseInfo</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">err</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">t</span>.<span class="pl-en">Error</span>(<span class="pl-s">"error: "</span>, <span class="pl-s1">err</span>)
+	}
+	<span class="pl-s1">t</span>.<span class="pl-en">Log</span>(<span class="pl-en">string</span>(<span class="pl-s1">b</span>))
+
+	<span class="pl-k">if</span> <span class="pl-en">string</span>(<span class="pl-s1">b</span>) <span class="pl-c1">!=</span> <span class="pl-s">`{"lv":10,"exp":100}`</span> {
+		<span class="pl-s1">t</span>.<span class="pl-en">Error</span>(<span class="pl-s">"json marshal failed."</span>)
+	}
+}
+
+<span class="pl-k">func</span> <span class="pl-en">TestUserJsonUnmarshal</span>(<span class="pl-s1">t</span> <span class="pl-c1">*</span>testing.<span class="pl-smi">T</span>) {
+	<span class="pl-s1">baseInfo</span> <span class="pl-c1">:=</span> <span class="pl-s1">dirty_out</span>.<span class="pl-en">NewBaseInfo</span>()
+	<span class="pl-s1">jsonStr</span> <span class="pl-c1">:=</span> <span class="pl-s">`{"lv":20,"exp":300}`</span>
+	<span class="pl-s1">err</span> <span class="pl-c1">:=</span> <span class="pl-s1">json</span>.<span class="pl-en">Unmarshal</span>([]<span class="pl-smi">byte</span>(<span class="pl-s1">jsonStr</span>), <span class="pl-c1">&amp;</span><span class="pl-s1">baseInfo</span>)
+	<span class="pl-k">if</span> <span class="pl-s1">err</span> <span class="pl-c1">!=</span> <span class="pl-c1">nil</span> {
+		<span class="pl-s1">t</span>.<span class="pl-en">Error</span>(<span class="pl-s">"error:"</span>, <span class="pl-s1">err</span>)
+	}
+	<span class="pl-s1">t</span>.<span class="pl-en">Logf</span>(<span class="pl-s">"lv:%d, exp:%d<span class="pl-cce">\n</span>"</span>, <span class="pl-s1">baseInfo</span>.<span class="pl-en">GetLv</span>(), <span class="pl-s1">baseInfo</span>.<span class="pl-en">GetExp</span>())
+
+	<span class="pl-k">if</span> <span class="pl-s1">baseInfo</span>.<span class="pl-en">GetLv</span>() <span class="pl-c1">!=</span> <span class="pl-c1">20</span> <span class="pl-c1">||</span> <span class="pl-s1">baseInfo</span>.<span class="pl-en">GetExp</span>() <span class="pl-c1">!=</span> <span class="pl-c1">300</span> {
+		<span class="pl-s1">t</span>.<span class="pl-en">Error</span>(<span class="pl-s">"json unmarshal failed."</span>)
+	}
+}</pre></div>
+<p>输出结果应该是这样的：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">=== RUN   TestExample
+--- PASS: TestExample (0.00s)
+=== RUN   TestNotifyDirty
+--- PASS: TestNotifyDirty (0.00s)
+=== RUN   TestUserJsonMarshal
+    example_test.go:155: {"lv":10,"exp":100}
+--- PASS: TestUserJsonMarshal (0.00s)
+=== RUN   TestUserJsonUnmarshal
+    example_test.go:169: lv:20, exp:300
+--- PASS: TestUserJsonUnmarshal (0.00s)
+PASS
+ok      github.com/hanxi/dirty-go       0.005s</pre></div>
+<hr>
+<p>今天就设计了格式，生成代码有空再写。</p>
+<p>代码地址： <a href="https://github.com/hanxi/dirty-go">https://github.com/hanxi/dirty-go</a></p>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/90#new_comment_field"> 点击进入评论 ... </a>
