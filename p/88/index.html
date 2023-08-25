@@ -113,17 +113,17 @@ done
 <p>或许是不是不能同时使用 2 个 buffer 呢？可以研究一下 lua_Buffer 的代码。</p>
 <p>通过排除法，已经定位到是 Buffer 的问题，具体是加了什么特殊字符问题引起的还没定位到。特殊字符可能是 <code class="notranslate">_ENV</code> 里的。</p>
 <p>再使用排除法，只保留</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span>
-<span class="pl-en">seri_other</span>(lua_State *L, <span class="pl-k">int</span> index, luaL_Buffer *b) {
-    <span class="pl-c1">size_t</span> len;
-    <span class="pl-k">const</span> <span class="pl-k">char</span> *str = <span class="pl-c1">luaL_tolstring</span>(L, <span class="pl-c1">index</span>, &amp;len);
-    <span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>seri_other:<span class="pl-c1">%s</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, str);
-    <span class="pl-c1">luaL_addvalue</span>(b);
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-smi">void</span>
+<span class="pl-en">seri_other</span>(<span class="pl-smi">lua_State</span> <span class="pl-c1">*</span><span class="pl-c1">L</span>, <span class="pl-smi">int</span> <span class="pl-s1">index</span>, <span class="pl-smi">luaL_Buffer</span> <span class="pl-c1">*</span><span class="pl-s1">b</span>) {
+    <span class="pl-smi">size_t</span> <span class="pl-s1">len</span>;
+    <span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">str</span> <span class="pl-c1">=</span> <span class="pl-en">luaL_tolstring</span>(<span class="pl-c1">L</span>, <span class="pl-s1">index</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">len</span>);
+    <span class="pl-en">fprintf</span>(<span class="pl-s1">stderr</span>, <span class="pl-s">"seri_other:%s\n"</span>, <span class="pl-s1">str</span>);
+    <span class="pl-en">luaL_addvalue</span>(<span class="pl-s1">b</span>);
 }
 
-<span class="pl-c"><span class="pl-c">//</span> 另外保留一些插入明显是字符或者字符串的</span>
-<span class="pl-en">luaL_addstring</span>(b, <span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span>);
-<span class="pl-en">luaL_addchar</span>(b, <span class="pl-s"><span class="pl-pds">'</span>"<span class="pl-pds">'</span></span>);</pre></div>
+<span class="pl-c">// 另外保留一些插入明显是字符或者字符串的</span>
+<span class="pl-en">luaL_addstring</span>(<span class="pl-s1">b</span>, <span class="pl-s">"..."</span>);
+<span class="pl-en">luaL_addchar</span>(<span class="pl-s1">b</span>, <span class="pl-c1">'"'</span>);</pre></div>
 <p>已经重现到。</p>
 <p>再试试只序列化 ENV 的情况，不处理堆栈的情况。终于知道原因了，原来几年前就遇到过。<br>
 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="581241802" data-permission-text="Title is private" data-url="https://github.com/hanxi/lua-seri/issues/1" data-hovercard-type="issue" data-hovercard-url="/hanxi/lua-seri/issues/1/hovercard" href="https://github.com/hanxi/lua-seri/issues/1">hanxi/lua-seri#1</a></p>

@@ -71,37 +71,37 @@
 <p>首先确定数据结构如下图：</p>
 <p><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png"><img src="https://raw.githubusercontent.com/hanxi/blog/gh-pages/assert/aoi/grid_struct_watermark.png" alt="grid_struct" style="max-width: 100%;"></a></p>
 <p>数据结构的定义大概是下面这样的：</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> aoi_space {
-    <span class="pl-k">int</span> w;
-    <span class="pl-k">int</span> h;
-    <span class="pl-k">int</span> nx;
-    <span class="pl-k">int</span> ny;
-    <span class="pl-k">struct</span> grid * grid_list;
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">aoi_space</span> {
+    <span class="pl-smi">int</span> <span class="pl-c1">w</span>;
+    <span class="pl-smi">int</span> <span class="pl-c1">h</span>;
+    <span class="pl-smi">int</span> <span class="pl-c1">nx</span>;
+    <span class="pl-smi">int</span> <span class="pl-c1">ny</span>;
+    <span class="pl-k">struct</span> <span class="pl-smi">grid</span> <span class="pl-c1">*</span> <span class="pl-c1">grid_list</span>;
 };
-<span class="pl-k">struct</span> grid {
-    <span class="pl-k">int</span> gid;
-    <span class="pl-k">struct</span> map * object_map;
+<span class="pl-k">struct</span> <span class="pl-smi">grid</span> {
+    <span class="pl-smi">int</span> <span class="pl-c1">gid</span>;
+    <span class="pl-k">struct</span> <span class="pl-smi">map</span> <span class="pl-c1">*</span> <span class="pl-c1">object_map</span>;
 };
-<span class="pl-k">struct</span> object {
-    <span class="pl-k">int</span> id;
-    <span class="pl-k">int</span> position[<span class="pl-c1">2</span>];
+<span class="pl-k">struct</span> <span class="pl-smi">object</span> {
+    <span class="pl-smi">int</span> <span class="pl-c1">id</span>;
+    <span class="pl-smi">int</span> <span class="pl-c1">position</span>[<span class="pl-c1">2</span>];
 };</pre></div>
 <ul>
 <li><code class="notranslate">grid_list</code> 可以直接使用数组，因为 gid 是从 0 开始且连续的。</li>
 <li><code class="notranslate">object_map</code> 是一个 hash 表，因为 object id 是不连续的。</li>
 </ul>
 <p>再定义操作接口：</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-c"><span class="pl-c">//</span> op: 'e' enter</span>
-<span class="pl-c"><span class="pl-c">//</span> op: 'l' leave</span>
-<span class="pl-c"><span class="pl-c">//</span> op: 'm' move</span>
-<span class="pl-k">typedef</span> <span class="pl-en">void</span> (AoiCallback)(<span class="pl-k">int</span> watcher, <span class="pl-k">int</span> marker, <span class="pl-k">char</span> op);
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-c">// op: 'e' enter</span>
+<span class="pl-c">// op: 'l' leave</span>
+<span class="pl-c">// op: 'm' move</span>
+<span class="pl-k">typedef</span> <span class="pl-smi">void</span> (<span class="pl-smi">AoiCallback</span>)(<span class="pl-smi">int</span> <span class="pl-s1">watcher</span>, <span class="pl-smi">int</span> <span class="pl-s1">marker</span>, <span class="pl-smi">char</span> <span class="pl-s1">op</span>);
 
-<span class="pl-k">struct</span> aoi_space * <span class="pl-en">aoi_new</span>(<span class="pl-k">int</span> w, <span class="pl-k">int</span> h, <span class="pl-k">int</span> nx, <span class="pl-k">int</span> ny, AoiCallback cb);
-<span class="pl-k">void</span> <span class="pl-en">aoi_delete</span>(<span class="pl-k">struct</span> aoi_space * aoi);
+<span class="pl-k">struct</span> <span class="pl-smi">aoi_space</span> <span class="pl-c1">*</span> <span class="pl-en">aoi_new</span>(<span class="pl-smi">int</span> <span class="pl-s1">w</span>, <span class="pl-smi">int</span> <span class="pl-s1">h</span>, <span class="pl-smi">int</span> <span class="pl-s1">nx</span>, <span class="pl-smi">int</span> <span class="pl-s1">ny</span>, <span class="pl-smi">AoiCallback</span> <span class="pl-s1">cb</span>);
+<span class="pl-smi">void</span> <span class="pl-en">aoi_delete</span>(<span class="pl-k">struct</span> <span class="pl-smi">aoi_space</span> <span class="pl-c1">*</span> <span class="pl-s1">aoi</span>);
 
-<span class="pl-k">void</span> <span class="pl-en">aoi_enter</span>(<span class="pl-k">struct</span> aoi_space * aoi, <span class="pl-k">int</span> id, <span class="pl-k">int</span> x, <span class="pl-k">int</span> y);
-<span class="pl-k">void</span> <span class="pl-en">aoi_leave</span>(<span class="pl-k">struct</span> aoi_space * aoi, <span class="pl-k">int</span> id);
-<span class="pl-k">void</span> <span class="pl-en">aoi_move</span>(<span class="pl-k">struct</span> aoi_space * aoi, <span class="pl-k">int</span> id, <span class="pl-k">int</span> x, <span class="pl-k">int</span> y);</pre></div>
+<span class="pl-smi">void</span> <span class="pl-en">aoi_enter</span>(<span class="pl-k">struct</span> <span class="pl-smi">aoi_space</span> <span class="pl-c1">*</span> <span class="pl-s1">aoi</span>, <span class="pl-smi">int</span> <span class="pl-s1">id</span>, <span class="pl-smi">int</span> <span class="pl-s1">x</span>, <span class="pl-smi">int</span> <span class="pl-s1">y</span>);
+<span class="pl-smi">void</span> <span class="pl-en">aoi_leave</span>(<span class="pl-k">struct</span> <span class="pl-smi">aoi_space</span> <span class="pl-c1">*</span> <span class="pl-s1">aoi</span>, <span class="pl-smi">int</span> <span class="pl-s1">id</span>);
+<span class="pl-smi">void</span> <span class="pl-en">aoi_move</span>(<span class="pl-k">struct</span> <span class="pl-smi">aoi_space</span> <span class="pl-c1">*</span> <span class="pl-s1">aoi</span>, <span class="pl-smi">int</span> <span class="pl-s1">id</span>, <span class="pl-smi">int</span> <span class="pl-s1">x</span>, <span class="pl-smi">int</span> <span class="pl-s1">y</span>);</pre></div>
 <p>这里从接口可以看出：</p>
 <ul>
 <li>没有定义视野半径，这样九宫格内的玩家都会收到消息。</li>

@@ -240,23 +240,23 @@
 </tbody>
 </table>
 <h2>协议模板的C数据结构</h2>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> field {
-    <span class="pl-k">struct</span> field *next;
-    <span class="pl-k">struct</span> field_list *child;
-    <span class="pl-k">char</span> type;
-    <span class="pl-k">char</span> key[DEFAULT_STR_LEN];
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">field</span> {
+    <span class="pl-k">struct</span> <span class="pl-smi">field</span> <span class="pl-c1">*</span><span class="pl-c1">next</span>;
+    <span class="pl-k">struct</span> <span class="pl-smi">field_list</span> <span class="pl-c1">*</span><span class="pl-c1">child</span>;
+    <span class="pl-smi">char</span> <span class="pl-c1">type</span>;
+    <span class="pl-smi">char</span> <span class="pl-c1">key</span>[<span class="pl-c1">DEFAULT_STR_LEN</span>];
     <span class="pl-k">union</span> {
-        <span class="pl-k">char</span> str_value[DEFAULT_STR_LEN];
-        <span class="pl-k">int</span> int_value;
-    } default_value;
+        <span class="pl-smi">char</span> <span class="pl-c1">str_value</span>[<span class="pl-c1">DEFAULT_STR_LEN</span>];
+        <span class="pl-smi">int</span> <span class="pl-c1">int_value</span>;
+    } <span class="pl-c1">default_value</span>;
 };
 
-<span class="pl-k">struct</span> field_list {
-    <span class="pl-k">struct</span> field *head;
-    <span class="pl-k">struct</span> field *tail;
-    <span class="pl-k">int</span> len;
+<span class="pl-k">struct</span> <span class="pl-smi">field_list</span> {
+    <span class="pl-k">struct</span> <span class="pl-smi">field</span> <span class="pl-c1">*</span><span class="pl-c1">head</span>;
+    <span class="pl-k">struct</span> <span class="pl-smi">field</span> <span class="pl-c1">*</span><span class="pl-c1">tail</span>;
+    <span class="pl-smi">int</span> <span class="pl-c1">len</span>;
 };
-<span class="pl-c"><span class="pl-c">//</span> field 用于存储int/float/string,field_list用于存储array/table</span></pre></div>
+<span class="pl-c">// field 用于存储int/float/string,field_list用于存储array/table</span></pre></div>
 <p>代码已经开源了，在这里<a href="https://github.com/hanxi/lproto">https://github.com/hanxi/lproto</a></p>
             </div>
             <div id="comment">

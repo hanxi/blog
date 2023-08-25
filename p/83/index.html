@@ -55,22 +55,22 @@
 <h2>4. 信号 signal 的使用</h2>
 <p>skynet 处理了 SIGHUP 和 SIGPIPE 两个信号.</p>
 <p>SIGHUP 信号处理</p>
-<div class="highlight highlight-source-c"><pre class="notranslate">	<span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
-	sa.sa_handler = &amp;handle_hup;
-	sa.sa_flags = SA_RESTART;
-	<span class="pl-en">sigfillset</span>(&amp;sa.sa_mask);
-	<span class="pl-en">sigaction</span>(SIGHUP, &amp;sa, <span class="pl-c1">NULL</span>);</pre></div>
+<div class="highlight highlight-source-c"><pre class="notranslate">	<span class="pl-k">struct</span> <span class="pl-smi">sigaction</span> <span class="pl-s1">sa</span>;
+	<span class="pl-s1">sa</span>.<span class="pl-c1">sa_handler</span> <span class="pl-c1">=</span> <span class="pl-c1">&amp;</span><span class="pl-s1">handle_hup</span>;
+	<span class="pl-s1">sa</span>.<span class="pl-c1">sa_flags</span> <span class="pl-c1">=</span> <span class="pl-c1">SA_RESTART</span>;
+	<span class="pl-en">sigfillset</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">sa</span>.<span class="pl-c1">sa_mask</span>);
+	<span class="pl-en">sigaction</span>(<span class="pl-c1">SIGHUP</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">sa</span>, <span class="pl-c1">NULL</span>);</pre></div>
 <ul>
 <li><a href="https://www.cnblogs.com/mickole/p/3191832.html" rel="nofollow">https://www.cnblogs.com/mickole/p/3191832.html</a></li>
 <li>设置 SA_RESTART 属性, 那么当信号处理函数返回后, 被该信号中断的系统调用将自动恢复.</li>
 <li>有些调用是不会自动恢复的： <a href="https://stackoverflow.com/questions/5405297/which-functions-are-interrupted-by-signals-even-with-sa-restart" rel="nofollow">https://stackoverflow.com/questions/5405297/which-functions-are-interrupted-by-signals-even-with-sa-restart</a></li>
 </ul>
 <p>SIGPIPE 信号处理</p>
-<div class="highlight highlight-source-c"><pre class="notranslate">    <span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
-	sa.sa_handler = SIG_IGN; <span class="pl-c"><span class="pl-c">//</span> 信号被忽略</span>
-	sa.sa_flags = <span class="pl-c1">0</span>;
-	<span class="pl-en">sigemptyset</span>(&amp;sa.sa_mask);
-	<span class="pl-en">sigaction</span>(SIGPIPE, &amp;sa, <span class="pl-c1">NULL</span>);</pre></div>
+<div class="highlight highlight-source-c"><pre class="notranslate">    <span class="pl-k">struct</span> <span class="pl-smi">sigaction</span> <span class="pl-s1">sa</span>;
+	<span class="pl-s1">sa</span>.<span class="pl-c1">sa_handler</span> <span class="pl-c1">=</span> <span class="pl-c1">SIG_IGN</span>; <span class="pl-c">// 信号被忽略</span>
+	<span class="pl-s1">sa</span>.<span class="pl-c1">sa_flags</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;
+	<span class="pl-en">sigemptyset</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">sa</span>.<span class="pl-c1">sa_mask</span>);
+	<span class="pl-en">sigaction</span>(<span class="pl-c1">SIGPIPE</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">sa</span>, <span class="pl-c1">NULL</span>);</pre></div>
 <p>为什么需要忽略 SIGPIPE 信号？</p>
 <blockquote>
 <p>TCP 是全双工信道, 可看作两条单工信道, TCP 连接两端的两个端点各负责一条. 当对端调用 close 时, 虽然本意是关闭整个两条信道,<br>
@@ -90,42 +90,42 @@
 优先推荐使用 sigaction</p>
 </blockquote>
 <p>下面这段代码来自 Lua <code class="notranslate">lua.c</code> , 在 POSIX 平台优先使用 <code class="notranslate">sigaction</code> 。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate">#<span class="pl-k">if</span> defined(LUA_USE_POSIX)   <span class="pl-c"><span class="pl-c">/*</span> { <span class="pl-c">*/</span></span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#if</span> defined(<span class="pl-c1">LUA_USE_POSIX</span>)   <span class="pl-c">/* { */</span>
 
-<span class="pl-c"><span class="pl-c">/*</span></span>
+<span class="pl-c">/*</span>
 <span class="pl-c">** Use 'sigaction' when available.</span>
-<span class="pl-c"><span class="pl-c">*/</span></span>
-<span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">setsignal</span> (<span class="pl-k">int</span> sig, <span class="pl-k">void</span> (*handler)(<span class="pl-k">int</span>)) {
-  <span class="pl-k">struct</span> <span class="pl-c1">sigaction</span> sa;
-  sa.<span class="pl-smi">sa_handler</span> = handler;
-  sa.<span class="pl-smi">sa_flags</span> = <span class="pl-c1">0</span>;
-  <span class="pl-c1">sigemptyset</span>(&amp;sa.<span class="pl-smi">sa_mask</span>);  <span class="pl-c"><span class="pl-c">/*</span> do not mask any signal <span class="pl-c">*/</span></span>
-  <span class="pl-c1">sigaction</span>(sig, &amp;sa, <span class="pl-c1">NULL</span>);
+<span class="pl-c">*/</span>
+<span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">setsignal</span> (<span class="pl-smi">int</span> <span class="pl-s1">sig</span>, <span class="pl-smi">void</span> (<span class="pl-c1">*</span><span class="pl-s1">handler</span>)(<span class="pl-smi">int</span>)) {
+  <span class="pl-k">struct</span> <span class="pl-smi">sigaction</span> <span class="pl-s1">sa</span>;
+  <span class="pl-s1">sa</span>.<span class="pl-c1">sa_handler</span> <span class="pl-c1">=</span> <span class="pl-s1">handler</span>;
+  <span class="pl-s1">sa</span>.<span class="pl-c1">sa_flags</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;
+  <span class="pl-en">sigemptyset</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">sa</span>.<span class="pl-c1">sa_mask</span>);  <span class="pl-c">/* do not mask any signal */</span>
+  <span class="pl-en">sigaction</span>(<span class="pl-s1">sig</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">sa</span>, <span class="pl-c1">NULL</span>);
 }
 
-#<span class="pl-k">else</span>                       <span class="pl-c"><span class="pl-c">/*</span> }{ <span class="pl-c">*/</span></span>
+<span class="pl-k">#else</span>                       <span class="pl-c">/* }{ */</span>
 
-#<span class="pl-k">define</span> <span class="pl-en">setsignal</span>            signal
+<span class="pl-k">#define</span> <span class="pl-s1">setsignal</span>            signal
 
-#<span class="pl-k">endif</span>                      <span class="pl-c"><span class="pl-c">/*</span> } <span class="pl-c">*/</span></span></pre></div>
+<span class="pl-k">#endif</span>                      <span class="pl-c">/* } */</span></pre></div>
 <h2>5. skynet_handle.c 分析</h2>
 <p>skynet_handle 有两个用途，第一个是给服务分配一个正整数作为服务 id，第二个是给服务绑定名字。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> handle_name {
-	<span class="pl-k">char</span> * name;
-	<span class="pl-c1">uint32_t</span> handle;
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">handle_name</span> {
+	<span class="pl-smi">char</span> <span class="pl-c1">*</span> <span class="pl-c1">name</span>;
+	<span class="pl-smi">uint32_t</span> <span class="pl-c1">handle</span>;
 };
 
-<span class="pl-k">struct</span> handle_storage {
-	<span class="pl-k">struct</span> rwlock lock;
+<span class="pl-k">struct</span> <span class="pl-smi">handle_storage</span> {
+	<span class="pl-k">struct</span> <span class="pl-smi">rwlock</span> <span class="pl-c1">lock</span>;
 
-	<span class="pl-c1">uint32_t</span> harbor; <span class="pl-c"><span class="pl-c">//</span> 进程节点id</span>
-	<span class="pl-c1">uint32_t</span> handle_index; <span class="pl-c"><span class="pl-c">//</span> 下一个可分配的id</span>
-	<span class="pl-k">int</span> slot_size; <span class="pl-c"><span class="pl-c">//</span> slot 数组的大小</span>
-	<span class="pl-k">struct</span> skynet_context ** slot; <span class="pl-c"><span class="pl-c">//</span> 存放 ctx 的数组, 数组下标为服务的地址</span>
+	<span class="pl-smi">uint32_t</span> <span class="pl-c1">harbor</span>; <span class="pl-c">// 进程节点id</span>
+	<span class="pl-smi">uint32_t</span> <span class="pl-c1">handle_index</span>; <span class="pl-c">// 下一个可分配的id</span>
+	<span class="pl-smi">int</span> <span class="pl-c1">slot_size</span>; <span class="pl-c">// slot 数组的大小</span>
+	<span class="pl-k">struct</span> <span class="pl-smi">skynet_context</span> <span class="pl-c1">*</span><span class="pl-c1">*</span> <span class="pl-c1">slot</span>; <span class="pl-c">// 存放 ctx 的数组, 数组下标为服务的地址</span>
 
-	<span class="pl-k">int</span> name_cap; <span class="pl-c"><span class="pl-c">//</span> handle_name 数组容量</span>
-	<span class="pl-k">int</span> name_count; <span class="pl-c"><span class="pl-c">//</span> handle_name 数量</span>
-	<span class="pl-k">struct</span> handle_name *name; <span class="pl-c"><span class="pl-c">//</span> 按名字排序的数组，采用二分查找插入元素.</span>
+	<span class="pl-smi">int</span> <span class="pl-c1">name_cap</span>; <span class="pl-c">// handle_name 数组容量</span>
+	<span class="pl-smi">int</span> <span class="pl-c1">name_count</span>; <span class="pl-c">// handle_name 数量</span>
+	<span class="pl-k">struct</span> <span class="pl-smi">handle_name</span> <span class="pl-c1">*</span><span class="pl-c1">name</span>; <span class="pl-c">// 按名字排序的数组，采用二分查找插入元素.</span>
 };</pre></div>
 <p><a target="_blank" rel="noopener noreferrer" href="assets/skynet_handle.png"><img src="assets/skynet_handle.png" alt="" style="max-width: 100%;"></a></p>
 <p>slot 是存放 skynet_context 的 hash 表，接口 <code class="notranslate">skynet_handle_register</code> 为服务分配 id。一个服务对应一个 skynet_context 。handle_index 为下一个服务 id ，服务 id 的范围从 1 到 0xffffff，服务 id 的高 8 位保留，作为 master/slave 模式的 harbor id 。</p>
@@ -146,8 +146,8 @@
 <p><code class="notranslate">skynet_handle_findname</code> 是通过名字查找服务 id ，采用二分查找，name 数组是按名字排序的。</p>
 <p><code class="notranslate">skynet_handle_namehandle</code> 给服务取个名字，先通过二分查找找到名字插入的位置 <code class="notranslate">before</code> ，然后插入空位。如果没空位了(s-&gt;name_count &gt;= s-&gt;name_cap) 就把数组扩容再插入。</p>
 <p><code class="notranslate">skynet_handle_init</code> 就是初始化 <code class="notranslate">static struct handle_storage *H</code>；</p>
-<div class="highlight highlight-source-c"><pre class="notranslate">s-&gt;slot_size = DEFAULT_SLOT_SIZE; <span class="pl-c"><span class="pl-c">//</span> 存放 context 的初始大小 4</span>
-s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="pl-c">//</span> 存放名字的初始大小 2</span></pre></div>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-s1">s</span><span class="pl-c1">-&gt;</span><span class="pl-c1">slot_size</span> <span class="pl-c1">=</span> <span class="pl-c1">DEFAULT_SLOT_SIZE</span>; <span class="pl-c">// 存放 context 的初始大小 4</span>
+<span class="pl-s1">s</span><span class="pl-c1">-&gt;</span><span class="pl-c1">name_cap</span> <span class="pl-c1">=</span> <span class="pl-c1">2</span>; <span class="pl-c">// 存放名字的初始大小 2</span></pre></div>
 <p><code class="notranslate">struct rwlock lock;</code> 使用读写锁是因为读取比插入删除更频繁，每一条消息的处理都需要根据 handle 来取 skynet_context （<code class="notranslate">skynet_handle_grab</code>），如果是根据名字发送的消息，都是需要先通过名字查询到 handle (<code class="notranslate">skynet_handle_findname</code>)。</p>
 <p>一个崩溃问题重现：</p>
 <p><code class="notranslate">int hash = skynet_context_handle(s-&gt;slot[i]) &amp; (s-&gt;slot_size * 2 - 1);</code> 这行代码有可能会崩溃，当 s-&gt;slot[0] 为 NULL 时，即 context 为 NULL，对 NULL 取 handle 值会崩溃。需要构造出 slot[0] 为空，其他值都不空，且 handle_index 处于 (HANDLE_MASK - slot_size, HANDLE_MASK] 范围内。</p>
@@ -158,106 +158,106 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 <h2>6. monitor 分析</h2>
 <p>主要代码实现在 skynet_start.c 和 skynet_monitor.c 。启动入口为 start(int thread) 函数。 thread 为 worker 线程的数量，另外还有 3 个特殊线程，分别为 monitor 线程（监视 worker 线程），timer 线程， socket 线程。</p>
 <p>四种线程的入口函数如下：</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">0</span>], thread_monitor, m);
-<span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">1</span>], thread_timer, m);
-<span class="pl-en">create_thread</span>(&amp;pid[<span class="pl-c1">2</span>], thread_socket, m);
-<span class="pl-en">create_thread</span>(&amp;pid[i+<span class="pl-c1">3</span>], thread_worker, &amp;wp[i]);</pre></div>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-en">create_thread</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">pid</span>[<span class="pl-c1">0</span>], <span class="pl-s1">thread_monitor</span>, <span class="pl-s1">m</span>);
+<span class="pl-en">create_thread</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">pid</span>[<span class="pl-c1">1</span>], <span class="pl-s1">thread_timer</span>, <span class="pl-s1">m</span>);
+<span class="pl-en">create_thread</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">pid</span>[<span class="pl-c1">2</span>], <span class="pl-s1">thread_socket</span>, <span class="pl-s1">m</span>);
+<span class="pl-en">create_thread</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">pid</span>[<span class="pl-s1">i</span><span class="pl-c1">+</span><span class="pl-c1">3</span>], <span class="pl-s1">thread_worker</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">wp</span>[<span class="pl-s1">i</span>]);</pre></div>
 <p>线程之间的关系如下：</p>
 <p><a target="_blank" rel="noopener noreferrer" href="assets/monitor.png"><img src="assets/monitor.png" alt="" style="max-width: 100%;"></a></p>
 <p>监视器的数据结构如下，进程内全局只有一个，跟 <code class="notranslate">struct handle_storage</code> 一样。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> monitor {
-	<span class="pl-k">int</span> count; <span class="pl-c"><span class="pl-c">//</span> worker 线程数量</span>
-	<span class="pl-k">struct</span> skynet_monitor ** m; <span class="pl-c"><span class="pl-c">//</span> 一个元素监视一个 worker 线程</span>
-	<span class="pl-c1">pthread_cond_t</span> cond; <span class="pl-c"><span class="pl-c">//</span> 条件变量，调度 worker 线程</span>
-	<span class="pl-c1">pthread_mutex_t</span> mutex; <span class="pl-c"><span class="pl-c">//</span> 互斥锁， 调度 worker 线程</span>
-	<span class="pl-k">int</span> <span class="pl-c1">sleep</span>; <span class="pl-c"><span class="pl-c">//</span> worker 线程睡眠的数量</span>
-	<span class="pl-k">int</span> quit; <span class="pl-c"><span class="pl-c">//</span> 进程退出标记</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">monitor</span> {
+	<span class="pl-smi">int</span> <span class="pl-c1">count</span>; <span class="pl-c">// worker 线程数量</span>
+	<span class="pl-k">struct</span> <span class="pl-smi">skynet_monitor</span> <span class="pl-c1">*</span><span class="pl-c1">*</span> <span class="pl-c1">m</span>; <span class="pl-c">// 一个元素监视一个 worker 线程</span>
+	<span class="pl-smi">pthread_cond_t</span> <span class="pl-c1">cond</span>; <span class="pl-c">// 条件变量，调度 worker 线程</span>
+	<span class="pl-smi">pthread_mutex_t</span> <span class="pl-c1">mutex</span>; <span class="pl-c">// 互斥锁， 调度 worker 线程</span>
+	<span class="pl-smi">int</span> <span class="pl-c1">sleep</span>; <span class="pl-c">// worker 线程睡眠的数量</span>
+	<span class="pl-smi">int</span> <span class="pl-c1">quit</span>; <span class="pl-c">// 进程退出标记</span>
 };</pre></div>
 <p>关于条件变量和互斥锁的使用可以参考 <a href="https://www.cnblogs.com/cthon/p/9084735.html" rel="nofollow">https://www.cnblogs.com/cthon/p/9084735.html</a></p>
 <blockquote>
 <p>pthread_cond_wait 必须放在 pthread_mutex_lock 和 pthread_mutex_unlock 之间，因为他要根据共享变量的状态来决定是否要等待，而为了不永远等待下去所以必须要在 lock/unlock 队中。共享变量的状态改变必须遵守 lock/unlock 的规则。 pthread_cond_signal 既可以放在 pthread_mutex_lock 和 pthread_mutex_unlock 之间，也可以放在 pthread_mutex_lock 和 pthread_mutex_unlock 之后。</p>
 </blockquote>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
-<span class="pl-en">thread_monitor</span>(<span class="pl-k">void</span> *p) {
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-c1">*</span>
+<span class="pl-en">thread_monitor</span>(<span class="pl-smi">void</span> <span class="pl-c1">*</span><span class="pl-s1">p</span>) {
+	<span class="pl-c">// ...</span>
 	<span class="pl-k">for</span> (;;) {
-		CHECK_ABORT
-		<span class="pl-k">for</span> (i=<span class="pl-c1">0</span>;i&lt;n;i++) {
-			<span class="pl-c1">skynet_monitor_check</span>(m-&gt;<span class="pl-smi">m</span>[i]);
+		<span class="pl-smi">CHECK_ABORT</span>
+		<span class="pl-en">for</span> (<span class="pl-smi">i</span><span class="pl-c1">=</span><span class="pl-c1">0</span>;<span class="pl-s1">i</span><span class="pl-c1">&lt;</span><span class="pl-s1">n</span>;<span class="pl-s1">i</span><span class="pl-c1">++</span>) {
+			<span class="pl-en">skynet_monitor_check</span>(<span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">m</span>[<span class="pl-s1">i</span>]);
 		}
-		<span class="pl-k">for</span> (i=<span class="pl-c1">0</span>;i&lt;<span class="pl-c1">5</span>;i++) {
-			CHECK_ABORT
-			<span class="pl-c1">sleep</span>(<span class="pl-c1">1</span>);
+		<span class="pl-k">for</span> (<span class="pl-s1">i</span><span class="pl-c1">=</span><span class="pl-c1">0</span>;<span class="pl-s1">i</span><span class="pl-c1">&lt;</span><span class="pl-c1">5</span>;<span class="pl-s1">i</span><span class="pl-c1">++</span>) {
+			<span class="pl-smi">CHECK_ABORT</span>
+			<span class="pl-en">sleep</span>(<span class="pl-c1">1</span>);
 		}
 	}
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
+	<span class="pl-c">// ...</span>
 }</pre></div>
 <p>monitor 线程的工作就是每 5 秒检测一次服务是否进入死循环 <code class="notranslate">skynet_monitor_check</code> , 过载会输出 "maybe in an endless loop" 日志，每秒也检测进程是否需要退出 CHECK_ABORT 。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_monitor {
-	ATOM_INT version; <span class="pl-c"><span class="pl-c">//</span> 当前版本号，处理消息前自增一次</span>
-	<span class="pl-k">int</span> check_version; <span class="pl-c"><span class="pl-c">//</span> 每次 check 时赋值</span>
-	<span class="pl-c1">uint32_t</span> source;
-	<span class="pl-c1">uint32_t</span> destination;
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">skynet_monitor</span> {
+	<span class="pl-smi">ATOM_INT</span> <span class="pl-c1">version</span>; <span class="pl-c">// 当前版本号，处理消息前自增一次</span>
+	<span class="pl-smi">int</span> <span class="pl-c1">check_version</span>; <span class="pl-c">// 每次 check 时赋值</span>
+	<span class="pl-smi">uint32_t</span> <span class="pl-c1">source</span>;
+	<span class="pl-smi">uint32_t</span> <span class="pl-c1">destination</span>;
 };</pre></div>
 <p>version 自增， 5 秒后检测时 check_version 也会赋值为 version 一样的值。如果这个时候消息还没处理完，check_version 和 version 就会是相同的值，且处理消息的服务 destination 不为空，就会打印 "maybe in an endless loop" 。消息处理结束会把 destination 设置为 0 。也就是一个消息如果处理超过 5 秒就会输出告警。</p>
 <p>timer 线程除了负责本身的 timer 工作，还对 signal_hup 信号的处理，和以及 worker 线程和 socket 线程的退出。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
-<span class="pl-en">thread_timer</span>(<span class="pl-k">void</span> *p) {
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-c1">*</span>
+<span class="pl-en">thread_timer</span>(<span class="pl-smi">void</span> <span class="pl-c1">*</span><span class="pl-s1">p</span>) {
+	<span class="pl-c">// ...</span>
 	<span class="pl-k">for</span> (;;) {
-		<span class="pl-c1">skynet_updatetime</span>(); <span class="pl-c"><span class="pl-c">//</span> 更新 timer 的时间</span>
-		<span class="pl-c1">skynet_socket_updatetime</span>(); <span class="pl-c"><span class="pl-c">//</span> netstat 使用</span>
-		CHECK_ABORT
-		<span class="pl-c1">wakeup</span>(m,m-&gt;<span class="pl-smi">count</span>-<span class="pl-c1">1</span>); <span class="pl-c"><span class="pl-c">//</span> 只要有一个 worker 线程 sleep 就唤醒</span>
-		<span class="pl-c1">usleep</span>(<span class="pl-c1">2500</span>);
-		<span class="pl-k">if</span> (SIG) {
-			<span class="pl-c1">signal_hup</span>(); <span class="pl-c"><span class="pl-c">//</span> 给 logger 服务发消息</span>
-			SIG = <span class="pl-c1">0</span>;
+		<span class="pl-en">skynet_updatetime</span>(); <span class="pl-c">// 更新 timer 的时间</span>
+		<span class="pl-en">skynet_socket_updatetime</span>(); <span class="pl-c">// netstat 使用</span>
+		<span class="pl-smi">CHECK_ABORT</span>
+		<span class="pl-en">wakeup</span>(<span class="pl-smi">m</span>,<span class="pl-smi">m</span><span class="pl-c1">-</span><span class="pl-c1">&gt;</span><span class="pl-s1">count</span><span class="pl-c1">-1</span>); <span class="pl-c">// 只要有一个 worker 线程 sleep 就唤醒</span>
+		<span class="pl-en">usleep</span>(<span class="pl-c1">2500</span>);
+		<span class="pl-k">if</span> (<span class="pl-c1">SIG</span>) {
+			<span class="pl-en">signal_hup</span>(); <span class="pl-c">// 给 logger 服务发消息</span>
+			<span class="pl-c1">SIG</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;
 		}
 	}
-	<span class="pl-c"><span class="pl-c">//</span> wakeup socket thread</span>
-	<span class="pl-c1">skynet_socket_exit</span>(); <span class="pl-c"><span class="pl-c">//</span> 让 socket 线程退出，操作 socket 线程是采用管道，后续分析 socket 线程的时候再细说。</span>
-	<span class="pl-c"><span class="pl-c">//</span> wakeup all worker thread</span>
-	<span class="pl-c1">pthread_mutex_lock</span>(&amp;m-&gt;<span class="pl-smi">mutex</span>);
-	m-&gt;<span class="pl-smi">quit</span> = <span class="pl-c1">1</span>; <span class="pl-c"><span class="pl-c">//</span> 设置退出标记</span>
-	<span class="pl-c1">pthread_cond_broadcast</span>(&amp;m-&gt;<span class="pl-smi">cond</span>); <span class="pl-c"><span class="pl-c">//</span> 唤醒所有的 worker 线程处理退出。</span>
-	<span class="pl-c1">pthread_mutex_unlock</span>(&amp;m-&gt;<span class="pl-smi">mutex</span>);
+	<span class="pl-c">// wakeup socket thread</span>
+	<span class="pl-en">skynet_socket_exit</span>(); <span class="pl-c">// 让 socket 线程退出，操作 socket 线程是采用管道，后续分析 socket 线程的时候再细说。</span>
+	<span class="pl-c">// wakeup all worker thread</span>
+	<span class="pl-en">pthread_mutex_lock</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">mutex</span>);
+	<span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">quit</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>; <span class="pl-c">// 设置退出标记</span>
+	<span class="pl-en">pthread_cond_broadcast</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">cond</span>); <span class="pl-c">// 唤醒所有的 worker 线程处理退出。</span>
+	<span class="pl-en">pthread_mutex_unlock</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">mutex</span>);
 	<span class="pl-k">return</span> <span class="pl-c1">NULL</span>;
 }</pre></div>
 <p>timer 线程每隔 2.5 毫秒会唤醒一条睡眠中的 worker 线程。timer 线程退出前，负责通知 socket 线程退出，和通知 worker 线程退出。</p>
 <p>socket 线程就是循环调用 skynet_socket_poll 接口，返回 0 的时候就是 timer 线程调用了 skynet_socket_exit 接口后发生的情况。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
-<span class="pl-en">thread_socket</span>(<span class="pl-k">void</span> *p) {
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-c1">*</span>
+<span class="pl-en">thread_socket</span>(<span class="pl-smi">void</span> <span class="pl-c1">*</span><span class="pl-s1">p</span>) {
+	<span class="pl-c">// ...</span>
 	<span class="pl-k">for</span> (;;) {
-		<span class="pl-k">int</span> r = <span class="pl-c1">skynet_socket_poll</span>();
-		<span class="pl-k">if</span> (r==<span class="pl-c1">0</span>)
-			<span class="pl-k">break</span>; <span class="pl-c"><span class="pl-c">//</span> SOCKET_EXIT 时，直接退出 socket 线程</span>
-		<span class="pl-k">if</span> (r&lt;<span class="pl-c1">0</span>) { <span class="pl-c"><span class="pl-c">//</span> 网络出过错误，检查下是否 abort</span>
-			CHECK_ABORT
-			<span class="pl-k">continue</span>;
+		<span class="pl-smi">int</span> <span class="pl-s1">r</span> <span class="pl-c1">=</span> <span class="pl-en">skynet_socket_poll</span>();
+		<span class="pl-k">if</span> (<span class="pl-s1">r</span><span class="pl-c1">==</span><span class="pl-c1">0</span>)
+			<span class="pl-k">break</span>; <span class="pl-c">// SOCKET_EXIT 时，直接退出 socket 线程</span>
+		<span class="pl-k">if</span> (<span class="pl-s1">r</span><span class="pl-c1">&lt;</span><span class="pl-c1">0</span>) { <span class="pl-c">// 网络出过错误，检查下是否 abort</span>
+			<span class="pl-smi">CHECK_ABORT</span>
+			<span class="pl-s1">continue</span>;
 		}
-		<span class="pl-c1">wakeup</span>(m,<span class="pl-c1">0</span>); <span class="pl-c"><span class="pl-c">//</span> 其他正常情况，如果所有 worker 线程都睡眠则唤醒一个</span>
+		<span class="pl-en">wakeup</span>(<span class="pl-s1">m</span>,<span class="pl-c1">0</span>); <span class="pl-c">// 其他正常情况，如果所有 worker 线程都睡眠则唤醒一个</span>
 	}
 	<span class="pl-k">return</span> <span class="pl-c1">NULL</span>;
 }</pre></div>
 <p>正常处理网络消息后，如果所有的 worker 线程都 sleep 了就换一个来处理看看有没有消息，防止 2.5 毫秒内，所有 worker 都睡眠的时候，收到网络消息时没有及时处理。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> *
-<span class="pl-en">thread_worker</span>(<span class="pl-k">void</span> *p) {
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
-	<span class="pl-k">while</span> (!m-&gt;<span class="pl-smi">quit</span>) {
-		q = <span class="pl-c1">skynet_context_message_dispatch</span>(sm, q, weight); <span class="pl-c"><span class="pl-c">//</span> 根据 weight 来决定一次处理多少条消息</span>
-		<span class="pl-k">if</span> (q == <span class="pl-c1">NULL</span>) {
-			<span class="pl-k">if</span> (<span class="pl-c1">pthread_mutex_lock</span>(&amp;m-&gt;<span class="pl-smi">mutex</span>) == <span class="pl-c1">0</span>) { <span class="pl-c"><span class="pl-c">//</span> 消息处理完了则睡眠</span>
-				++ m-&gt;<span class="pl-smi">sleep</span>;
-				<span class="pl-c"><span class="pl-c">//</span> "spurious wakeup" is harmless,</span>
-				<span class="pl-c"><span class="pl-c">//</span> because skynet_context_message_dispatch() can be call at any time.</span>
-				<span class="pl-k">if</span> (!m-&gt;<span class="pl-smi">quit</span>)
-					<span class="pl-c1">pthread_cond_wait</span>(&amp;m-&gt;<span class="pl-smi">cond</span>, &amp;m-&gt;<span class="pl-smi">mutex</span>); <span class="pl-c"><span class="pl-c">//</span> 唤醒后会从这里继续运行</span>
-				-- m-&gt;<span class="pl-smi">sleep</span>;
-				<span class="pl-k">if</span> (<span class="pl-c1">pthread_mutex_unlock</span>(&amp;m-&gt;<span class="pl-smi">mutex</span>)) {
-					<span class="pl-c1">fprintf</span>(stderr, <span class="pl-s"><span class="pl-pds">"</span>unlock mutex error<span class="pl-pds">"</span></span>);
-					<span class="pl-c1">exit</span>(<span class="pl-c1">1</span>);
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-c1">*</span>
+<span class="pl-en">thread_worker</span>(<span class="pl-smi">void</span> <span class="pl-c1">*</span><span class="pl-s1">p</span>) {
+	<span class="pl-c">// ...</span>
+	<span class="pl-k">while</span> (!<span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">quit</span>) {
+		<span class="pl-s1">q</span> <span class="pl-c1">=</span> <span class="pl-en">skynet_context_message_dispatch</span>(<span class="pl-s1">sm</span>, <span class="pl-s1">q</span>, <span class="pl-s1">weight</span>); <span class="pl-c">// 根据 weight 来决定一次处理多少条消息</span>
+		<span class="pl-k">if</span> (<span class="pl-s1">q</span> <span class="pl-c1">==</span> <span class="pl-c1">NULL</span>) {
+			<span class="pl-k">if</span> (<span class="pl-en">pthread_mutex_lock</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">mutex</span>) <span class="pl-c1">==</span> <span class="pl-c1">0</span>) { <span class="pl-c">// 消息处理完了则睡眠</span>
+				<span class="pl-c1">++</span> <span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">sleep</span>;
+				<span class="pl-c">// "spurious wakeup" is harmless,</span>
+				<span class="pl-c">// because skynet_context_message_dispatch() can be call at any time.</span>
+				<span class="pl-k">if</span> (!<span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">quit</span>)
+					<span class="pl-en">pthread_cond_wait</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">cond</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">mutex</span>); <span class="pl-c">// 唤醒后会从这里继续运行</span>
+				<span class="pl-c1">--</span> <span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">sleep</span>;
+				<span class="pl-k">if</span> (<span class="pl-en">pthread_mutex_unlock</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-c1">mutex</span>)) {
+					<span class="pl-en">fprintf</span>(<span class="pl-s1">stderr</span>, <span class="pl-s">"unlock mutex error"</span>);
+					<span class="pl-en">exit</span>(<span class="pl-c1">1</span>);
 				}
 			}
 		}
@@ -271,14 +271,14 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 </ul>
 <h2>7. skynet_module.c 分析</h2>
 <p>skynet_module 的数据结构就比较简单了，采用数组存放。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> modules {
-	<span class="pl-k">int</span> count; <span class="pl-c"><span class="pl-c">//</span> 模块数量</span>
-	<span class="pl-k">struct</span> spinlock lock;
-	<span class="pl-k">const</span> <span class="pl-k">char</span> * path; <span class="pl-c"><span class="pl-c">//</span> 模块路径，类似于 lua_cpath，用 ? 做匹配</span>
-	<span class="pl-k">struct</span> skynet_module m[MAX_MODULE_TYPE]; <span class="pl-c"><span class="pl-c">//</span> 存放所有的模块，最大 32 个</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">modules</span> {
+	<span class="pl-smi">int</span> <span class="pl-c1">count</span>; <span class="pl-c">// 模块数量</span>
+	<span class="pl-k">struct</span> <span class="pl-smi">spinlock</span> <span class="pl-c1">lock</span>;
+	<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span> <span class="pl-c1">path</span>; <span class="pl-c">// 模块路径，类似于 lua_cpath，用 ? 做匹配</span>
+	<span class="pl-k">struct</span> <span class="pl-smi">skynet_module</span> <span class="pl-c1">m</span>[<span class="pl-c1">MAX_MODULE_TYPE</span>]; <span class="pl-c">// 存放所有的模块，最大 32 个</span>
 };
 
-<span class="pl-k">static</span> <span class="pl-k">struct</span> modules * M = <span class="pl-c1">NULL</span>;</pre></div>
+<span class="pl-k">static</span> <span class="pl-k">struct</span> <span class="pl-smi">modules</span> <span class="pl-c1">*</span> <span class="pl-c1">M</span> <span class="pl-c1">=</span> <span class="pl-c1">NULL</span>;</pre></div>
 <p>一个模块其实就是动态库，但是需要提供下面这些以模块名为前缀的接口：</p>
 <ul>
 <li>modulename_create 可选，创建服务实体</li>
@@ -292,25 +292,25 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 </blockquote>
 <p>从代码上看 create 和 release 接口是支持不实现的，但官方的出的 C 服务都实现了这两个接口。</p>
 <p>使用全局变量 M 来管理所有的 C 模块，模块和服务的关系就像类和对象的关系。创建服务的流程是先通过 skynet_module_query 查找到模块，然后 skynet_module_instance_create 创建服务的实体。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_context * 
-<span class="pl-en">skynet_context_new</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> * name, <span class="pl-k">const</span> <span class="pl-k">char</span> *param) {
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
-	<span class="pl-k">void</span> *inst = <span class="pl-c1">skynet_module_instance_create</span>(mod);
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
-	ctx-&gt;<span class="pl-smi">instance</span> = inst;
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">skynet_context</span> <span class="pl-c1">*</span> 
+<span class="pl-en">skynet_context_new</span>(<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span> <span class="pl-s1">name</span>, <span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">param</span>) {
+	<span class="pl-c">// ...</span>
+	<span class="pl-smi">void</span> <span class="pl-c1">*</span><span class="pl-s1">inst</span> <span class="pl-c1">=</span> <span class="pl-en">skynet_module_instance_create</span>(<span class="pl-s1">mod</span>);
+	<span class="pl-c">// ...</span>
+	<span class="pl-s1">ctx</span><span class="pl-c1">-&gt;</span><span class="pl-c1">instance</span> <span class="pl-c1">=</span> <span class="pl-s1">inst</span>;
+	<span class="pl-c">// ...</span>
 }</pre></div>
 <p>模块的查找就是普通的遍历查找了，因为 C 服务的上限定的是 32 ，一般只用到 snlua 这个 C 服务，也就越简单越好了。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_module * 
-<span class="pl-en">skynet_module_query</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> * name) {
-	<span class="pl-k">struct</span> skynet_module * result = <span class="pl-c1">_query</span>(name);
-	<span class="pl-k">if</span> (result)
-		<span class="pl-k">return</span> result;
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">skynet_module</span> <span class="pl-c1">*</span> 
+<span class="pl-en">skynet_module_query</span>(<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span> <span class="pl-s1">name</span>) {
+	<span class="pl-k">struct</span> <span class="pl-smi">skynet_module</span> <span class="pl-c1">*</span> <span class="pl-s1">result</span> <span class="pl-c1">=</span> <span class="pl-en">_query</span>(<span class="pl-s1">name</span>);
+	<span class="pl-k">if</span> (<span class="pl-s1">result</span>)
+		<span class="pl-k">return</span> <span class="pl-s1">result</span>;
 
-	<span class="pl-c1">SPIN_LOCK</span>(M)
+	<span class="pl-c1">SPIN_LOCK</span>(<span class="pl-smi">M</span>)
 
-	result = <span class="pl-c1">_query</span>(name); <span class="pl-c"><span class="pl-c">//</span> double check</span>
-	<span class="pl-c"><span class="pl-c">//</span> ...</span>
+	<span class="pl-s1">result</span> <span class="pl-c1">=</span> <span class="pl-en">_query</span>(<span class="pl-s1">name</span>); <span class="pl-c">// double check</span>
+	<span class="pl-c">// ...</span>
 }</pre></div>
 <p>查询使用了 double check ，锁住之前查询一次，如果模块已经加载过了直接返回，相当于大部分时间都是不会进入到锁下面的逻辑的。当 2 个线程同时在查询一个没加载过的模块时，一个线程加载完之后，另一个线程再进入的时候重复查一次就能拿到了。</p>
 <p>加载动态库使用的是 dlopen ，提取函数使用 dlsym 。</p>
@@ -326,15 +326,15 @@ s-&gt;name_cap = <span class="pl-c1">2</span>; <span class="pl-c"><span class="p
 <p>已有结论 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4009797" data-permission-text="Title is private" data-url="https://github.com/cloudwu/skynet/discussions/1576" data-hovercard-type="discussion" data-hovercard-url="/cloudwu/skynet/discussions/1576/hovercard" href="https://github.com/cloudwu/skynet/discussions/1576">cloudwu/skynet#1576</a></p>
 </blockquote>
 <p>skynet_server.c 可以说是 skynet 服务的核心了。可以把它分两部分来分析，一部分是 skynet_context 的创建销毁和收发消息。另一部分是 skynet_command 接口用来操作 skynet_context 。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> skynet_node {
-    ATOM_INT total; <span class="pl-c"><span class="pl-c">//</span> 服务的数量</span>
-    <span class="pl-k">int</span> init; <span class="pl-c"><span class="pl-c">//</span> 初始化标记</span>
-    <span class="pl-c1">uint32_t</span> monitor_exit; <span class="pl-c"><span class="pl-c">//</span> 监听服务退出的服务id</span>
-    <span class="pl-c1">pthread_key_t</span> handle_key; <span class="pl-c"><span class="pl-c">//</span> 用于存储当前worker线程处理的服务id</span>
-    <span class="pl-k">bool</span> profile;   <span class="pl-c"><span class="pl-c">//</span> 是否统计服务消耗的cpu和time</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">struct</span> <span class="pl-smi">skynet_node</span> {
+    <span class="pl-smi">ATOM_INT</span> <span class="pl-c1">total</span>; <span class="pl-c">// 服务的数量</span>
+    <span class="pl-smi">int</span> <span class="pl-c1">init</span>; <span class="pl-c">// 初始化标记</span>
+    <span class="pl-smi">uint32_t</span> <span class="pl-c1">monitor_exit</span>; <span class="pl-c">// 监听服务退出的服务id</span>
+    <span class="pl-smi">pthread_key_t</span> <span class="pl-c1">handle_key</span>; <span class="pl-c">// 用于存储当前worker线程处理的服务id</span>
+    <span class="pl-smi">bool</span> <span class="pl-c1">profile</span>;   <span class="pl-c">// 是否统计服务消耗的cpu和time</span>
 };
 
-<span class="pl-k">static</span> <span class="pl-k">struct</span> skynet_node G_NODE;</pre></div>
+<span class="pl-k">static</span> <span class="pl-k">struct</span> <span class="pl-smi">skynet_node</span> <span class="pl-c1">G_NODE</span>;</pre></div>
 <blockquote>
 <p>没继续读了，留坑。。。</p>
 </blockquote>

@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">一个通用的排行榜服务</div>
+            <div id="content" class="markdown-body">
+                <p>最近使用 <a href="https://github.com/hanxi/wlua">wlua</a> 实现了一个通用的排行榜服务，目前只提供了 http 接口访问。主要就是更删改查的接口。</p>
+<ul>
+<li>POST /update 用于更新或者插入数据。</li>
+<li>POST /delete 用于删除数据。</li>
+<li>GET /query 用于查询排名。</li>
+<li>GET /infos 用于查多份数据，不带排名。</li>
+<li>GET /ranklist 用于获取排名列表。</li>
+<li>POST /setconfig 用于设置排行榜的配置，比如容量和排序顺序。</li>
+</ul>
+<p>具体的文档可以去看 <a href="https://github.com/hanxi/rank">rank</a></p>
+<h2>设计思路</h2>
+<p>使用了 skynet 的服务模式来实现的，一个管理服务 rankmgr_service 用于管理所有的排行榜，一个排行榜占用一个 rank_service 。排行榜 id 由 appname 和 tag 组成，一个 appname 相当于是同一个应用下的排行榜，更新和删除接口是可以一次性更新一个 appname 下的多个 tag 的，这样可以用于删除某个玩家时，一次性从多个排行榜上移除，或者玩家数据更新时一次性更新多个排行榜，而查询接口都只能是针对单个排行榜的。</p>
+<p>wlua 是一个 http 服务框架，会有多个 http agent 服务接受和处理请求，请求来到 http agent 后会去 rankmgr_service 上获取 rank_service 的服务地址（首次请求会创建服务），并缓存起来。这样设计后，rankmgr_service 就不是单点了，rank_service 则是单点的，一个排行榜一个服务的粒度还是合理的，这样实现起来比较简单，单个 rank_service 上是使用的 <a href="https://github.com/xjdrew/lua-zset">lua-zset</a> 库来实时排序的，数据会实时落地到 mongodb 。如果确实某个排行榜很庞大，访问量很高，可以考虑单独部署。</p>
+<h2>后续扩展</h2>
+<p>如果想要这个排行榜服务更实用，应该还需要有更多的功能，比如：</p>
+<ul>
+<li>可以考虑新增接口或者修改 update 接口，用于只更新数据不更新分数，一般用于玩家修改了名字等数据时，要更新多个排行榜，而多个排行榜的排序 score 是不同的情况，因为目前的 update 接口是只有 1 个分数，而不是每个 tag 一个分数。</li>
+<li>新增一个 clear 接口，用于清空整个排行榜。</li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/91#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

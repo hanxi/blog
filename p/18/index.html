@@ -61,8 +61,8 @@ git pull
 <p>参考了 <a href="http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html" rel="nofollow">http://www.ruanyifeng.com/blog/2017/09/asmjs_emscripten.html</a></p>
 <p>但是版本可能有点旧了，谷歌搜下报错也都能解决。</p>
 <p>新建 <code class="notranslate">t1.c</code> 文件，内容为：</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">double</span> <span class="pl-en">SquareVal</span>(<span class="pl-k">double</span> val) {
-    <span class="pl-k">return</span> val * val;
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-smi">double</span> <span class="pl-en">SquareVal</span>(<span class="pl-smi">double</span> <span class="pl-s1">val</span>) {
+    <span class="pl-k">return</span> <span class="pl-s1">val</span> <span class="pl-c1">*</span> <span class="pl-s1">val</span>;
 }</pre></div>
 <p>然后新建文件 <code class="notranslate">t1.html</code>，内容为：</p>
 <div class="highlight highlight-text-html-basic"><pre class="notranslate"><span class="pl-c1">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"<span class="pl-kos">&gt;</span></span>

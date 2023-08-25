@@ -197,52 +197,52 @@ passwd=passwd
 <p>更新：</p>
 <p>文本的编码问题，统一转成 utf8</p>
 <p>编码问题进展: 采用下面两个函数对剪切板的内容转换，可以正常处理中文了，但是 emoji 处理不了。还得继续找找原因。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">char</span> *<span class="pl-en">asciitoutf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *lpstr)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-en">asciitoutf8</span>(<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">lpstr</span>)
 {
-    <span class="pl-k">int</span> ulen = <span class="pl-c1">MultiByteToWideChar</span>(CP_ACP, <span class="pl-c1">0</span>, lpstr, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
-    <span class="pl-k">int</span> bytes = (ulen + <span class="pl-c1">1</span>) * <span class="pl-k">sizeof</span>(<span class="pl-c1">wchar_t</span>);
-    <span class="pl-c1">wchar_t</span> *utext = <span class="pl-c1">malloc</span>(bytes);
-    <span class="pl-c1">MultiByteToWideChar</span>(CP_ACP, <span class="pl-c1">0</span>, lpstr, -<span class="pl-c1">1</span>, utext, ulen);
+    <span class="pl-smi">int</span> <span class="pl-s1">ulen</span> <span class="pl-c1">=</span> <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_ACP</span>, <span class="pl-c1">0</span>, <span class="pl-s1">lpstr</span>, <span class="pl-c1">-1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
+    <span class="pl-smi">int</span> <span class="pl-s1">bytes</span> <span class="pl-c1">=</span> (<span class="pl-s1">ulen</span> <span class="pl-c1">+</span> <span class="pl-c1">1</span>) <span class="pl-c1">*</span> <span class="pl-k">sizeof</span>(<span class="pl-s1">wchar_t</span>);
+    <span class="pl-smi">wchar_t</span> <span class="pl-c1">*</span><span class="pl-s1">utext</span> <span class="pl-c1">=</span> <span class="pl-en">malloc</span>(<span class="pl-s1">bytes</span>);
+    <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_ACP</span>, <span class="pl-c1">0</span>, <span class="pl-s1">lpstr</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">utext</span>, <span class="pl-s1">ulen</span>);
 
-    <span class="pl-k">int</span> sz = <span class="pl-c1">WideCharToMultiByte</span>(CP_UTF8, <span class="pl-c1">0</span>, utext, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-k">char</span> *utf8text = <span class="pl-c1">malloc</span>(sz);
-    <span class="pl-c1">WideCharToMultiByte</span>(CP_UTF8, <span class="pl-c1">0</span>, utext, -<span class="pl-c1">1</span>, utf8text, sz, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-c1">free</span>(utext);
-    <span class="pl-k">return</span> utf8text;
+    <span class="pl-smi">int</span> <span class="pl-s1">sz</span> <span class="pl-c1">=</span> <span class="pl-en">WideCharToMultiByte</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utext</span>, <span class="pl-c1">-1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">utf8text</span> <span class="pl-c1">=</span> <span class="pl-en">malloc</span>(<span class="pl-s1">sz</span>);
+    <span class="pl-en">WideCharToMultiByte</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utext</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">utf8text</span>, <span class="pl-s1">sz</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-en">free</span>(<span class="pl-s1">utext</span>);
+    <span class="pl-k">return</span> <span class="pl-s1">utf8text</span>;
 }
-<span class="pl-k">char</span> *<span class="pl-en">utf8toascii</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *text, <span class="pl-k">int</span> *sz)
+<span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-en">utf8toascii</span>(<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">text</span>, <span class="pl-smi">int</span> <span class="pl-c1">*</span><span class="pl-s1">sz</span>)
 {
-    <span class="pl-k">int</span> ulen = <span class="pl-c1">MultiByteToWideChar</span>(CP_UTF8, <span class="pl-c1">0</span>, text, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
-    <span class="pl-k">int</span> bytes = (ulen + <span class="pl-c1">1</span>) * <span class="pl-k">sizeof</span>(<span class="pl-c1">wchar_t</span>);
-    <span class="pl-c1">wchar_t</span> *utext = <span class="pl-c1">malloc</span>(bytes);
-    <span class="pl-c1">MultiByteToWideChar</span>(CP_UTF8, <span class="pl-c1">0</span>, text, -<span class="pl-c1">1</span>, utext, ulen);
+    <span class="pl-smi">int</span> <span class="pl-s1">ulen</span> <span class="pl-c1">=</span> <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">text</span>, <span class="pl-c1">-1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
+    <span class="pl-smi">int</span> <span class="pl-s1">bytes</span> <span class="pl-c1">=</span> (<span class="pl-s1">ulen</span> <span class="pl-c1">+</span> <span class="pl-c1">1</span>) <span class="pl-c1">*</span> <span class="pl-k">sizeof</span>(<span class="pl-s1">wchar_t</span>);
+    <span class="pl-smi">wchar_t</span> <span class="pl-c1">*</span><span class="pl-s1">utext</span> <span class="pl-c1">=</span> <span class="pl-en">malloc</span>(<span class="pl-s1">bytes</span>);
+    <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">text</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">utext</span>, <span class="pl-s1">ulen</span>);
 
-    *sz = <span class="pl-c1">WideCharToMultiByte</span>(CP_ACP, <span class="pl-c1">0</span>, utext, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-k">char</span> *asciitext = <span class="pl-c1">malloc</span>(*sz);
-    <span class="pl-c1">WideCharToMultiByte</span>(CP_ACP, <span class="pl-c1">0</span>, utext, -<span class="pl-c1">1</span>, asciitext, *sz, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-c1">free</span>(utext);
-    <span class="pl-k">return</span> asciitext;
+    <span class="pl-c1">*</span><span class="pl-s1">sz</span> <span class="pl-c1">=</span> <span class="pl-en">WideCharToMultiByte</span>(<span class="pl-c1">CP_ACP</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utext</span>, <span class="pl-c1">-1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">asciitext</span> <span class="pl-c1">=</span> <span class="pl-en">malloc</span>(<span class="pl-c1">*</span><span class="pl-s1">sz</span>);
+    <span class="pl-en">WideCharToMultiByte</span>(<span class="pl-c1">CP_ACP</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utext</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">asciitext</span>, <span class="pl-c1">*</span><span class="pl-s1">sz</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-en">free</span>(<span class="pl-s1">utext</span>);
+    <span class="pl-k">return</span> <span class="pl-s1">asciitext</span>;
 }</pre></div>
 <hr>
 <p>更新：</p>
 <p>编码问题终于解决了,我傻逼了,主要原因是剪切板内容读取和设置的格式采用了 ASCII 格式 <code class="notranslate">CF_TEXT</code>. 所以还是相当于没有使用 <code class="notranslate">define UNICODE</code>. 今天试过 iconv 来转都是一样的效果,最后找到这个才发现需要改为 <code class="notranslate">CF_UNICODETEXT</code>.</p>
 <p><a href="https://github.com/ocornut/imgui/blob/f5243712ce9fb070370cdc847ccc1b8e655fb1ce/imgui.cpp#L9616-L9658">https://github.com/ocornut/imgui/blob/f5243712ce9fb070370cdc847ccc1b8e655fb1ce/imgui.cpp#L9616-L9658</a></p>
 <p>所以 utf8 和 utf16 互转的代码其实只要这样就行了</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">char</span> * <span class="pl-en">malloc_utf16_to_utf8</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *utf16text)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-smi">char</span> <span class="pl-c1">*</span> <span class="pl-en">malloc_utf16_to_utf8</span>(<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">utf16text</span>)
 {
-    <span class="pl-k">int</span> sz = <span class="pl-c1">WideCharToMultiByte</span>(CP_UTF8, <span class="pl-c1">0</span>, utf16text, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-k">char</span> *utf8text = <span class="pl-c1">malloc</span>(sz);
-    <span class="pl-c1">WideCharToMultiByte</span>(CP_UTF8, <span class="pl-c1">0</span>, utf16text, -<span class="pl-c1">1</span>, utf8text, sz, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-k">return</span> utf8text;
+    <span class="pl-smi">int</span> <span class="pl-s1">sz</span> <span class="pl-c1">=</span> <span class="pl-en">WideCharToMultiByte</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utf16text</span>, <span class="pl-c1">-1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">utf8text</span> <span class="pl-c1">=</span> <span class="pl-en">malloc</span>(<span class="pl-s1">sz</span>);
+    <span class="pl-en">WideCharToMultiByte</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utf16text</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">utf8text</span>, <span class="pl-s1">sz</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-k">return</span> <span class="pl-s1">utf8text</span>;
 }
 
-<span class="pl-c1">wchar_t</span> * <span class="pl-en">malloc_utf8_to_utf16</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *utf8text)
+<span class="pl-smi">wchar_t</span> <span class="pl-c1">*</span> <span class="pl-en">malloc_utf8_to_utf16</span>(<span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">utf8text</span>)
 {
-    <span class="pl-k">int</span> utf16len = <span class="pl-c1">MultiByteToWideChar</span>(CP_UTF8, <span class="pl-c1">0</span>, utf8text, -<span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
-    <span class="pl-k">int</span> bytes = (utf16len + <span class="pl-c1">1</span>) * <span class="pl-k">sizeof</span>(<span class="pl-c1">wchar_t</span>);
-    <span class="pl-c1">wchar_t</span> *utf16text = <span class="pl-c1">malloc</span>(bytes);
-    <span class="pl-c1">MultiByteToWideChar</span>(CP_UTF8, <span class="pl-c1">0</span>, utf8text, -<span class="pl-c1">1</span>, utf16text, utf16len);
-    <span class="pl-k">return</span> utf16text;
+    <span class="pl-smi">int</span> <span class="pl-s1">utf16len</span> <span class="pl-c1">=</span> <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utf8text</span>, <span class="pl-c1">-1</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>);
+    <span class="pl-smi">int</span> <span class="pl-s1">bytes</span> <span class="pl-c1">=</span> (<span class="pl-s1">utf16len</span> <span class="pl-c1">+</span> <span class="pl-c1">1</span>) <span class="pl-c1">*</span> <span class="pl-k">sizeof</span>(<span class="pl-s1">wchar_t</span>);
+    <span class="pl-smi">wchar_t</span> <span class="pl-c1">*</span><span class="pl-s1">utf16text</span> <span class="pl-c1">=</span> <span class="pl-en">malloc</span>(<span class="pl-s1">bytes</span>);
+    <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">utf8text</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">utf16text</span>, <span class="pl-s1">utf16len</span>);
+    <span class="pl-k">return</span> <span class="pl-s1">utf16text</span>;
 }</pre></div>
 <p>当然调用上面的函数后记得 free.</p>
 <p>iconv 测试代码找的这个:  <a href="https://gist.github.com/duedal/1221865">https://gist.github.com/duedal/1221865</a><br>
@@ -255,24 +255,24 @@ iconv windows 版本找的这个: <a href="https://github.com/kiyolee/libiconv-w
 <p>更正：</p>
 <p>getlantern/systray 使用的方法也是先把 icon 写入文件，然后再加载的。 <a href="https://github.com/getlantern/systray/blob/master/systray_windows.go#L658-L674">https://github.com/getlantern/systray/blob/master/systray_windows.go#L658-L674</a>  并且写入的文件名是根据 bytes 计算 MD5 拼接的。</p>
 <p>然后我就把 ltray 的文件名也改成不是固定的文件名了，用临时的文件名。程序结束时删除就行。</p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">_set_default_icon</span>(<span class="pl-c1">wchar_t</span> *icon_path)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">_set_default_icon</span>(<span class="pl-smi">wchar_t</span> <span class="pl-c1">*</span><span class="pl-s1">icon_path</span>)
 {
-    <span class="pl-c1">memset</span>(icon_path, <span class="pl-c1">0</span>, MAX_PATH);
-    <span class="pl-c1">_wtmpnam</span>(icon_path);
-    default_icon_path = icon_path;
-    FILE *fp = <span class="pl-c1">_wfopen</span>(icon_path, L<span class="pl-s"><span class="pl-pds">"</span>wb<span class="pl-pds">"</span></span>);
-    <span class="pl-k">if</span> (fp)
+    <span class="pl-en">memset</span>(<span class="pl-s1">icon_path</span>, <span class="pl-c1">0</span>, <span class="pl-c1">MAX_PATH</span>);
+    <span class="pl-en">_wtmpnam</span>(<span class="pl-s1">icon_path</span>);
+    <span class="pl-s1">default_icon_path</span> <span class="pl-c1">=</span> <span class="pl-s1">icon_path</span>;
+    <span class="pl-smi">FILE</span> <span class="pl-c1">*</span><span class="pl-s1">fp</span> <span class="pl-c1">=</span> <span class="pl-en">_wfopen</span>(<span class="pl-s1">icon_path</span>, <span class="pl-s">L"wb"</span>);
+    <span class="pl-k">if</span> (<span class="pl-s1">fp</span>)
     {
-        <span class="pl-c1">fwrite</span>(icon_bytes, <span class="pl-k">sizeof</span>((icon_bytes)[<span class="pl-c1">0</span>]), <span class="pl-k">sizeof</span>(icon_bytes), fp);
-        <span class="pl-c1">fclose</span>(fp);
+        <span class="pl-en">fwrite</span>(<span class="pl-s1">icon_bytes</span>, <span class="pl-k">sizeof</span>((<span class="pl-s1">icon_bytes</span>)[<span class="pl-c1">0</span>]), <span class="pl-k">sizeof</span>(<span class="pl-s1">icon_bytes</span>), <span class="pl-s1">fp</span>);
+        <span class="pl-en">fclose</span>(<span class="pl-s1">fp</span>);
     }
 }
 
-<span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">_remove_default_icon_file</span>()
+<span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">_remove_default_icon_file</span>()
 {
-    <span class="pl-k">if</span> (default_icon_path != <span class="pl-c1">NULL</span>)
+    <span class="pl-k">if</span> (<span class="pl-s1">default_icon_path</span> <span class="pl-c1">!=</span> <span class="pl-c1">NULL</span>)
     {
-        <span class="pl-c1">_wremove</span>(default_icon_path);
+        <span class="pl-en">_wremove</span>(<span class="pl-s1">default_icon_path</span>);
     }
 }</pre></div>
 <p>更新：</p>
@@ -419,51 +419,51 @@ Mac end of line sequence:      \r
 <p>今天解决了 Windows 设置快捷方式的时候出现黑窗口的问题。</p>
 <p><a href="https://stackoverflow.com/questions/12554237/hiding-command-prompt-called-by-system/57798301#57798301" rel="nofollow">https://stackoverflow.com/questions/12554237/hiding-command-prompt-called-by-system/57798301#57798301</a></p>
 <p>用下面的函数替换 system 函数:</p>
-<div class="highlight highlight-source-c"><pre class="notranslate">#<span class="pl-k">define</span> <span class="pl-en">MAX_SYSTEM_PROGRAM</span> (<span class="pl-c1">4096</span>)
-<span class="pl-k">static</span> <span class="pl-k">int</span> <span class="pl-en">windows_system</span>(<span class="pl-k">const</span> <span class="pl-c1">wchar_t</span> *cmd)
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#define</span> <span class="pl-c1">MAX_SYSTEM_PROGRAM</span> (4096)
+<span class="pl-k">static</span> <span class="pl-smi">int</span> <span class="pl-en">windows_system</span>(<span class="pl-k">const</span> <span class="pl-smi">wchar_t</span> <span class="pl-c1">*</span><span class="pl-s1">cmd</span>)
 {
-    PROCESS_INFORMATION p_info;
-    STARTUPINFO s_info;
-    DWORD ReturnValue;
+    <span class="pl-smi">PROCESS_INFORMATION</span> <span class="pl-s1">p_info</span>;
+    <span class="pl-smi">STARTUPINFO</span> <span class="pl-s1">s_info</span>;
+    <span class="pl-smi">DWORD</span> <span class="pl-s1">ReturnValue</span>;
 
-    <span class="pl-c1">memset</span>(&amp;s_info, <span class="pl-c1">0</span>, <span class="pl-k">sizeof</span>(s_info));
-    <span class="pl-c1">memset</span>(&amp;p_info, <span class="pl-c1">0</span>, <span class="pl-k">sizeof</span>(p_info));
-    s_info.<span class="pl-smi">cb</span> = <span class="pl-k">sizeof</span>(s_info);
+    <span class="pl-en">memset</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">s_info</span>, <span class="pl-c1">0</span>, <span class="pl-k">sizeof</span>(<span class="pl-s1">s_info</span>));
+    <span class="pl-en">memset</span>(<span class="pl-c1">&amp;</span><span class="pl-s1">p_info</span>, <span class="pl-c1">0</span>, <span class="pl-k">sizeof</span>(<span class="pl-s1">p_info</span>));
+    <span class="pl-s1">s_info</span>.<span class="pl-c1">cb</span> <span class="pl-c1">=</span> <span class="pl-k">sizeof</span>(<span class="pl-s1">s_info</span>);
 
-    <span class="pl-c1">wchar_t</span> utf16cmd[MAX_SYSTEM_PROGRAM] = {<span class="pl-c1">0</span>};
-    <span class="pl-c1">MultiByteToWideChar</span>(CP_UTF8, <span class="pl-c1">0</span>, cmd, -<span class="pl-c1">1</span>, utf16cmd, MAX_SYSTEM_PROGRAM);
-    <span class="pl-k">if</span> (<span class="pl-c1">CreateProcessW</span>(<span class="pl-c1">NULL</span>, utf16cmd, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>, &amp;s_info, &amp;p_info))
+    <span class="pl-smi">wchar_t</span> <span class="pl-s1">utf16cmd</span>[<span class="pl-c1">MAX_SYSTEM_PROGRAM</span>] <span class="pl-c1">=</span> {<span class="pl-c1">0</span>};
+    <span class="pl-en">MultiByteToWideChar</span>(<span class="pl-c1">CP_UTF8</span>, <span class="pl-c1">0</span>, <span class="pl-s1">cmd</span>, <span class="pl-c1">-1</span>, <span class="pl-s1">utf16cmd</span>, <span class="pl-c1">MAX_SYSTEM_PROGRAM</span>);
+    <span class="pl-k">if</span> (<span class="pl-en">CreateProcessW</span>(<span class="pl-c1">NULL</span>, <span class="pl-s1">utf16cmd</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">0</span>, <span class="pl-c1">0</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">NULL</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">s_info</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">p_info</span>))
     {
-        <span class="pl-c1">WaitForSingleObject</span>(p_info.<span class="pl-smi">hProcess</span>, INFINITE);
-        <span class="pl-c1">GetExitCodeProcess</span>(p_info.<span class="pl-smi">hProcess</span>, &amp;ReturnValue);
-        <span class="pl-c1">CloseHandle</span>(p_info.<span class="pl-smi">hProcess</span>);
-        <span class="pl-c1">CloseHandle</span>(p_info.<span class="pl-smi">hThread</span>);
+        <span class="pl-en">WaitForSingleObject</span>(<span class="pl-s1">p_info</span>.<span class="pl-c1">hProcess</span>, <span class="pl-c1">INFINITE</span>);
+        <span class="pl-en">GetExitCodeProcess</span>(<span class="pl-s1">p_info</span>.<span class="pl-c1">hProcess</span>, <span class="pl-c1">&amp;</span><span class="pl-s1">ReturnValue</span>);
+        <span class="pl-en">CloseHandle</span>(<span class="pl-s1">p_info</span>.<span class="pl-c1">hProcess</span>);
+        <span class="pl-en">CloseHandle</span>(<span class="pl-s1">p_info</span>.<span class="pl-c1">hThread</span>);
     }
-    <span class="pl-k">return</span> ReturnValue;
+    <span class="pl-k">return</span> <span class="pl-s1">ReturnValue</span>;
 }
 
-<span class="pl-k">static</span> <span class="pl-k">int</span> <span class="pl-en">os_execute</span>(lua_State *L)
+<span class="pl-k">static</span> <span class="pl-smi">int</span> <span class="pl-en">os_execute</span>(<span class="pl-smi">lua_State</span> <span class="pl-c1">*</span><span class="pl-c1">L</span>)
 {
-    <span class="pl-k">const</span> <span class="pl-k">char</span> *cmd = <span class="pl-c1">luaL_optstring</span>(L, <span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>);
-    <span class="pl-k">int</span> stat = <span class="pl-c1">windows_system</span>(cmd);
-    <span class="pl-k">if</span> (cmd != <span class="pl-c1">NULL</span>)
+    <span class="pl-k">const</span> <span class="pl-smi">char</span> <span class="pl-c1">*</span><span class="pl-s1">cmd</span> <span class="pl-c1">=</span> <span class="pl-en">luaL_optstring</span>(<span class="pl-c1">L</span>, <span class="pl-c1">1</span>, <span class="pl-c1">NULL</span>);
+    <span class="pl-smi">int</span> <span class="pl-s1">stat</span> <span class="pl-c1">=</span> <span class="pl-en">windows_system</span>(<span class="pl-s1">cmd</span>);
+    <span class="pl-k">if</span> (<span class="pl-s1">cmd</span> <span class="pl-c1">!=</span> <span class="pl-c1">NULL</span>)
     {
-        <span class="pl-k">return</span> <span class="pl-c1">luaL_execresult</span>(L, stat);
+        <span class="pl-k">return</span> <span class="pl-en">luaL_execresult</span>(<span class="pl-c1">L</span>, <span class="pl-s1">stat</span>);
     }
     <span class="pl-k">else</span>
     {
-        <span class="pl-c1">lua_pushboolean</span>(L, stat); <span class="pl-c"><span class="pl-c">/*</span> true if there is a shell <span class="pl-c">*/</span></span>
+        <span class="pl-en">lua_pushboolean</span>(<span class="pl-c1">L</span>, <span class="pl-s1">stat</span>); <span class="pl-c">/* true if there is a shell */</span>
         <span class="pl-k">return</span> <span class="pl-c1">1</span>;
     }
 }
 
-<span class="pl-c"><span class="pl-c">//</span> 替换 os.execute</span>
-<span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">patch_os_system</span>(L)
+<span class="pl-c">// 替换 os.execute</span>
+<span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">patch_os_system</span>(<span class="pl-smi">L</span>)
 {
-    <span class="pl-c1">lua_getglobal</span>(L, <span class="pl-s"><span class="pl-pds">"</span>os<span class="pl-pds">"</span></span>);
-    <span class="pl-c1">lua_pushcfunction</span>(L, os_execute);
-    <span class="pl-c1">lua_setfield</span>(L, -<span class="pl-c1">2</span>, <span class="pl-s"><span class="pl-pds">"</span>execute<span class="pl-pds">"</span></span>);
-    <span class="pl-c1">lua_pop</span>(L, <span class="pl-c1">1</span>);
+    <span class="pl-en">lua_getglobal</span>(<span class="pl-c1">L</span>, <span class="pl-s">"os"</span>);
+    <span class="pl-en">lua_pushcfunction</span>(<span class="pl-c1">L</span>, <span class="pl-s1">os_execute</span>);
+    <span class="pl-en">lua_setfield</span>(<span class="pl-c1">L</span>, <span class="pl-c1">-2</span>, <span class="pl-s">"execute"</span>);
+    <span class="pl-en">lua_pop</span>(<span class="pl-c1">L</span>, <span class="pl-c1">1</span>);
 }</pre></div>
 <p>更新完毕。</p>
             </div>
