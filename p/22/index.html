@@ -49,7 +49,7 @@
     <span class="pl-k">endfor</span>
 <span class="pl-k">endfunction</span>
 <span class="pl-c"><span class="pl-c">"</span> 关闭插件窗口</span>
-<span class="pl-c1">map</span> <span class="pl-e">&lt;C-C&gt;&lt;C-C&gt;</span> :<span class="pl-c1">call</span> <span class="pl-en">ClosePluginWindow</span>()<span class="pl-e">&lt;cr&gt;</span></pre></div>
+<span class="pl-k">map</span> <span class="pl-ent"><span class="pl-e">&lt;C-C&gt;&lt;C-C&gt;</span></span> <span class="pl-s">:call ClosePluginWindow()<span class="pl-e">&lt;cr&gt;</span></span></pre></div>
 <p>关闭 quickfix 窗口有现成的命令 <code class="notranslate">cclose</code>，但是如何关闭某些只读的 <code class="notranslate">buffer</code> 窗口呢？</p>
 <p>可以通过 <code class="notranslate">ls!</code> 命令取到所有的 <code class="notranslate">buffer</code> 列表，但是如何拿到这个结果呢？</p>
 <p>这时候就要用到 <code class="notranslate">redir</code> 命令了，详细的使用方法可以 <code class="notranslate">:help redir</code> 查看。这里只解释下上面是如何用的。</p>

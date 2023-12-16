@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">在Go语言中实现一个类似ltask的库</div>
+            <div id="content" class="markdown-body">
+                <p><a href="https://github.com/cloudwu/ltask">ltask</a> 是一个 Lua 的多任务库，具体介绍可以见 <a href="https://blog.codingnow.com/2021/02/ltask.html" rel="nofollow">ltask ：Lua 的多任务库</a> , 它的核心功能就是:</p>
+<blockquote>
+<p>It implement an n:m scheduler , so that you can run M lua VMs on N OS threads.<br>
+它实现了一个 n:m 调度程序，因此您可以在 n 个操作系统线程上运行 m 个 lua 虚拟机。</p>
+</blockquote>
+<p>ltask 和 skynet 很类似，达到的一个效果是我很喜欢的，<strong>service 里的业务代码同一时刻只会在一个线程里运行</strong>，就是写业务逻辑只需要考虑单线程，写代码的心智负担就会少很多。</p>
+<p>由于我目前的游戏项目是 golang 写的，所以我想试试在 golang 中实现一个类似的库，<strong>以达到一段游戏业务逻辑的代码同一时刻只会在一个 goroutine 中运行</strong>。golang 中的 goroutine 本身的 <a href="https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-goroutine/" rel="nofollow">G-M-P 模型</a> 已经是在 n 个操作系统线程上运行 m 个 goroutine 了，所以在调度这一块不会自己实现了，而且 goroutine 之间的消息传递有 channel，连消息队列都不用自己实现，只需要好好利用这些基建。</p>
+<p>我的构思是这样的，每个 service 有一个接收消息的 channel，service 之间的消息投递有 2 种方式：</p>
+<ul>
+<li>直接投递到目标服务</li>
+<li>投递到一个公共的 channel，由 scheduler 来派发消息到目标服务</li>
+</ul>
+<p>直接投递到目标服务的方式是有锁的，需要先获取到目标服务的 channel，然后往里面写数据。<br>
+投递到公共的 channel 是无锁的，创建服务时把公共的 channel 引用到服务里，直接写数据即可，分配消息到服务因为只在 scheduler 里执行，所以根据 service id 获取到 service 的接收消息的 channel 也是不用加锁的。</p>
+<p>上面无论哪种方式实现，对于使用者来说，效果是一样的。</p>
+<p>消息投递的接口预计是有 3 个：</p>
+<ul>
+<li>Send</li>
+<li>Call</li>
+<li>AsyncCall<br>
+Send 是直接发消息给目标服务，不阻塞。Call 是发完消息后阻塞等结果。AsyncCall 是发完消息后不等结果，结果回来后发消息回来执行回调函数。</li>
+</ul>
+<p>目前一个服务只有一个 goroutine ，所以 Call 会导致整个服务卡住。那能不能一个服务分配多个 goroutine，并且控制一个服务内同一时刻只允许一个 goroutine 在运行。可以引入 goroutine pool ，然后改造 Call 的流程，发完消息阻塞前把锁交出去，让其他空的 goroutine 能运行，消息回来后获取到锁后才继续运行。</p>
+<blockquote>
+<p>有想过用 goroutine 模拟 Lua 的 coroutine ,总有些别扭，还是放弃这个方案了。</p>
+</blockquote>
+<p>goroutine pool 的方案有 2 种选择，固定 goroutine 数量的比较简单，动态的比较复杂，可以先考虑实现一个固定数量的看看效果。goroutine 的数量关系到 call 挂起的数量，太大浪费内存，太少影响并发。比如：如果 1 个服务管理 100 个玩家，如果 goroutine 的数量设置为 10，那么同一时刻只能处理 10 个玩家的请求，其他的就得前面的 10 个玩家处理完。这个设想目前还没有实现，有空再搞。</p>
+<p>scheduler 也可以实现为一个服务，这样方便用统一的方式操作 schedule。保留 1 到 1024 特殊的服务 id 给特殊服务使用，scheduler 服务的 id 可以设置为 1。</p>
+<p>为了方便扩展服务，新增了一个插件服务使用 golang 的 plugin 来加载 so 文件中的服务，暂定插件服务的 id 为 2。</p>
+<p>目前只支持一个进程内的服务之间进行消息通讯，如果要跨进程就需要其他 rpc 支持，计划是使用 gRPC 来搞，接入 NATS 模块。</p>
+<p>工程地址： <a href="https://github.com/hanxi/gtask">https://github.com/hanxi/gtask</a> ，仅用于学习，没有过多的测试。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/92#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

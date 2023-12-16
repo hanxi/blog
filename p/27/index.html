@@ -50,14 +50,14 @@ skynet.kill(address) 可以用来强制关闭别的服务。但强烈不推荐�
     skynet.<span class="pl-c1">ret</span>()
     skynet.<span class="pl-c1">exit</span>()
     <span class="pl-c"><span class="pl-c">--</span> exit() 之后的代码是不会执行的</span>
-<span class="pl-k">end</span></pre></div>
+end</pre></div>
 <h3>负载均衡?</h3>
 <p>用数组 <code class="notranslate">slave</code> 把服务的地址存起来，然后在每调用一次计算接口 <code class="notranslate">calculate</code> 就换下一个服务。</p>
 <div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> slave <span class="pl-k">=</span> {}
 <span class="pl-k">local</span> balance <span class="pl-k">=</span> <span class="pl-c1">1</span>
 
 <span class="pl-c"><span class="pl-c">--</span> 找一个 slave 帮忙做点复杂的计算</span>
-<span class="pl-k">function</span> <span class="pl-en">CMD.calculate</span>(<span class="pl-smi">a</span>, <span class="pl-smi">b</span>)
+function CMD.<span class="pl-c1">calculate</span>(a, b)
     <span class="pl-k">local</span> s <span class="pl-k">=</span> slave[balance]
     balance <span class="pl-k">=</span> balance <span class="pl-k">+</span> <span class="pl-c1">1</span>
     <span class="pl-k">if</span> balance <span class="pl-k">&gt;</span> <span class="pl-k">#</span>slave <span class="pl-k">then</span>

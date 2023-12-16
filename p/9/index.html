@@ -93,13 +93,13 @@
 <span class="pl-en">all</span>: Lua.dll Lua.exe Luac.exe
 
 <span class="pl-c"><span class="pl-c">#</span>compile</span>
-<span class="pl-en">{<span class="pl-s">$(<span class="pl-smi">SRC_DIR</span>)</span>}.c{<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>}.obj</span>::
+{$(SRC_DIR)}.c{$(OBJ_DIR)}.obj::
     @if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
     $(CC) /nologo $(INCLUDE_DIR) /Fo$B /c -DLUA_BUILD_AS_DLL $&lt;
     @move *.obj $(OBJ_DIR)
 
 <span class="pl-c"><span class="pl-c">#</span> link</span>
-<span class="pl-en">Lua.exe</span>: Lua.lib <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lua.obj
+Lua.exe: Lua.lib $(OBJ_DIR)\lua.obj
     <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-c1">$?</span>
 
 <span class="pl-en">Luac.exe</span>: <span class="pl-s">$(<span class="pl-smi">OBJS</span>)</span> <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\luac.obj
@@ -183,7 +183,7 @@ Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个�
 <span class="pl-en">all</span>: base64.dll zip.dll
 
 <span class="pl-c"><span class="pl-c">#</span>compile</span>
-<span class="pl-en">.c{<span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>}.obj</span>::
+.c{$(OBJ_DIR)}.obj::
     @if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
     $(CC) $(CFLAGS) $(INCLUDE_DIR) /Fo$B -DLUA_LIB -DLUA_BUILD_AS_DLL $&lt;
     @move *.obj $(OBJ_DIR)
@@ -200,7 +200,7 @@ Lua.lib 是上面编译 Lua 的时候生成的，要使用绝对路径。两个�
 
 
 <span class="pl-c"><span class="pl-c">#</span> link</span>
-<span class="pl-en">base64.dll</span>: <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\lbase64.obj
+base64.dll: $(OBJ_DIR)\lbase64.obj
     <span class="pl-en">LINK</span> <span class="pl-en">/nologo</span> <span class="pl-en">/DLL</span> <span class="pl-en">/OUT</span>:<span class="pl-c1">$@</span> <span class="pl-s">$(<span class="pl-smi">LIB_PATH</span>)</span> <span class="pl-s">$(<span class="pl-smi">LUA_LIB</span>)</span> <span class="pl-c1">$?</span>
 
 <span class="pl-en">zip.dll</span>: <span class="pl-s">$(<span class="pl-smi">OBJ_DIR</span>)</span>\luazip.obj <span class="pl-s">$(<span class="pl-smi">ZLIB_OBJS</span>)</span> <span class="pl-s">$(<span class="pl-smi">MINIZIP_OBJS</span>)</span>
