@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">适合游戏服务器开发的ORM</div>
+            <div id="content" class="markdown-body">
+                <p><a href="https://zh.wikipedia.org/zh-cn/%E5%AF%B9%E8%B1%A1%E5%85%B3%E7%B3%BB%E6%98%A0%E5%B0%84" rel="nofollow">ORM</a>对象关系映射 (Object–relational mapping)，一般是用来映射逻辑数据结构和数据库的，用于修改数据结构后自动生成 SQL 来操作数据库。但是这不适合游戏开发，游戏中修改内存数据一般都不是立即写入数据库的，因为修改内存数据后立即写入数据库的话就太频繁了，都会选择定时写入数据库，而且修改玩家的部分数据后不是完整的写入整个玩家的数据，而是只写入修改的部分。</p>
+<p>定时写入修改的数据是比较容易实现的，但是只写入差异的数据就不是很容易，一般的游戏框架都只提供了接口用于手动进行脏标记哪块数据修改了，定时器到了就写入有脏标记的数据。如何让脏标记变得自动呢？之前写过一篇文章 <a href="https://blog.hanxi.cc/p/90/" rel="nofollow">golang 脏数据模块</a> 是用于 golang 里实现自动标记数据变脏的，不过没有实现部分层级变脏，而是直接把 root 节点置为脏。</p>
+<p>这一次想要实现的是在 Lua 中做一套内存数据和 MongoDB 数据库数据映射，内存数据修改后，通过元表的 <code class="notranslate">_newindex_</code> 来实现在对字段赋值时自动把数据标记为脏。然后定时把差异数据生成 MongoDB 的格式，类似这样：</p>
+<pre class="notranslate"><code class="notranslate">{
+  $set = {
+    hash = {
+      x = x,
+    },
+    arr.1 = 11,
+    a = aa,
+  },
+  $unset = {
+    arr.3 = {
+    },
+  },
+}
+</code></pre>
+<p>这样就做到了只更新差异数据的效果，而不是修改内存数据后完整的更新所有字段。这个实现方案的原理见 <a href="https://blog.codingnow.com/2017/02/tracedoc.html" rel="nofollow">跟踪数据结构的变更</a> ，代码实现是使用了 <a href="https://github.com/jojo59516">jojo59516</a> 的 Fork 版本 <a href="https://github.com/jojo59516/tracedoc">jojo59516/tracedoc</a> ，原因是云风觉得他的实现有道理 <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="524384296" data-permission-text="Title is private" data-url="https://github.com/cloudwu/tracedoc/issues/8" data-hovercard-type="issue" data-hovercard-url="/cloudwu/tracedoc/issues/8/hovercard" href="https://github.com/cloudwu/tracedoc/issues/8">cloudwu/tracedoc#8</a> ，当然，我也觉得有道理。。。</p>
+<p>不过我删除了合并数据差异的代码，因为在我这里用不上这块，只需要生成差异给 MongoDB 执行，数据初始化是从 MongoDB 里加载的。修改后的代码见 <a href="https://github.com/hanxi/lua-dirty-mongo">hanxi/lua-dirty-mongo</a> ，关键就是 <code class="notranslate">commit_mongo</code> 函数的实现。</p>
+<p>Lua 中的内存数据可以使用 <a href="https://protobuf.dev/programming-guides/proto3/" rel="nofollow">proto3</a> 定义结构来定义，这样可以防止写入未定义的字段，比如常见的一个例子：字段的某个字母写错造成读取和写入用的不是同一个字段。如果不用 proto3 来定义数据结构的话，就需要搞一种新 DSL 来定义数据结构了，这里只是为了介绍整套 ORM 想要的效果，选用 proto3 只是为了快速实现 demo 效果。</p>
+<blockquote>
+<p>proto3 支持 map ，proto2 不支持。</p>
+</blockquote>
+<p>用下面的图表示数据流转的样子：<br>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/hanxi/blog/assets/1185757/3d5fc099-6635-4878-9a77-49631438e74c"><img src="https://github.com/hanxi/blog/assets/1185757/3d5fc099-6635-4878-9a77-49631438e74c" alt="Diagram 2" style="max-width: 100%;"></a></p>
+<p>假设玩家的数据结构定义如下：</p>
+<div class="highlight highlight-source-proto"><pre class="notranslate"><span class="pl-k">message</span> <span class="pl-en">User</span> {
+	<span class="pl-k">uint32</span> <span class="pl-smi">uid</span> <span class="pl-k">=</span> <span class="pl-c1">1</span>; <span class="pl-c">// 玩家id</span>
+	<span class="pl-k">map</span> &lt;<span class="pl-k">uint32</span>,<span class="pl-k">Item</span>&gt; <span class="pl-smi">items</span> <span class="pl-k">=</span> <span class="pl-c1">2</span>; <span class="pl-c">// 道具列表</span>
+}
+<span class="pl-k">message</span> <span class="pl-en">Item</span> {
+	<span class="pl-k">uint32</span> <span class="pl-smi">id</span> <span class="pl-k">=</span> <span class="pl-c1">1</span>; <span class="pl-c">// 道具id</span>
+	<span class="pl-k">map</span>&lt;<span class="pl-k">uint32</span>,<span class="pl-k">uint32</span>&gt; <span class="pl-smi">props</span> <span class="pl-k">=</span> <span class="pl-c1">2</span>; <span class="pl-c">// 道具属性</span>
+}</pre></div>
+<p>可以生成类似下面这样的 Lua 对象：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">MAP</span>(<span class="pl-smi">key</span>, <span class="pl-smi">value</span>)
+	<span class="pl-k">return</span> {
+		key <span class="pl-k">=</span> key,
+		value <span class="pl-k">=</span> value,
+	}
+<span class="pl-k">end</span>
+<span class="pl-k">local</span> Item <span class="pl-k">=</span> {
+	id <span class="pl-k">=</span> UINT32,
+	props <span class="pl-k">=</span> <span class="pl-c1">MAP</span>(uint32, uint32),
+}
+<span class="pl-k">local</span> User <span class="pl-k">=</span> {
+	uid <span class="pl-k">=</span> UINT32,
+	items <span class="pl-k">=</span> <span class="pl-c1">MAP</span>(uint32, Item),
+}
+<span class="pl-k">return</span> User</pre></div>
+<p>这样就可以给这些 Lua 对象加上元表，控制字段的写入和读取，访问未定义的字段就可以报错，字段类型不一样也可以报错。</p>
+<p>这一块还没有实现，预计是用 <a href="https://github.com/starwing/lua-protobuf">starwing/lua-protobuf</a> 来实现对 proto 文件的解析，然后生成 Lua 对象。等这块全部实现后在去我的 <a href="https://github.com/hanxi/skynet-demo">skynet-demo</a> 里写个使用示例。</p>
+<p>TODO:</p>
+<hr>
+<p>最终的开发游戏逻辑的效果应该是这样的：</p>
+<ul>
+<li>使用 proto3 来定义数据库数据结构</li>
+<li>玩法逻辑直接修改 proto3 定义的内存数据结构</li>
+</ul>
+<p>在框架层面做好数据的加载和写入，比如首次访问数据直接从 MongoDB 里加载完整数据，然后用 dirtydoc 包裹起来给到玩法逻辑，玩法逻辑操作 dirtydoc 对象，框架每 5 分钟定时检查 dirtydoc 是否有差异，有差异就把差异写入 MongoDB。</p>
+<p>这样写玩法逻辑就不用关心数据是怎么从数据库中加载出来的和落地的。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/93#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
