@@ -32,32 +32,32 @@
             <div id="content" class="markdown-body">
                 <p><a href="https://github.com/wez/wezterm">wezterm</a> 是采用 Rust 实现和 Lua 配置的终端软件，我之前一段时间都是使用 Windows terminal ，发现 wezterm 是采用 Lua 配置的，很方便自定义功能。比如之前给 Windows terminal 提过的一个很小的需求，<a href="https://github.com/microsoft/terminal/issues/9031" data-hovercard-type="issue" data-hovercard-url="/microsoft/terminal/issues/9031/hovercard">像 vscode 一样自动读取 .ssh/config 文件的主机配置</a> ，然而却却迟迟没有实现，Windows terminal 采用 JSON 配置的（如果是 JavaScript 的话还有可能），不能像 wezterm 一样使用 Lua 语言一样能动态生成配置。</p>
 <p>下面几行配置就能实现自动读取 ssh 的配置文件，生成主机列表供选择进入，而且 wezterm 的启动菜单是支持查找的，这样只要主机名定义的有规范，就可以方便搜索进入了，就能更方便的作为远程主机管理工具了。wezterm 的配置文档也挺齐全的，参考 <a href="https://wezfurlong.org/wezterm/config/launch.html" rel="nofollow">wezterm/config/launch</a> 。</p>
-<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> wezterm <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wezterm<span class="pl-pds">"</span></span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">wezterm</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wezterm<span class="pl-pds">"</span></span>
 
-<span class="pl-k">local</span> launch_menu <span class="pl-k">=</span> {}
+<span class="pl-k">local</span> <span class="pl-smi">launch_menu</span> <span class="pl-k">=</span> {}
 
-<span class="pl-k">local</span> ssh_config_file <span class="pl-k">=</span> wezterm.<span class="pl-smi">home_dir</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/.ssh/config<span class="pl-pds">"</span></span>
-<span class="pl-k">local</span> f <span class="pl-k">=</span> <span class="pl-c1">io.open</span>(ssh_config_file)
-<span class="pl-k">if</span> f <span class="pl-k">then</span>
-    <span class="pl-k">local</span> line <span class="pl-k">=</span> f:<span class="pl-c1">read</span>(<span class="pl-s"><span class="pl-pds">"</span>*l<span class="pl-pds">"</span></span>)
-    <span class="pl-k">while</span> line <span class="pl-k">do</span>
-        <span class="pl-k">if</span> line:<span class="pl-c1">find</span>(<span class="pl-s"><span class="pl-pds">"</span>Host <span class="pl-pds">"</span></span>) <span class="pl-k">==</span> <span class="pl-c1">1</span> <span class="pl-k">then</span>
-            <span class="pl-k">local</span> host <span class="pl-k">=</span> line:<span class="pl-c1">gsub</span>(<span class="pl-s"><span class="pl-pds">"</span>Host <span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>)
+<span class="pl-k">local</span> <span class="pl-smi">ssh_config_file</span> <span class="pl-k">=</span> <span class="pl-smi">wezterm</span>.<span class="pl-e">home_dir</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/.ssh/config<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> <span class="pl-smi">f</span> <span class="pl-k">=</span> <span class="pl-c1">io.open</span>(<span class="pl-smi">ssh_config_file</span>)
+<span class="pl-k">if</span> <span class="pl-smi">f</span> <span class="pl-k">then</span>
+    <span class="pl-k">local</span> <span class="pl-smi">line</span> <span class="pl-k">=</span> <span class="pl-en">f</span>:<span class="pl-c1">read</span>(<span class="pl-s"><span class="pl-pds">"</span>*l<span class="pl-pds">"</span></span>)
+    <span class="pl-k">while</span> <span class="pl-smi">line</span> <span class="pl-k">do</span>
+        <span class="pl-k">if</span> <span class="pl-en">line</span>:<span class="pl-c1">find</span>(<span class="pl-s"><span class="pl-pds">"</span>Host <span class="pl-pds">"</span></span>) <span class="pl-k">==</span> <span class="pl-c1">1</span> <span class="pl-k">then</span>
+            <span class="pl-k">local</span> <span class="pl-smi">host</span> <span class="pl-k">=</span> <span class="pl-en">line</span>:<span class="pl-c1">gsub</span>(<span class="pl-s"><span class="pl-pds">"</span>Host <span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>)
             <span class="pl-c1">table.insert</span>(
-                launch_menu,
+                <span class="pl-smi">launch_menu</span>,
                 {
-                    label <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>SSH <span class="pl-pds">"</span></span> <span class="pl-k">..</span> host,
-                    args <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>powershell.exe<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>ssh<span class="pl-pds">"</span></span>, host}
+                    <span class="pl-smi">label</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>SSH <span class="pl-pds">" </span></span><span class="pl-k">..</span> <span class="pl-smi">host</span>,
+                    <span class="pl-smi">args</span> <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>powershell.exe<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>ssh<span class="pl-pds">"</span></span>, <span class="pl-smi">host</span>}
                 }
             )
         <span class="pl-k">end</span>
-        line <span class="pl-k">=</span> f:<span class="pl-c1">read</span>(<span class="pl-s"><span class="pl-pds">"</span>*l<span class="pl-pds">"</span></span>)
+        <span class="pl-smi">line</span> <span class="pl-k">=</span> <span class="pl-en">f</span>:<span class="pl-c1">read</span>(<span class="pl-s"><span class="pl-pds">"</span>*l<span class="pl-pds">"</span></span>)
     <span class="pl-k">end</span>
-    f:<span class="pl-c1">close</span>()
+    <span class="pl-en">f</span>:<span class="pl-c1">close</span>()
 <span class="pl-k">end</span>
 
 <span class="pl-k">return</span> {
-    launch_menu <span class="pl-k">=</span> launch_menu,
+    <span class="pl-smi">launch_menu</span> <span class="pl-k">=</span> <span class="pl-smi">launch_menu</span>,
 }</pre></div>
 <p>我的完整配置见 <a href="https://github.com/hanxi/dotfiles/blob/master/etc/wezterm/wezterm.lua">https://github.com/hanxi/dotfiles/blob/master/etc/wezterm/wezterm.lua</a> ，加入了些主题配置。</p>
             </div>

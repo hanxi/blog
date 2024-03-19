@@ -100,14 +100,14 @@
 ├── start.sh
 └── stop.sh</pre></div>
 <p>可以看出，除了那些 sh 脚本，只有两个文件是主要的。 <code class="notranslate">app/main.lua</code> 就是 <code class="notranslate">agent</code> 服务的入口，也是使用者开发 web 服务器的入口。 <code class="notranslate">conf/wlua.conf</code> 是配置文件，我想要的 <code class="notranslate">app/main.lua</code> 是这样的结构，和 lor 框架的非常类似。</p>
-<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> wlua <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wlua<span class="pl-pds">"</span></span>
-<span class="pl-k">local</span> app <span class="pl-k">=</span> wlua:<span class="pl-c1">new</span>()
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">wlua</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wlua<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> <span class="pl-smi">app</span> <span class="pl-k">=</span> <span class="pl-en">wlua</span>:<span class="pl-c1">new</span>()
 
-app:<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</span>/<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">c</span>)
-    c:<span class="pl-c1">send</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello wlua!<span class="pl-pds">"</span></span>)
+<span class="pl-en">app</span>:<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</span>/<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">c</span>)
+    <span class="pl-en">c</span>:<span class="pl-c1">send</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello wlua!<span class="pl-pds">"</span></span>)
 <span class="pl-k">end</span>)
 
-app:<span class="pl-c1">run</span>()</pre></div>
+<span class="pl-en">app</span>:<span class="pl-c1">run</span>()</pre></div>
 <p>跟 lor 还是有点区别的，这里参考了 gin 框架的样式，回调函数的参数只有 <code class="notranslate">c</code> ，是 <code class="notranslate">context</code> 对象，这个对象包含了此次客户端请求的所有信息和相关的操作。</p>
 <p>app 这个对象也参考了 gin 框架的 engine 对象，代码结构也和 gin 框架类似。<code class="notranslate">lualib</code> 目录结构是这样的：</p>
 <div class="highlight highlight-text-adblock"><pre class="notranslate">lualib/
@@ -139,16 +139,16 @@ app:<span class="pl-c1">run</span>()</pre></div>
 <p>基本就是请求和回应了，context 把 request 和 response 组合在一起，方便使用者操作。</p>
 <p>中间件也参考了 gin 的中间件接口和实现，也实现了一个 logger 中间件来输出 access log 。采用 <code class="notranslate">use</code> 来使用中间件，中间里采用 <code class="notranslate">c:next()</code> 函数来执行后续的 <code class="notranslate">handlers</code> 函数。</p>
 <p>实现的 http method 就是下面这些，也基本够用了。</p>
-<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> M <span class="pl-k">=</span> {
-    GET     <span class="pl-k">=</span> <span class="pl-c1">true</span>,
-    POST    <span class="pl-k">=</span> <span class="pl-c1">true</span>,
-    PUT     <span class="pl-k">=</span> <span class="pl-c1">true</span>,
-    DELETE  <span class="pl-k">=</span> <span class="pl-c1">true</span>,
-    PATCH   <span class="pl-k">=</span> <span class="pl-c1">true</span>,
-    HEAD    <span class="pl-k">=</span> <span class="pl-c1">true</span>,
-    OPTIONS <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">M</span> <span class="pl-k">=</span> {
+    <span class="pl-smi">GET</span>     <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+    <span class="pl-smi">POST</span>    <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+    <span class="pl-smi">PUT</span>     <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+    <span class="pl-smi">DELETE</span>  <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+    <span class="pl-smi">PATCH</span>   <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+    <span class="pl-smi">HEAD</span>    <span class="pl-k">=</span> <span class="pl-c1">true</span>,
+    <span class="pl-smi">OPTIONS</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>,
 }
-<span class="pl-k">return</span> M</pre></div>
+<span class="pl-k">return</span> <span class="pl-smi">M</span></pre></div>
 <h2>最后</h2>
 <p>统计了下 lualib 目录下的代码，也就 820 行，还是很简洁的，开发过程中的看板可以参考下 <a href="https://github.com/hanxi/wlua/projects/1">https://github.com/hanxi/wlua/projects/1</a> 。</p>
 <p>目前除了精简，就只剩下不足了，比如没有实现重定向接口。而且 reload 目前还是有点粗鲁的，只是发个消息退出，如果有挂起的逻辑，会造成逻辑只跑了一半就退出了，还是有优化的余地的。</p>

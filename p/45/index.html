@@ -49,35 +49,35 @@
 </blockquote>
 <p>这里我们根据行动目标的不同，把这个技能拆分两个操作。第一个操作是随机找到敌方2个英雄，第二个是对自己操作。伪代码如下：</p>
 <div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 随机 2 名敌方单位造成 90% 伤害</span>
-<span class="pl-k">local</span> targets <span class="pl-k">=</span> <span class="pl-c1">random_target</span>(heros, OTHER_SIDE, <span class="pl-c1">2</span>)
-<span class="pl-k">for</span> target <span class="pl-k">in</span> <span class="pl-c1">pairs</span>(targets) <span class="pl-k">do</span>
-    <span class="pl-k">local</span> hurt <span class="pl-k">=</span> <span class="pl-c1">0.9</span> <span class="pl-k">*</span> my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span>
-    target.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">=</span> target.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">-</span> hurt
+<span class="pl-k">local</span> <span class="pl-smi">targets</span> <span class="pl-k">=</span> <span class="pl-c1">random_target</span>(<span class="pl-smi">heros</span>, <span class="pl-smi">OTHER_SIDE</span>, <span class="pl-c1">2</span>)
+<span class="pl-k">for</span> <span class="pl-smi">target</span> <span class="pl-k">in</span> <span class="pl-c1">pairs</span>(<span class="pl-smi">targets</span>) <span class="pl-k">do</span>
+    <span class="pl-k">local</span> <span class="pl-smi">hurt</span> <span class="pl-k">=</span> <span class="pl-c1">0.9</span> <span class="pl-k">*</span> <span class="pl-smi">my</span>.<span class="pl-e">attr</span>.<span class="pl-e">hurt</span>
+    <span class="pl-smi">target</span>.<span class="pl-e">attr</span>.<span class="pl-e">hp</span> <span class="pl-k">=</span> <span class="pl-smi">target</span>.<span class="pl-e">attr</span>.<span class="pl-e">hp</span> <span class="pl-k">-</span> <span class="pl-smi">hurt</span>
 <span class="pl-k">end</span>
 
 <span class="pl-c"><span class="pl-c">--</span> 自身伤害属性增加 15%</span>
-my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class="pl-k">=</span> my.<span class="pl-smi">attr</span>.<span class="pl-smi">hurt</span> <span class="pl-k">*</span> <span class="pl-c1">1.15</span></pre></div>
+<span class="pl-smi">my</span>.<span class="pl-e">attr</span>.<span class="pl-e">hurt</span> <span class="pl-k">=</span> <span class="pl-smi">my</span>.<span class="pl-e">attr</span>.<span class="pl-e">hurt</span> <span class="pl-k">*</span> <span class="pl-c1">1.15</span></pre></div>
 <p>直接这样把代码写死的话，需求变化，代码就需要频繁的变。所有我们要抽出不变的东西写成代码，把变化的东西做成配置 Excel 表格。不变的是什么呢？行动流程是不变的，可以这样写行动流程：</p>
 <div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 每回合的逻辑</span>
-<span class="pl-k">for</span> round<span class="pl-k">=</span><span class="pl-c1">1</span>,cfg.<span class="pl-smi">MAX_ROUND</span> <span class="pl-k">do</span>
+<span class="pl-k">for</span> <span class="pl-smi">round</span><span class="pl-k">=</span><span class="pl-c1">1</span>,<span class="pl-smi">cfg</span>.<span class="pl-e">MAX_ROUND</span> <span class="pl-k">do</span>
     <span class="pl-c"><span class="pl-c">--</span> 每个英雄轮流出手</span>
-    <span class="pl-k">for</span> heros <span class="pl-k">in</span> <span class="pl-c1">ipairs</span>(heros) <span class="pl-k">do</span>
+    <span class="pl-k">for</span> <span class="pl-smi">heros</span> <span class="pl-k">in</span> <span class="pl-c1">ipairs</span>(<span class="pl-smi">heros</span>) <span class="pl-k">do</span>
         <span class="pl-c"><span class="pl-c">--</span> 1. 处理行动前状态</span>
-        <span class="pl-k">if</span> hero.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span> <span class="pl-k">then</span>
-            <span class="pl-c1">process_round_status</span>(fid, hero)
+        <span class="pl-k">if</span> <span class="pl-smi">hero</span>.<span class="pl-e">attr</span>.<span class="pl-e">hp</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span> <span class="pl-k">then</span>
+            <span class="pl-c1">process_round_status</span>(<span class="pl-smi">fid</span>, <span class="pl-smi">hero</span>)
         <span class="pl-k">end</span>
         <span class="pl-c"><span class="pl-c">--</span> 2. 出手逻辑</span>
-        <span class="pl-k">if</span> hero.<span class="pl-smi">attr</span>.<span class="pl-smi">hp</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span> <span class="pl-k">then</span>
-            <span class="pl-c1">process_action</span>(fid, hero)
+        <span class="pl-k">if</span> <span class="pl-smi">hero</span>.<span class="pl-e">attr</span>.<span class="pl-e">hp</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span> <span class="pl-k">then</span>
+            <span class="pl-c1">process_action</span>(<span class="pl-smi">fid</span>, <span class="pl-smi">hero</span>)
         <span class="pl-k">end</span>
 
         <span class="pl-c"><span class="pl-c">--</span> 检查是否结束战斗</span>
-        <span class="pl-k">if</span> <span class="pl-c1">check_fight_end</span>(fid) <span class="pl-k">then</span>
-            is_end <span class="pl-k">=</span> <span class="pl-c1">true</span>
+        <span class="pl-k">if</span> <span class="pl-c1">check_fight_end</span>(<span class="pl-smi">fid</span>) <span class="pl-k">then</span>
+            <span class="pl-smi">is_end</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>
             <span class="pl-k">break</span>
         <span class="pl-k">end</span>
     <span class="pl-k">end</span>
-    <span class="pl-k">if</span> is_end <span class="pl-k">then</span>
+    <span class="pl-k">if</span> <span class="pl-smi">is_end</span> <span class="pl-k">then</span>
         <span class="pl-k">break</span>
     <span class="pl-k">end</span>
 <span class="pl-k">end</span>

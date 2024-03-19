@@ -48,25 +48,25 @@ $ <span class="pl-c1">cd</span> composetest</pre></div>
 <ol start="2">
 <li>在工程目录下新键文件 <code class="notranslate">main.lua</code> ，代码如下：</li>
 </ol>
-<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> wlua <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wlua<span class="pl-pds">"</span></span>
-<span class="pl-k">local</span> redis <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet.db.redis<span class="pl-pds">"</span></span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">wlua</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>wlua<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> <span class="pl-smi">redis</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet.db.redis<span class="pl-pds">"</span></span>
 
-<span class="pl-k">local</span> g_db
+<span class="pl-k">local</span> <span class="pl-smi">g_db</span>
 <span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">getdb</span>()
-    <span class="pl-k">if</span> g_db <span class="pl-k">then</span> <span class="pl-k">return</span> g_db <span class="pl-k">end</span>
-    <span class="pl-k">local</span> conf <span class="pl-k">=</span> { host <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span>, port <span class="pl-k">=</span> <span class="pl-c1">6379</span>, db <span class="pl-k">=</span> <span class="pl-c1">0</span>, }
-    g_db <span class="pl-k">=</span> redis.<span class="pl-c1">connect</span>(conf)
-    <span class="pl-k">return</span> g_db
+    <span class="pl-k">if</span> <span class="pl-smi">g_db</span> <span class="pl-k">then</span> <span class="pl-k">return</span> <span class="pl-smi">g_db</span> <span class="pl-k">end</span>
+    <span class="pl-k">local</span> <span class="pl-smi">conf</span> <span class="pl-k">=</span> { <span class="pl-smi">host</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span>, <span class="pl-smi">port</span> <span class="pl-k">=</span> <span class="pl-c1">6379</span>, <span class="pl-smi">db</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>, }
+    <span class="pl-smi">g_db</span> <span class="pl-k">=</span> <span class="pl-smi">redis</span>.<span class="pl-c1">connect</span>(<span class="pl-smi">conf</span>)
+    <span class="pl-k">return</span> <span class="pl-smi">g_db</span>
 <span class="pl-k">end</span>
 
-<span class="pl-k">local</span> app <span class="pl-k">=</span> wlua:<span class="pl-c1">default</span>()
-app:<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</span>/<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">c</span>)
-    <span class="pl-k">local</span> db <span class="pl-k">=</span> <span class="pl-c1">getdb</span>()
-    <span class="pl-k">local</span> count <span class="pl-k">=</span> db:<span class="pl-c1">incr</span>(<span class="pl-s"><span class="pl-pds">"</span>hits<span class="pl-pds">"</span></span>)
-    c:<span class="pl-c1">send</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello World! I have been seen %d times.<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, count))
+<span class="pl-k">local</span> <span class="pl-smi">app</span> <span class="pl-k">=</span> <span class="pl-en">wlua</span>:<span class="pl-c1">default</span>()
+<span class="pl-en">app</span>:<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</span>/<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">c</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">db</span> <span class="pl-k">=</span> <span class="pl-c1">getdb</span>()
+    <span class="pl-k">local</span> <span class="pl-smi">count</span> <span class="pl-k">=</span> <span class="pl-en">db</span>:<span class="pl-c1">incr</span>(<span class="pl-s"><span class="pl-pds">"</span>hits<span class="pl-pds">"</span></span>)
+    <span class="pl-en">c</span>:<span class="pl-c1">send</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello World! I have been seen %d times.<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, <span class="pl-smi">count</span>))
 <span class="pl-k">end</span>)
 
-app:<span class="pl-c1">run</span>()</pre></div>
+<span class="pl-en">app</span>:<span class="pl-c1">run</span>()</pre></div>
 <p>在这个例子中， <code class="notranslate">"redis"</code> 是 redis 容器的网络名字，我们使用的默认的 Redis 端口 <code class="notranslate">6379</code> 和默认的数据库 <code class="notranslate">0</code> 。</p>
 <h2>第 2 步：创建一个 Dockerfile 文件</h2>
 <p>Dockerfile 用于构建一个 Docker 镜像，在你的 <code class="notranslate">composetest</code> 目录创建一个名为 <code class="notranslate">Dockerfile</code> 的文件，内容如下：</p>

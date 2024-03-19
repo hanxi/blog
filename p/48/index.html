@@ -65,13 +65,13 @@
 <h3>预生产池子</h3>
 <p>直接贴 Lua 的数据结构吧，就不画图了。</p>
 <div class="highlight highlight-source-lua"><pre class="notranslate">{
-   [idtype] <span class="pl-k">=</span> {
-     blocks <span class="pl-k">=</span> {
-        [start_idx] <span class="pl-k">=</span> len,  <span class="pl-c"><span class="pl-c">--</span> 有效数据, 表示从某段开始, 长度为len, 使用时段内自减</span>
+   [<span class="pl-smi">idtype</span>] <span class="pl-k">=</span> {
+     <span class="pl-smi">blocks</span> <span class="pl-k">=</span> {
+        [<span class="pl-smi">start_idx</span>] <span class="pl-k">=</span> <span class="pl-smi">len</span>,  <span class="pl-c"><span class="pl-c">--</span> 有效数据, 表示从某段开始, 长度为len, 使用时段内自减</span>
      },
-     cur_idx <span class="pl-k">=</span> <span class="pl-c1">0</span>,  <span class="pl-c"><span class="pl-c">--</span> 记录当前在使用的段ID, 优先使用低段位</span>
-     step <span class="pl-k">=</span> step,  <span class="pl-c"><span class="pl-c">--</span> 每次从 db 取的 id 数量</span>
-     ids_cnt <span class="pl-k">=</span> <span class="pl-c1">0</span>,  <span class="pl-c"><span class="pl-c">--</span> 当前ID总数，当总数不足 step/10 时, 自动申请</span>
+     <span class="pl-smi">cur_idx</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>,  <span class="pl-c"><span class="pl-c">--</span> 记录当前在使用的段ID, 优先使用低段位</span>
+     <span class="pl-smi">step</span> <span class="pl-k">=</span> <span class="pl-smi">step</span>,  <span class="pl-c"><span class="pl-c">--</span> 每次从 db 取的 id 数量</span>
+     <span class="pl-smi">ids_cnt</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>,  <span class="pl-c"><span class="pl-c">--</span> 当前ID总数，当总数不足 step/10 时, 自动申请</span>
    }
 }</pre></div>
 <ul>
@@ -82,20 +82,20 @@
 </ul>
 <h3>从 db 取一段 ID</h3>
 <div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">new_db_id</span>(<span class="pl-smi">idtype</span>, <span class="pl-smi">step</span>)
-    <span class="pl-k">local</span> ret <span class="pl-k">=</span> tbl_guid:<span class="pl-c1">findAndModify</span>({query <span class="pl-k">=</span> {idtype <span class="pl-k">=</span> idtype}, update <span class="pl-k">=</span> {[<span class="pl-s"><span class="pl-pds">"</span>$inc<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> {nextid <span class="pl-k">=</span> step}}, upsert <span class="pl-k">=</span> <span class="pl-c1">true</span>})
+    <span class="pl-k">local</span> <span class="pl-smi">ret</span> <span class="pl-k">=</span> <span class="pl-en">tbl_guid</span>:<span class="pl-c1">findAndModify</span>({<span class="pl-smi">query</span> <span class="pl-k">=</span> {<span class="pl-smi">idtype</span> <span class="pl-k">=</span> <span class="pl-smi">idtype</span>}, <span class="pl-smi">update</span> <span class="pl-k">=</span> {[<span class="pl-s"><span class="pl-pds">"</span>$inc<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> {<span class="pl-smi">nextid</span> <span class="pl-k">=</span> <span class="pl-smi">step</span>}}, <span class="pl-smi">upsert</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>})
 
-    <span class="pl-k">local</span> result <span class="pl-k">=</span> <span class="pl-c1">math.floor</span>(ret.<span class="pl-smi">ok</span>)
-    <span class="pl-k">if</span> result <span class="pl-k">~=</span> <span class="pl-c1">1</span> <span class="pl-k">then</span>
-        skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>new_db_id not ret. idtype:<span class="pl-pds">"</span></span>, idtype, <span class="pl-s"><span class="pl-pds">"</span>,step:<span class="pl-pds">"</span></span>, step, <span class="pl-s"><span class="pl-pds">"</span>,msg:<span class="pl-pds">"</span></span>, ret.<span class="pl-smi">errmsg</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">result</span> <span class="pl-k">=</span> <span class="pl-c1">math.floor</span>(<span class="pl-smi">ret</span>.<span class="pl-e">ok</span>)
+    <span class="pl-k">if</span> <span class="pl-smi">result</span> <span class="pl-k">~=</span> <span class="pl-c1">1</span> <span class="pl-k">then</span>
+        <span class="pl-smi">skynet</span>.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>new_db_id not ret. idtype:<span class="pl-pds">"</span></span>, <span class="pl-smi">idtype</span>, <span class="pl-s"><span class="pl-pds">"</span>,step:<span class="pl-pds">"</span></span>, <span class="pl-smi">step</span>, <span class="pl-s"><span class="pl-pds">"</span>,msg:<span class="pl-pds">"</span></span>, <span class="pl-smi">ret</span>.<span class="pl-e">errmsg</span>)
         <span class="pl-k">return</span>
     <span class="pl-k">end</span>
 
-    <span class="pl-k">if</span> <span class="pl-k">not</span> ret.<span class="pl-smi">value</span>.<span class="pl-smi">nextid</span> <span class="pl-k">then</span>
-        skynet.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>new_db_id failed. ignore first step. idtype:<span class="pl-pds">"</span></span>, idtype, <span class="pl-s"><span class="pl-pds">"</span>,step:<span class="pl-pds">"</span></span>, step)
+    <span class="pl-k">if</span> <span class="pl-k">not</span> <span class="pl-smi">ret</span>.<span class="pl-e">value</span>.<span class="pl-e">nextid</span> <span class="pl-k">then</span>
+        <span class="pl-smi">skynet</span>.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>new_db_id failed. ignore first step. idtype:<span class="pl-pds">"</span></span>, <span class="pl-smi">idtype</span>, <span class="pl-s"><span class="pl-pds">"</span>,step:<span class="pl-pds">"</span></span>, <span class="pl-smi">step</span>)
         <span class="pl-k">return</span>
     <span class="pl-k">end</span>
 
-    <span class="pl-k">return</span> ret.<span class="pl-smi">value</span>.<span class="pl-smi">nextid</span>
+    <span class="pl-k">return</span> <span class="pl-smi">ret</span>.<span class="pl-e">value</span>.<span class="pl-e">nextid</span>
 <span class="pl-k">end</span></pre></div>
 <p>用了 MongoDB 数据库的 <code class="notranslate">findAndModify</code> 和 <code class="notranslate">$inc</code> 指令。这里有个取巧，首次初始化数据库时会进入 "new_db_id failed" 逻辑，从而达到忽略第一段 ID，相当于 step 是步长也是最小值。</p>
 <p>为了实现这个初始化目的，还用了个取巧的地方，进程启动的时候，如果是首次初始化数据库，会执行 2 次生成函数，从而达到调用 2 次 <code class="notranslate">new_db_id</code> 函数。</p>

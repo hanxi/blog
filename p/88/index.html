@@ -33,33 +33,33 @@
                 <p>最近在写一个 Lua 库，用于打印报错堆栈上的函数参数和 upvalue，最开始用 Lua 实现了一个版本，运行效果还可以。想着用 C 来实现一遍，经过一段时间的奋战，终于能跑了。</p>
 <h2>运行效果展示</h2>
 <p>测试代码：</p>
-<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> tb <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>traceback.c<span class="pl-pds">"</span></span>
-debug.<span class="pl-smi">traceback</span> <span class="pl-k">=</span> tb.<span class="pl-smi">traceback</span>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">tb</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>traceback.c<span class="pl-pds">"</span></span>
+<span class="pl-smi">debug</span>.<span class="pl-e">traceback</span> <span class="pl-k">=</span> <span class="pl-smi">tb</span>.<span class="pl-e">traceback</span>
 
-<span class="pl-k">local</span> a <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>test upvalue a<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> <span class="pl-smi">a</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>test upvalue a<span class="pl-pds">"</span></span>
 
 <span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">f</span>(<span class="pl-smi">a</span>, <span class="pl-smi">b</span>, <span class="pl-smi">c</span>, <span class="pl-smi">d</span>, <span class="pl-smi">e</span>)
     <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>in f<span class="pl-pds">"</span></span>)
-    <span class="pl-k">local</span> x <span class="pl-k">=</span> a
+    <span class="pl-k">local</span> <span class="pl-smi">x</span> <span class="pl-k">=</span> <span class="pl-smi">a</span>
     <span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>my test error<span class="pl-pds">"</span></span>)
 <span class="pl-k">end</span>
 
 <span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">f1</span>(<span class="pl-smi">a</span>, <span class="pl-smi">b</span>, <span class="pl-smi">c</span>, <span class="pl-smi">d</span>, <span class="pl-smi">e</span>)
     <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>in f1<span class="pl-pds">"</span></span>)
-    <span class="pl-c1">f</span>(a,b,c,d,e)
+    <span class="pl-c1">f</span>(<span class="pl-smi">a</span>,<span class="pl-smi">b</span>,<span class="pl-smi">c</span>,<span class="pl-smi">d</span>,<span class="pl-smi">e</span>)
 <span class="pl-k">end</span>
 
-<span class="pl-k">local</span> c <span class="pl-k">=</span> {<span class="pl-c1">2</span>,<span class="pl-c1">2.22</span>}
-<span class="pl-k">local</span> a <span class="pl-k">=</span> {
-    b <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>x<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>y<span class="pl-pds">"</span></span>},
-    c <span class="pl-k">=</span> c,
+<span class="pl-k">local</span> <span class="pl-smi">c</span> <span class="pl-k">=</span> {<span class="pl-c1">2</span>,<span class="pl-c1">2.22</span>}
+<span class="pl-k">local</span> <span class="pl-smi">a</span> <span class="pl-k">=</span> {
+    <span class="pl-smi">b</span> <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>x<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>y<span class="pl-pds">"</span></span>},
+    <span class="pl-smi">c</span> <span class="pl-k">=</span> <span class="pl-smi">c</span>,
 }
-a.<span class="pl-smi">b</span>.<span class="pl-smi">xx</span> <span class="pl-k">=</span> c
-a.<span class="pl-smi">c</span>.<span class="pl-smi">yy</span> <span class="pl-k">=</span> a.<span class="pl-smi">b</span>
-a.<span class="pl-smi">c</span>.<span class="pl-smi">zz</span> <span class="pl-k">=</span> a.<span class="pl-smi">b</span>.<span class="pl-smi">xx</span>
+<span class="pl-smi">a</span>.<span class="pl-e">b</span>.<span class="pl-e">xx</span> <span class="pl-k">=</span> <span class="pl-smi">c</span>
+<span class="pl-smi">a</span>.<span class="pl-e">c</span>.<span class="pl-e">yy</span> <span class="pl-k">=</span> <span class="pl-smi">a</span>.<span class="pl-e">b</span>
+<span class="pl-smi">a</span>.<span class="pl-e">c</span>.<span class="pl-e">zz</span> <span class="pl-k">=</span> <span class="pl-smi">a</span>.<span class="pl-e">b</span>.<span class="pl-e">xx</span>
 
-<span class="pl-k">local</span> ok, msg <span class="pl-k">=</span> <span class="pl-c1">xpcall</span>(f1, debug.<span class="pl-smi">traceback</span>, a, <span class="pl-s"><span class="pl-pds">"</span>xs<span class="pl-pds">"</span></span>, <span class="pl-c1">1.22</span>, <span class="pl-c1">100</span>)
-<span class="pl-c1">print</span>(msg)</pre></div>
+<span class="pl-k">local</span> <span class="pl-smi">ok</span>, <span class="pl-smi">msg</span> <span class="pl-k">=</span> <span class="pl-c1">xpcall</span>(<span class="pl-smi">f1</span>, <span class="pl-c1">debug.traceback</span>, <span class="pl-smi">a</span>, <span class="pl-s"><span class="pl-pds">"</span>xs<span class="pl-pds">"</span></span>, <span class="pl-c1">1.22</span>, <span class="pl-c1">100</span>)
+<span class="pl-c1">print</span>(<span class="pl-smi">msg</span>)</pre></div>
 <p>运行效果大概是这样的：</p>
 <div class="highlight highlight-text-adblock"><pre class="notranslate">test.lua:9: my test error
 stack traceback:

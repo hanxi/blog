@@ -67,21 +67,24 @@
 <p>可以生成类似下面这样的 Lua 对象：</p>
 <div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">MAP</span>(<span class="pl-smi">key</span>, <span class="pl-smi">value</span>)
 	<span class="pl-k">return</span> {
-		key <span class="pl-k">=</span> key,
-		value <span class="pl-k">=</span> value,
+		<span class="pl-smi">key</span> <span class="pl-k">=</span> <span class="pl-smi">key</span>,
+		<span class="pl-smi">value</span> <span class="pl-k">=</span> <span class="pl-smi">value</span>,
 	}
 <span class="pl-k">end</span>
-<span class="pl-k">local</span> Item <span class="pl-k">=</span> {
-	id <span class="pl-k">=</span> UINT32,
-	props <span class="pl-k">=</span> <span class="pl-c1">MAP</span>(uint32, uint32),
+<span class="pl-k">local</span> <span class="pl-smi">Item</span> <span class="pl-k">=</span> {
+	<span class="pl-smi">id</span> <span class="pl-k">=</span> <span class="pl-smi">UINT32</span>,
+	<span class="pl-smi">props</span> <span class="pl-k">=</span> <span class="pl-c1">MAP</span>(<span class="pl-smi">uint32</span>, <span class="pl-smi">uint32</span>),
 }
-<span class="pl-k">local</span> User <span class="pl-k">=</span> {
-	uid <span class="pl-k">=</span> UINT32,
-	items <span class="pl-k">=</span> <span class="pl-c1">MAP</span>(uint32, Item),
+<span class="pl-k">local</span> <span class="pl-smi">User</span> <span class="pl-k">=</span> {
+	<span class="pl-smi">uid</span> <span class="pl-k">=</span> <span class="pl-smi">UINT32</span>,
+	<span class="pl-smi">items</span> <span class="pl-k">=</span> <span class="pl-c1">MAP</span>(<span class="pl-smi">uint32</span>, <span class="pl-smi">Item</span>),
 }
-<span class="pl-k">return</span> User</pre></div>
+<span class="pl-k">return</span> <span class="pl-smi">User</span></pre></div>
 <p>这样就可以给这些 Lua 对象加上元表，控制字段的写入和读取，访问未定义的字段就可以报错，字段类型不一样也可以报错。</p>
 <p>这一块还没有实现，预计是用 <a href="https://github.com/starwing/lua-protobuf">starwing/lua-protobuf</a> 来实现对 proto 文件的解析，然后生成 Lua 对象。等这块全部实现后在去我的 <a href="https://github.com/hanxi/skynet-demo">skynet-demo</a> 里写个使用示例。</p>
+<hr>
+<p>已经完成了 schema.lua 的基础结构格式： <a href="https://github.com/hanxi/lua-dirty-mongo/blob/main/schema.lua">https://github.com/hanxi/lua-dirty-mongo/blob/main/schema.lua</a></p>
+<p>目前只有表和子表结构，未来有空再加上 array , map 。最后再加上从 proto3 自动生成就算结束了。</p>
 <p>TODO:</p>
 <hr>
 <p>最终的开发游戏逻辑的效果应该是这样的：</p>
