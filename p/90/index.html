@@ -552,9 +552,9 @@ dirty_out/wanfa1.go</p>
 dirty_gen -tmpl=dirty_tmpl/wanfa1.tmpl -out=dirty_out/wanfa1.go
 dirty_gen -tmpl=dirty_tmpl/wanfa2.tmpl -out=dirty_out/wanfa2.go</pre></div>
 <p>其他地方使用可以这样：</p>
-<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">import</span> dirty_out<span class="pl-s"></span>
+<div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">import</span> <span class="pl-s1">dirty_out</span>
 
-<span class="pl-s1">dirty_out</span>.<span class="pl-en">NewXXX</span>()
+<span class="pl-s1">dirty_out</span>.<span class="pl-s1">NewXXX</span>()
 </pre></div>
 <p>进展：目前就差实现 dirty_gen 程序了，初版的 dirty_gen.go 如下：</p>
 <div class="highlight highlight-source-go"><pre class="notranslate"><span class="pl-k">package</span> main

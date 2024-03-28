@@ -85,7 +85,6 @@
 <hr>
 <p>已经完成了 schema.lua 的基础结构格式： <a href="https://github.com/hanxi/lua-dirty-mongo/blob/main/schema.lua">https://github.com/hanxi/lua-dirty-mongo/blob/main/schema.lua</a></p>
 <p>目前只有表和子表结构，未来有空再加上 array , map 。最后再加上从 proto3 自动生成就算结束了。</p>
-<p>TODO:</p>
 <hr>
 <p>最终的开发游戏逻辑的效果应该是这样的：</p>
 <ul>
@@ -94,6 +93,10 @@
 </ul>
 <p>在框架层面做好数据的加载和写入，比如首次访问数据直接从 MongoDB 里加载完整数据，然后用 dirtydoc 包裹起来给到玩法逻辑，玩法逻辑操作 dirtydoc 对象，框架每 5 分钟定时检查 dirtydoc 是否有差异，有差异就把差异写入 MongoDB。</p>
 <p>这样写玩法逻辑就不用关心数据是怎么从数据库中加载出来的和落地的。</p>
+<hr>
+<ul>
+<li>20240328 更新：已加上 array 和 map，并支持从 proto3 文件生成 schema.lua 文件</li>
+</ul>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/93#new_comment_field"> 点击进入评论 ... </a>
