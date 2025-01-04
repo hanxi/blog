@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">Cloudflare 使用 SaaS 回源加速配置笔记</div>
+            <div id="content" class="markdown-body">
+                <h2>加速 Github Pages 域名</h2>
+<p>每加速一个回退源就消耗一个免费域名，加速 Github Pages 会消耗一个，即使有个多个 Github Pages 也只需要一个免费域名。</p>
+<h3>前置需求</h3>
+<ol>
+<li>在 <a href="https://nic.us.kg/" rel="nofollow">https://nic.us.kg/</a> 申请免费域名，有 Github 账号就能申请到，一个账号能申请到 3 个域名。</li>
+<li>申请到的免费域名为: <code class="notranslate">githubpages.us.kg</code> 。</li>
+<li>需要加速的域名为： <code class="notranslate">xdocs.hanxi.cc</code> 。</li>
+<li><code class="notranslate">githubpages.us.kg</code> 和 <code class="notranslate">hanxi.cc</code> 都托管到 Cloudflare 。</li>
+<li>子域名 <code class="notranslate">xdocs.hanxi.cc</code> 托管到阿里云。</li>
+<li>Cloudflare 开头 SaaS 只需要 Paypal 账号即可，Paypal 账号可以是国内账号，绑定国内储蓄卡就行。</li>
+</ol>
+<h3>githubpages.us.kg 在 Cloudflare 中的设置</h3>
+<ol>
+<li>配置 DNS : <code class="notranslate">cdn.githubpages.us.kg</code> ，开小黄云。</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">CNAME cdn hanxi.github.io
+</code></pre>
+<ol start="2">
+<li>SSL/TLS 加密设为完全。</li>
+<li>自定义主机名：
+<ol>
+<li>添加回退源： <code class="notranslate">cdn.githubpages.us.kg</code> 。</li>
+<li>添加自定义主机名： <code class="notranslate">xdocs.hanxi.cc</code> 。</li>
+<li><code class="notranslate">_cf-custom-hostname.xdocs.hanxi.cc</code>  和 <code class="notranslate">_acme-challenge.xdocs.hanxi.cc</code> 留着备用。</li>
+</ol>
+</li>
+</ol>
+<h3>hanxi.cc 在 Cloudflare 中的设置</h3>
+<ol>
+<li>配置 DNS: <code class="notranslate">xdocs.hanxi.cc</code> 。</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">NS xdocs ns1.alidns.com
+</code></pre>
+<ol start="2">
+<li>配置 DNS : <code class="notranslate">alidnscheck.hanxi.cc</code> ，值从下面的步骤中拿到。</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">TXT alidnscheck xxxxxxxxxxxxxxx
+</code></pre>
+<h3>xdocs.hanxi.cc 在 aliyun 中的设置</h3>
+<ol>
+<li>添加域名解析： <code class="notranslate">xdocs.hanxi.cc</code> 。</li>
+<li>获取到 alidnscheck 值，上面的步骤需要的。</li>
+<li>添加解析：</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">TXT _cf-custom-hostname xxxxxxxxxxxxx
+TXT _acme-challenge xxxxxxxxxxxxx
+</code></pre>
+<p><code class="notranslate">xxxxxxxxxxxxx</code> 从前面的步骤中拿到。<br>
+4. 添加解析：</p>
+<pre class="notranslate"><code class="notranslate">CNAME 默认 @ cloudflare.182682.xyz
+CNAME 境外 @ hanxi.github.io
+</code></pre>
+<p>cloudflare.182682.xyz 是一个加速好的域名。</p>
+<h2>加速 workers</h2>
+<p>在 Cloudflare 中配置 DNS CNAME  即可，不开小黄云，值填 <code class="notranslate">cloudflare.182682.xyz</code> 。</p>
+<h2>加速自己的服务器</h2>
+<p>vps.hanxi.cc 通过 cdn.hanxi.us.kg 回源。</p>
+<p>差异步骤：</p>
+<h3>hanxi.us.kg 在 Cloudflare 中的设置</h3>
+<ol>
+<li>配置 DNS : <code class="notranslate">cdn.hanxi.us.kg</code> ，开小黄云。</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">A cdn 123.123.123.123
+</code></pre>
+<h3>vps.hanxi.cc 在 aliyun 中的设置</h3>
+<ol start="4">
+<li>添加解析：</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">CNAME 默认 @ cloudflare.182682.xyz
+CNAME 境外 @ vps.hanxi.cc
+</code></pre>
+<h3>非 443 端口</h3>
+<p>需要在回原域名 hanxi.us.kg 中配置 Origin Rules 规则，选 <code class="notranslate">更改端口 [模板]</code></p>
+<pre class="notranslate"><code class="notranslate">主机名：cdn.hanxi.us.kg 重写到 8443 端口
+</code></pre>
+<h2>参考</h2>
+<ul>
+<li><a href="https://linux.do/t/topic/121316" rel="nofollow">https://linux.do/t/topic/121316</a></li>
+<li><a href="https://www.baota.me/post-433.html" rel="nofollow">https://www.baota.me/post-433.html</a></li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/95#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>

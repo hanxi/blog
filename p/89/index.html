@@ -72,13 +72,13 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 <p>修改 src/contest.py 文件，使用 <code class="notranslate">pytest_addoption</code> 接口来新增参数：</p>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">import</span> <span class="pl-s1">pytest</span>
 <span class="pl-k">def</span> <span class="pl-en">pytest_addoption</span>(<span class="pl-s1">parser</span>):
-    <span class="pl-s1">parser</span>.<span class="pl-en">addoption</span>(
+    <span class="pl-s1">parser</span>.<span class="pl-c1">addoption</span>(
         <span class="pl-s">"--branch"</span>, <span class="pl-s1">action</span><span class="pl-c1">=</span><span class="pl-s">"store"</span>, <span class="pl-s1">default</span><span class="pl-c1">=</span><span class="pl-s">"master"</span>, <span class="pl-s1">help</span><span class="pl-c1">=</span><span class="pl-s">"branch: 分支名"</span>
     )
 
-<span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-en">fixture</span>()</span>
+<span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-c1">fixture</span>()</span>
 <span class="pl-k">def</span> <span class="pl-en">branch</span>(<span class="pl-s1">request</span>):
-    <span class="pl-k">return</span> <span class="pl-s1">request</span>.<span class="pl-s1">config</span>.<span class="pl-en">getoption</span>(<span class="pl-s">"--branch"</span>)</pre></div>
+    <span class="pl-k">return</span> <span class="pl-s1">request</span>.<span class="pl-c1">config</span>.<span class="pl-c1">getoption</span>(<span class="pl-s">"--branch"</span>)</pre></div>
 <p>并使用 <code class="notranslate">pytest.fixture</code> 装饰器新增一个 <code class="notranslate">branch</code> 参数给测试用例使用。</p>
 <h2>配置测试用例之间的依赖关系</h2>
 <p>想要某些测试用例依赖某些测试用例成功执行，可以使用 <code class="notranslate">pytest.mark.skipif</code> 实现，在满足第一个参数为 <code class="notranslate">True</code> 时跳过用例。</p>
@@ -88,7 +88,7 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">import</span> <span class="pl-s1">pytest</span>
 
 <span class="pl-s1">g_init_succ</span> <span class="pl-c1">=</span> <span class="pl-c1">False</span>
-<span class="pl-s1">checkinit</span> <span class="pl-c1">=</span> <span class="pl-s1">pytest</span>.<span class="pl-s1">mark</span>.<span class="pl-en">skipif</span>(<span class="pl-c1">not</span> <span class="pl-s1">g_init_succ</span>, <span class="pl-s1">reason</span><span class="pl-c1">=</span><span class="pl-s">'初始化失败'</span>)
+<span class="pl-s1">checkinit</span> <span class="pl-c1">=</span> <span class="pl-s1">pytest</span>.<span class="pl-c1">mark</span>.<span class="pl-c1">skipif</span>(<span class="pl-c1">not</span> <span class="pl-s1">g_init_succ</span>, <span class="pl-s1">reason</span><span class="pl-c1">=</span><span class="pl-s">'初始化失败'</span>)
 
 <span class="pl-c"># 初始化环境</span>
 <span class="pl-k">def</span> <span class="pl-en">init</span>():
@@ -114,10 +114,10 @@ pip install -e <span class="pl-c1">.</span></pre></div>
     <span class="pl-k">pass</span></pre></div>
 <h2>变量比较多的情况怎么办？</h2>
 <p>可以弄个 env 表，修改 <code class="notranslate">conftest.py</code> 文件：</p>
-<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-en">fixture</span>()</span>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-c1">fixture</span>()</span>
 <span class="pl-k">def</span> <span class="pl-en">env</span>(<span class="pl-s1">request</span>):
     <span class="pl-k">return</span> {
-        <span class="pl-s">'branch'</span>: <span class="pl-s1">request</span>.<span class="pl-s1">config</span>.<span class="pl-en">getoption</span>(<span class="pl-s">"--branch"</span>),
+        <span class="pl-s">'branch'</span>: <span class="pl-s1">request</span>.<span class="pl-c1">config</span>.<span class="pl-c1">getoption</span>(<span class="pl-s">"--branch"</span>),
         <span class="pl-s">'svn_root'</span>: <span class="pl-s">"http://test.com"</span>,
         <span class="pl-s">'svn_user'</span>: <span class="pl-s">"user"</span>,
         <span class="pl-s">'svn_passwd'</span>: <span class="pl-s">"passwd"</span>,
@@ -125,18 +125,18 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 <h2>修改 Environment 里显示的内容</h2>
 <p>修改 <code class="notranslate">conftest.py</code> 文件：</p>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">def</span> <span class="pl-en">pytest_configure</span>(<span class="pl-s1">config</span>):
-    <span class="pl-s1">config</span>.<span class="pl-s1">_metadata</span>.<span class="pl-en">clear</span>()
-    <span class="pl-s1">config</span>.<span class="pl-s1">_metadata</span>[<span class="pl-s">'分支'</span>] <span class="pl-c1">=</span> <span class="pl-s1">config</span>.<span class="pl-en">getoption</span>(<span class="pl-s">'--branch'</span>)</pre></div>
+    <span class="pl-s1">config</span>.<span class="pl-c1">_metadata</span>.<span class="pl-c1">clear</span>()
+    <span class="pl-s1">config</span>.<span class="pl-c1">_metadata</span>[<span class="pl-s">'分支'</span>] <span class="pl-c1">=</span> <span class="pl-s1">config</span>.<span class="pl-c1">getoption</span>(<span class="pl-s">'--branch'</span>)</pre></div>
 <h2>删除 link 列</h2>
 <p>修改 <code class="notranslate">conftest.py</code> 文件：</p>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_header</span>(<span class="pl-s1">cells</span>):
-    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)  <span class="pl-c"># 删除link列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-c1">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)  <span class="pl-c"># 删除link列</span>
 
 <span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_row</span>(<span class="pl-s1">report</span>, <span class="pl-s1">cells</span>):
-    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)  <span class="pl-c"># 删除link列</span></pre></div>
+    <span class="pl-s1">cells</span>.<span class="pl-c1">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)  <span class="pl-c"># 删除link列</span></pre></div>
 <h2>修改标题</h2>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">def</span> <span class="pl-en">pytest_html_report_title</span>(<span class="pl-s1">report</span>):
-    <span class="pl-s1">report</span>.<span class="pl-s1">title</span> <span class="pl-c1">=</span> <span class="pl-s">"版本静态检查报告"</span></pre></div>
+    <span class="pl-s1">report</span>.<span class="pl-c1">title</span> <span class="pl-c1">=</span> <span class="pl-s">"版本静态检查报告"</span></pre></div>
 <h2>翻译成中文</h2>
 <p>参考这篇文章： <a href="https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-html.html" rel="nofollow">https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-html.html</a><br>
 翻译成果： <a href="https://github.com/hanxi/pytest-html-cn">https://github.com/hanxi/pytest-html-cn</a><br>
@@ -147,20 +147,20 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 并通过 <code class="notranslate">pytest_runtest_makereport</code> 接口新增列所需的数据。</p>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">from</span> <span class="pl-s1">py</span>.<span class="pl-s1">xml</span> <span class="pl-k">import</span> <span class="pl-s1">html</span>
 <span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_header</span>(<span class="pl-s1">cells</span>):
-    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">1</span>)  <span class="pl-c"># 删除检查列</span>
-    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>) <span class="pl-c"># 删除link列</span>
-    <span class="pl-s1">cells</span>.<span class="pl-en">insert</span>(<span class="pl-c1">1</span>, <span class="pl-s1">html</span>.<span class="pl-en">th</span>(<span class="pl-s">"描述"</span>))
+    <span class="pl-s1">cells</span>.<span class="pl-c1">pop</span>(<span class="pl-c1">1</span>)  <span class="pl-c"># 删除检查列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-c1">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>) <span class="pl-c"># 删除link列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-c1">insert</span>(<span class="pl-c1">1</span>, <span class="pl-s1">html</span>.<span class="pl-c1">th</span>(<span class="pl-s">"描述"</span>))
 
 <span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_row</span>(<span class="pl-s1">report</span>, <span class="pl-s1">cells</span>):
-    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">1</span>)  <span class="pl-c"># 删除检查列</span>
-    <span class="pl-s1">cells</span>.<span class="pl-en">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>) <span class="pl-c"># 删除link列</span>
-    <span class="pl-s1">cells</span>.<span class="pl-en">insert</span>(<span class="pl-c1">1</span>, <span class="pl-s1">html</span>.<span class="pl-en">td</span>(<span class="pl-s1">report</span>.<span class="pl-s1">description</span>))
+    <span class="pl-s1">cells</span>.<span class="pl-c1">pop</span>(<span class="pl-c1">1</span>)  <span class="pl-c"># 删除检查列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-c1">pop</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>) <span class="pl-c"># 删除link列</span>
+    <span class="pl-s1">cells</span>.<span class="pl-c1">insert</span>(<span class="pl-c1">1</span>, <span class="pl-s1">html</span>.<span class="pl-c1">td</span>(<span class="pl-s1">report</span>.<span class="pl-c1">description</span>))
 
-<span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-en">hookimpl</span>(<span class="pl-s1">hookwrapper</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)</span>
+<span class="pl-en">@<span class="pl-s1">pytest</span>.<span class="pl-c1">hookimpl</span>(<span class="pl-s1">hookwrapper</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)</span>
 <span class="pl-k">def</span> <span class="pl-en">pytest_runtest_makereport</span>(<span class="pl-s1">item</span>, <span class="pl-s1">call</span>):
     <span class="pl-s1">outcome</span> <span class="pl-c1">=</span> <span class="pl-k">yield</span>
-    <span class="pl-s1">report</span> <span class="pl-c1">=</span> <span class="pl-s1">outcome</span>.<span class="pl-en">get_result</span>()
-    <span class="pl-s1">report</span>.<span class="pl-s1">description</span> <span class="pl-c1">=</span> <span class="pl-en">str</span>(<span class="pl-s1">item</span>.<span class="pl-s1">function</span>.<span class="pl-s1">__doc__</span>)</pre></div>
+    <span class="pl-s1">report</span> <span class="pl-c1">=</span> <span class="pl-s1">outcome</span>.<span class="pl-c1">get_result</span>()
+    <span class="pl-s1">report</span>.<span class="pl-c1">description</span> <span class="pl-c1">=</span> <span class="pl-en">str</span>(<span class="pl-s1">item</span>.<span class="pl-c1">function</span>.<span class="pl-c1">__doc__</span>)</pre></div>
 <h2>自动折叠</h2>
 <p>自动折叠通过和跳过，之前翻译漏了这部分导致自动折叠会有问题的。</p>
 <p><a class="commit-link" data-hovercard-type="commit" data-hovercard-url="https://github.com/hanxi/pytest-html-cn/commit/5055c5b7b5f312894a98ff3dd2e2efe154b59b72/hovercard" href="https://github.com/hanxi/pytest-html-cn/commit/5055c5b7b5f312894a98ff3dd2e2efe154b59b72">hanxi/pytest-html-cn@<tt>5055c5b</tt></a></p>
@@ -177,38 +177,38 @@ pip install -e <span class="pl-c1">.</span></pre></div>
 <p>这些都是从 <code class="notranslate">def _populate_html_log_div</code> 函数的实现里修改过来的：</p>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">def</span> <span class="pl-en">pytest_html_results_table_html</span>(<span class="pl-s1">report</span>, <span class="pl-s1">data</span>):
     <span class="pl-k">del</span> <span class="pl-s1">data</span>[:]
-    <span class="pl-s1">log</span> <span class="pl-c1">=</span> <span class="pl-s1">html</span>.<span class="pl-en">div</span>(<span class="pl-s1">class_</span><span class="pl-c1">=</span><span class="pl-s">"log"</span>)
-    <span class="pl-k">if</span> <span class="pl-s1">report</span>.<span class="pl-s1">skipped</span> <span class="pl-c1">and</span> <span class="pl-s1">report</span>.<span class="pl-s1">longrepr</span>:
-        <span class="pl-s1">arr</span> <span class="pl-c1">=</span> <span class="pl-s1">report</span>.<span class="pl-s1">longreprtext</span>.<span class="pl-en">strip</span>(<span class="pl-s">"()"</span>).<span class="pl-en">split</span>(<span class="pl-s">","</span>)
+    <span class="pl-s1">log</span> <span class="pl-c1">=</span> <span class="pl-s1">html</span>.<span class="pl-c1">div</span>(<span class="pl-s1">class_</span><span class="pl-c1">=</span><span class="pl-s">"log"</span>)
+    <span class="pl-k">if</span> <span class="pl-s1">report</span>.<span class="pl-c1">skipped</span> <span class="pl-c1">and</span> <span class="pl-s1">report</span>.<span class="pl-c1">longrepr</span>:
+        <span class="pl-s1">arr</span> <span class="pl-c1">=</span> <span class="pl-s1">report</span>.<span class="pl-c1">longreprtext</span>.<span class="pl-c1">strip</span>(<span class="pl-s">"()"</span>).<span class="pl-c1">split</span>(<span class="pl-s">","</span>)
         <span class="pl-s1">skip_msg</span> <span class="pl-c1">=</span> <span class="pl-s1">arr</span>[<span class="pl-en">len</span>(<span class="pl-s1">arr</span>)<span class="pl-c1">-</span><span class="pl-c1">1</span>]
-        <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">span</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">skip_msg</span>))))
-    <span class="pl-k">elif</span> <span class="pl-s1">report</span>.<span class="pl-s1">failed</span> <span class="pl-c1">and</span> <span class="pl-s1">report</span>.<span class="pl-s1">longrepr</span>:
+        <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-s1">html</span>.<span class="pl-c1">span</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">skip_msg</span>))))
+    <span class="pl-k">elif</span> <span class="pl-s1">report</span>.<span class="pl-c1">failed</span> <span class="pl-c1">and</span> <span class="pl-s1">report</span>.<span class="pl-c1">longrepr</span>:
         <span class="pl-k">pass</span>
-    <span class="pl-k">elif</span> <span class="pl-s1">report</span>.<span class="pl-s1">longrepr</span>:
-        <span class="pl-s1">text</span> <span class="pl-c1">=</span> <span class="pl-s1">report</span>.<span class="pl-s1">longreprtext</span> <span class="pl-c1">or</span> <span class="pl-s1">report</span>.<span class="pl-s1">full_text</span>
-        <span class="pl-k">for</span> <span class="pl-s1">line</span> <span class="pl-c1">in</span> <span class="pl-s1">text</span>.<span class="pl-en">splitlines</span>():
-            <span class="pl-s1">separator</span> <span class="pl-c1">=</span> <span class="pl-s1">line</span>.<span class="pl-en">startswith</span>(<span class="pl-s">"_ "</span> <span class="pl-c1">*</span> <span class="pl-c1">10</span>)
+    <span class="pl-k">elif</span> <span class="pl-s1">report</span>.<span class="pl-c1">longrepr</span>:
+        <span class="pl-s1">text</span> <span class="pl-c1">=</span> <span class="pl-s1">report</span>.<span class="pl-c1">longreprtext</span> <span class="pl-c1">or</span> <span class="pl-s1">report</span>.<span class="pl-c1">full_text</span>
+        <span class="pl-k">for</span> <span class="pl-s1">line</span> <span class="pl-c1">in</span> <span class="pl-s1">text</span>.<span class="pl-c1">splitlines</span>():
+            <span class="pl-s1">separator</span> <span class="pl-c1">=</span> <span class="pl-s1">line</span>.<span class="pl-c1">startswith</span>(<span class="pl-s">"_ "</span> <span class="pl-c1">*</span> <span class="pl-c1">10</span>)
             <span class="pl-k">if</span> <span class="pl-s1">separator</span>:
-                <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">line</span>[:<span class="pl-c1">80</span>])
+                <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-s1">line</span>[:<span class="pl-c1">80</span>])
             <span class="pl-k">else</span>:
-                <span class="pl-s1">exception</span> <span class="pl-c1">=</span> <span class="pl-s1">line</span>.<span class="pl-en">startswith</span>(<span class="pl-s">"E   "</span>)
+                <span class="pl-s1">exception</span> <span class="pl-c1">=</span> <span class="pl-s1">line</span>.<span class="pl-c1">startswith</span>(<span class="pl-s">"E   "</span>)
                 <span class="pl-k">if</span> <span class="pl-s1">exception</span>:
-                    <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">span</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">line</span>)), <span class="pl-s1">class_</span><span class="pl-c1">=</span><span class="pl-s">"error"</span>))
+                    <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-s1">html</span>.<span class="pl-c1">span</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">line</span>)), <span class="pl-s1">class_</span><span class="pl-c1">=</span><span class="pl-s">"error"</span>))
                 <span class="pl-k">else</span>:
-                    <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">line</span>)))
-            <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">br</span>())
+                    <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-en">raw</span>(<span class="pl-en">escape</span>(<span class="pl-s1">line</span>)))
+            <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-s1">html</span>.<span class="pl-c1">br</span>())
 
-    <span class="pl-k">for</span> <span class="pl-s1">section</span> <span class="pl-c1">in</span> <span class="pl-s1">report</span>.<span class="pl-s1">sections</span>:
+    <span class="pl-k">for</span> <span class="pl-s1">section</span> <span class="pl-c1">in</span> <span class="pl-s1">report</span>.<span class="pl-c1">sections</span>:
         <span class="pl-s1">header</span>, <span class="pl-s1">content</span> <span class="pl-c1">=</span> <span class="pl-en">map</span>(<span class="pl-s1">escape</span>, <span class="pl-s1">section</span>)
 
-        <span class="pl-s1">converter</span> <span class="pl-c1">=</span> <span class="pl-v">Ansi2HTMLConverter</span>(
+        <span class="pl-s1">converter</span> <span class="pl-c1">=</span> <span class="pl-en">Ansi2HTMLConverter</span>(
             <span class="pl-s1">inline</span><span class="pl-c1">=</span><span class="pl-c1">False</span>, <span class="pl-s1">escaped</span><span class="pl-c1">=</span><span class="pl-c1">False</span>,
         )
-        <span class="pl-s1">content</span> <span class="pl-c1">=</span> <span class="pl-s1">converter</span>.<span class="pl-en">convert</span>(<span class="pl-s1">content</span>, <span class="pl-s1">full</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
+        <span class="pl-s1">content</span> <span class="pl-c1">=</span> <span class="pl-s1">converter</span>.<span class="pl-c1">convert</span>(<span class="pl-s1">content</span>, <span class="pl-s1">full</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
 
-        <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-en">raw</span>(<span class="pl-s1">content</span>))
-        <span class="pl-s1">log</span>.<span class="pl-en">append</span>(<span class="pl-s1">html</span>.<span class="pl-en">br</span>())
-    <span class="pl-s1">data</span>.<span class="pl-en">append</span>(<span class="pl-s1">log</span>)</pre></div>
+        <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-en">raw</span>(<span class="pl-s1">content</span>))
+        <span class="pl-s1">log</span>.<span class="pl-c1">append</span>(<span class="pl-s1">html</span>.<span class="pl-c1">br</span>())
+    <span class="pl-s1">data</span>.<span class="pl-c1">append</span>(<span class="pl-s1">log</span>)</pre></div>
 <h2>最后</h2>
 <p>工具地址： <a href="https://github.com/hanxi/version-check-tool">https://github.com/hanxi/version-check-tool</a></p>
             </div>

@@ -208,7 +208,7 @@
 		<span class="pl-en">skynet_updatetime</span>(); <span class="pl-c">// 更新 timer 的时间</span>
 		<span class="pl-en">skynet_socket_updatetime</span>(); <span class="pl-c">// netstat 使用</span>
 		<span class="pl-smi">CHECK_ABORT</span>
-		<span class="pl-en">wakeup</span>(<span class="pl-smi">m</span>,<span class="pl-smi">m</span><span class="pl-c1">-</span><span class="pl-c1">&gt;</span><span class="pl-s1">count</span><span class="pl-c1">-1</span>); <span class="pl-c">// 只要有一个 worker 线程 sleep 就唤醒</span>
+		<span class="pl-en">wakeup</span>(<span class="pl-s1">m</span>,<span class="pl-s1">m</span><span class="pl-c1">-&gt;</span><span class="pl-s1">count</span><span class="pl-c1">-1</span>); <span class="pl-c">// 只要有一个 worker 线程 sleep 就唤醒</span>
 		<span class="pl-en">usleep</span>(<span class="pl-c1">2500</span>);
 		<span class="pl-k">if</span> (<span class="pl-c1">SIG</span>) {
 			<span class="pl-en">signal_hup</span>(); <span class="pl-c">// 给 logger 服务发消息</span>

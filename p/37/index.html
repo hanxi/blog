@@ -458,7 +458,7 @@ Mac end of line sequence:      \r
 }
 
 <span class="pl-c">// 替换 os.execute</span>
-<span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">patch_os_system</span>(<span class="pl-smi">L</span>)
+<span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">patch_os_system</span>(<span class="pl-c1">L</span>)
 {
     <span class="pl-en">lua_getglobal</span>(<span class="pl-c1">L</span>, <span class="pl-s">"os"</span>);
     <span class="pl-en">lua_pushcfunction</span>(<span class="pl-c1">L</span>, <span class="pl-s1">os_execute</span>);
