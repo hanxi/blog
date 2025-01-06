@@ -35,15 +35,15 @@
 <h3>前置需求</h3>
 <ol>
 <li>在 <a href="https://nic.us.kg/" rel="nofollow">https://nic.us.kg/</a> 申请免费域名，有 Github 账号就能申请到，一个账号能申请到 3 个域名。</li>
-<li>申请到的免费域名为: <code class="notranslate">githubpages.us.kg</code> 。</li>
+<li>申请到的免费域名为: <code class="notranslate">githubtest.us.kg</code> 。</li>
 <li>需要加速的域名为： <code class="notranslate">xdocs.hanxi.cc</code> 。</li>
-<li><code class="notranslate">githubpages.us.kg</code> 和 <code class="notranslate">hanxi.cc</code> 都托管到 Cloudflare 。</li>
+<li><code class="notranslate">githubtest.us.kg</code> 和 <code class="notranslate">hanxi.cc</code> 都托管到 Cloudflare 。</li>
 <li>子域名 <code class="notranslate">xdocs.hanxi.cc</code> 托管到阿里云。</li>
 <li>Cloudflare 开头 SaaS 只需要 Paypal 账号即可，Paypal 账号可以是国内账号，绑定国内储蓄卡就行。</li>
 </ol>
-<h3>githubpages.us.kg 在 Cloudflare 中的设置</h3>
+<h3>githubtest.us.kg 在 Cloudflare 中的设置</h3>
 <ol>
-<li>配置 DNS : <code class="notranslate">cdn.githubpages.us.kg</code> ，开小黄云。</li>
+<li>配置 DNS : <code class="notranslate">cdn.githubtest.us.kg</code> ，开小黄云。</li>
 </ol>
 <pre class="notranslate"><code class="notranslate">CNAME cdn hanxi.github.io
 </code></pre>
@@ -51,7 +51,7 @@
 <li>SSL/TLS 加密设为完全。</li>
 <li>自定义主机名：
 <ol>
-<li>添加回退源： <code class="notranslate">cdn.githubpages.us.kg</code> 。</li>
+<li>添加回退源： <code class="notranslate">cdn.githubtest.us.kg</code> 。</li>
 <li>添加自定义主机名： <code class="notranslate">xdocs.hanxi.cc</code> 。</li>
 <li><code class="notranslate">_cf-custom-hostname.xdocs.hanxi.cc</code>  和 <code class="notranslate">_acme-challenge.xdocs.hanxi.cc</code> 留着备用。</li>
 </ol>
