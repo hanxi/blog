@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">xray 代理配置备忘</div>
+            <div id="content" class="markdown-body">
+                <h2>服务端</h2>
+<p>采用 docker compose 管理：docker-compose.yml 文件如下</p>
+<div class="highlight highlight-source-yaml"><pre class="notranslate"><span class="pl-ent">services</span>:
+  <span class="pl-ent">caddy</span>:
+    <span class="pl-ent">image</span>: <span class="pl-s">caddy:latest</span>
+    <span class="pl-ent">container_name</span>: <span class="pl-s">caddy</span>
+    <span class="pl-ent">ports</span>:
+      - <span class="pl-s"><span class="pl-pds">"</span>80:80<span class="pl-pds">"</span></span>
+      - <span class="pl-s"><span class="pl-pds">"</span>443:443<span class="pl-pds">"</span></span>
+    <span class="pl-ent">volumes</span>:
+      - <span class="pl-s">./Caddyfile:/etc/caddy/Caddyfile:ro</span>
+      - <span class="pl-s">./caddy_data:/data</span>
+      - <span class="pl-s">./caddy_config:/config</span>
+      - <span class="pl-s">./web:/web</span>
+    <span class="pl-ent">logging</span>:
+      <span class="pl-ent">driver</span>: <span class="pl-s"><span class="pl-pds">"</span>json-file<span class="pl-pds">"</span></span>
+      <span class="pl-ent">options</span>:
+        <span class="pl-ent">max-size</span>: <span class="pl-c1">5m</span>
+        <span class="pl-ent">max-file</span>: <span class="pl-c1">3</span>
+
+  <span class="pl-ent">xray</span>:
+    <span class="pl-ent">image</span>: <span class="pl-s">teddysun/xray</span>
+    <span class="pl-ent">restart</span>: <span class="pl-s">always</span>
+    <span class="pl-ent">container_name</span>: <span class="pl-s">xray</span>
+    <span class="pl-ent">volumes</span>:
+      - <span class="pl-s">./config.json:/etc/xray/config.json</span>
+    <span class="pl-ent">logging</span>:
+      <span class="pl-ent">driver</span>: <span class="pl-s"><span class="pl-pds">"</span>json-file<span class="pl-pds">"</span></span>
+      <span class="pl-ent">options</span>:
+        <span class="pl-ent">max-size</span>: <span class="pl-c1">5m</span>
+        <span class="pl-ent">max-file</span>: <span class="pl-c1">3</span></pre></div>
+<p>开启了2个服务，一个是 caddy 用于做网关，xray 做实际代理。采用 caddy 可以方便的自动生成 https 证书。暴露 80 和 443 端口即可。</p>
+<p>Caddyfile 文件内容如下：</p>
+<pre class="notranslate"><code class="notranslate">proxy.123456.xyz {
+    reverse_proxy /ws xray:10001 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    root * /web
+    file_server
+
+	handle_errors 404 410 {
+		respond "It's a 404 or 410 error!"
+	}
+
+	handle_errors 5xx {
+		respond "It's a 5xx error."
+	}
+
+	handle_errors {
+		respond "It's another error"
+	}
+}
+</code></pre>
+<p>需要提前去设置域名 proxy.123456.xyz 指向 VPS 的 IP 。上面配置的意思是把 <a href="https://proxy.123456.xyz/ws" rel="nofollow">https://proxy.123456.xyz/ws</a> 转发到 xray 服务的 10001 端口。web 目录下可以放一个 index.html 文件，内容随意就行。caddy_data 和 caddy_config 目录是存放生成的 caddy 文件的，不用去动里面的内容。</p>
+<p>config.json 文件内容：</p>
+<div class="highlight highlight-source-json"><pre class="notranslate">{
+    <span class="pl-ent">"log"</span>: {
+        <span class="pl-ent">"loglevel"</span>: <span class="pl-s"><span class="pl-pds">"</span>warning<span class="pl-pds">"</span></span>
+    },
+    <span class="pl-ent">"routing"</span>: {
+        <span class="pl-ent">"domainStrategy"</span>: <span class="pl-s"><span class="pl-pds">"</span>IPIfNonMatch<span class="pl-pds">"</span></span>,
+        <span class="pl-ent">"rules"</span>: [
+            {
+                <span class="pl-ent">"type"</span>: <span class="pl-s"><span class="pl-pds">"</span>field<span class="pl-pds">"</span></span>,
+                <span class="pl-ent">"ip"</span>: [<span class="pl-s"><span class="pl-pds">"</span>geoip:cn<span class="pl-pds">"</span></span>],
+                <span class="pl-ent">"outboundTag"</span>: <span class="pl-s"><span class="pl-pds">"</span>block<span class="pl-pds">"</span></span>
+            },
+            {
+                <span class="pl-ent">"type"</span>: <span class="pl-s"><span class="pl-pds">"</span>field<span class="pl-pds">"</span></span>,
+                <span class="pl-ent">"protocol"</span>: [<span class="pl-s"><span class="pl-pds">"</span>bittorrent<span class="pl-pds">"</span></span>],
+                <span class="pl-ent">"outboundTag"</span>: <span class="pl-s"><span class="pl-pds">"</span>block<span class="pl-pds">"</span></span>
+            }
+        ]
+    },
+    <span class="pl-ent">"inbounds"</span>: [
+        {
+            <span class="pl-ent">"port"</span>: <span class="pl-c1">10001</span>,
+            <span class="pl-ent">"listen"</span>: <span class="pl-s"><span class="pl-pds">"</span>0.0.0.0<span class="pl-pds">"</span></span>,
+            <span class="pl-ent">"protocol"</span>: <span class="pl-s"><span class="pl-pds">"</span>vless<span class="pl-pds">"</span></span>,
+            <span class="pl-ent">"settings"</span>: {
+                <span class="pl-ent">"clients"</span>: [
+                    {
+                        <span class="pl-ent">"id"</span>: <span class="pl-s"><span class="pl-pds">"</span>78fa4ba6-7144-474d-a31e-9c79f72abffd<span class="pl-pds">"</span></span>
+                    }
+                ],
+                <span class="pl-ent">"decryption"</span>: <span class="pl-s"><span class="pl-pds">"</span>none<span class="pl-pds">"</span></span>
+            },
+            <span class="pl-ent">"streamSettings"</span>: {
+                <span class="pl-ent">"network"</span>: <span class="pl-s"><span class="pl-pds">"</span>ws<span class="pl-pds">"</span></span>,
+                <span class="pl-ent">"wsSettings"</span>: {
+                    <span class="pl-ent">"path"</span>: <span class="pl-s"><span class="pl-pds">"</span>/ws<span class="pl-pds">"</span></span>
+                }
+            },
+            <span class="pl-ent">"sniffing"</span>: {
+                <span class="pl-ent">"enabled"</span>: <span class="pl-c1">true</span>,
+                <span class="pl-ent">"destOverride"</span>: [
+                    <span class="pl-s"><span class="pl-pds">"</span>http<span class="pl-pds">"</span></span>,
+                    <span class="pl-s"><span class="pl-pds">"</span>tls<span class="pl-pds">"</span></span>
+                ]
+            }
+        }
+    ],
+    <span class="pl-ent">"outbounds"</span>: [
+        {
+            <span class="pl-ent">"protocol"</span>: <span class="pl-s"><span class="pl-pds">"</span>freedom<span class="pl-pds">"</span></span>
+        },
+        {
+            <span class="pl-ent">"protocol"</span>: <span class="pl-s"><span class="pl-pds">"</span>blackhole<span class="pl-pds">"</span></span>,
+            <span class="pl-ent">"tag"</span>: <span class="pl-s"><span class="pl-pds">"</span>block<span class="pl-pds">"</span></span>
+        }
+    ],
+    <span class="pl-ent">"policy"</span>: {
+        <span class="pl-ent">"levels"</span>: {
+            <span class="pl-ent">"0"</span>: {
+                <span class="pl-ent">"handshake"</span>: <span class="pl-c1">3</span>,
+                <span class="pl-ent">"connIdle"</span>: <span class="pl-c1">256</span>
+            }
+        }
+    }
+}</pre></div>
+<p>上面的 id 需要修改为自己的，可以去 <a href="https://www.uuidgenerator.net/" rel="nofollow">https://www.uuidgenerator.net/</a> 网站随机生成一个。主要就是 inbounds 里配置的 10001 端口，使用 vless 协议，网络使用 ws 。这样就基本配好服务端了，目录结构如下：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">.
+├── Caddyfile
+├── caddy_config/
+├── caddy_data/
+├── config.json
+├── docker-compose.yml
+└── web/</pre></div>
+<p>然后使用命令启动：</p>
+<pre class="notranslate"><code class="notranslate">docker compose up -d
+</code></pre>
+<h2>客户端</h2>
+<p>以 V2rayNG 为例，点击加号，选择：手动输入VLESS</p>
+<ul>
+<li>服务器地址： proxy.123456.xyz</li>
+<li>服务器端口： 443</li>
+<li>用户ID：78fa4ba6-7144-474d-a31e-9c79f72abffd</li>
+<li>加密方式：none</li>
+<li>传输协议：ws</li>
+<li>ws path： /ws</li>
+<li>传输层安全：tls</li>
+<li>SNI：proxy123456.xyz</li>
+<li>Fingerprint：chrome</li>
+<li>跳过证书验证：false</li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/96#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
