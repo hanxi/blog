@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">skynet service 的 lua 消息处理接口封装</div>
+            <div id="content" class="markdown-body">
+                <p>在 skynet service 中，对 lua 消息处理的常见的代码是这样的：</p>
+<blockquote>
+<p><a href="https://github.com/cloudwu/skynet/blob/master/test/testselect.lua">https://github.com/cloudwu/skynet/blob/master/test/testselect.lua</a></p>
+</blockquote>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-smi">skynet</span>.<span class="pl-c1">start</span>(<span class="pl-k">function</span>()
+	<span class="pl-smi">skynet</span>.<span class="pl-c1">dispatch</span>(<span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">_</span>,<span class="pl-smi">_</span>, <span class="pl-smi">cmd</span>, ...)
+		<span class="pl-smi">skynet</span>.<span class="pl-c1">ret</span>(<span class="pl-smi">skynet</span>.<span class="pl-c1">pack</span>(<span class="pl-smi">COMMAND</span>[<span class="pl-smi">cmd</span>](<span class="pl-c1">...</span>)))
+	<span class="pl-k">end</span>)
+<span class="pl-k">end</span>)</pre></div>
+<p>这应该是最短的一种处理 lua 消息的代码了，这种写法是所有消息处理都打包返回值，即使是用 skynet.send 发过来的请求。</p>
+<p>下面这种是区分了消息是否有返回值的情况，也就是有些接口是只能用 skynet.send 调用的，不能使用 skynet.call 的，比如：</p>
+<blockquote>
+<p><a href="https://github.com/cloudwu/skynet/blob/master/service/multicastd.lua">https://github.com/cloudwu/skynet/blob/master/service/multicastd.lua</a></p>
+</blockquote>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">NORET</span> <span class="pl-k">=</span> {}
+<span class="pl-k">function</span> <span class="pl-en">command</span>.<span class="pl-en">DELR</span>(<span class="pl-smi">source</span>, <span class="pl-smi">c</span>)
+	<span class="pl-smi">channel</span>[<span class="pl-smi">c</span>] <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+	<span class="pl-smi">channel_n</span>[<span class="pl-smi">c</span>] <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+	<span class="pl-k">return</span> <span class="pl-smi">NORET</span>
+<span class="pl-k">end</span>
+<span class="pl-smi">skynet</span>.<span class="pl-c1">start</span>(<span class="pl-k">function</span>()
+	<span class="pl-smi">skynet</span>.<span class="pl-c1">dispatch</span>(<span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">_</span>,<span class="pl-smi">source</span>, <span class="pl-smi">cmd</span>, ...)
+		<span class="pl-k">local</span> <span class="pl-smi">f</span> <span class="pl-k">=</span> <span class="pl-c1">assert</span>(<span class="pl-smi">command</span>[<span class="pl-smi">cmd</span>])
+		<span class="pl-k">local</span> <span class="pl-smi">result</span> <span class="pl-k">=</span> <span class="pl-c1">f</span>(<span class="pl-smi">source</span>, <span class="pl-c1">...</span>)
+		<span class="pl-k">if</span> <span class="pl-smi">result</span> <span class="pl-k">~=</span> <span class="pl-smi">NORET</span> <span class="pl-k">then</span>
+			<span class="pl-smi">skynet</span>.<span class="pl-c1">ret</span>(<span class="pl-smi">skynet</span>.<span class="pl-c1">pack</span>(<span class="pl-smi">result</span>))
+		<span class="pl-k">end</span>
+	<span class="pl-k">end</span>)
+<span class="pl-k">end</span>)</pre></div>
+<p>这种方式巧妙的使用一个临时 table NORET 来做唯一值，可以用来区分是否有返回值。</p>
+<p>还有这样也是一样，只是加多了个判断了 cmd 是否存在。</p>
+<blockquote>
+<p><a href="https://github.com/cloudwu/skynet/blob/master/service/launcher.lua">https://github.com/cloudwu/skynet/blob/master/service/launcher.lua</a></p>
+</blockquote>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-smi">skynet</span>.<span class="pl-c1">dispatch</span>(<span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">session</span>, <span class="pl-smi">address</span>, <span class="pl-smi">cmd</span> , ...)
+	<span class="pl-smi">cmd</span> <span class="pl-k">=</span> <span class="pl-c1">string.upper</span>(<span class="pl-smi">cmd</span>)
+	<span class="pl-k">local</span> <span class="pl-smi">f</span> <span class="pl-k">=</span> <span class="pl-smi">command</span>[<span class="pl-smi">cmd</span>]
+	<span class="pl-k">if</span> <span class="pl-smi">f</span> <span class="pl-k">then</span>
+		<span class="pl-k">local</span> <span class="pl-smi">ret</span> <span class="pl-k">=</span> <span class="pl-c1">f</span>(<span class="pl-smi">address</span>, <span class="pl-c1">...</span>)
+		<span class="pl-k">if</span> <span class="pl-smi">ret</span> <span class="pl-k">~=</span> <span class="pl-smi">NORET</span> <span class="pl-k">then</span>
+			<span class="pl-smi">skynet</span>.<span class="pl-c1">ret</span>(<span class="pl-smi">skynet</span>.<span class="pl-c1">pack</span>(<span class="pl-smi">ret</span>))
+		<span class="pl-k">end</span>
+	<span class="pl-k">else</span>
+		<span class="pl-smi">skynet</span>.<span class="pl-c1">ret</span>(<span class="pl-smi">skynet</span>.<span class="pl-c1">pack</span> {<span class="pl-s"><span class="pl-pds">"</span>Unknown command<span class="pl-pds">"</span></span>} )
+	<span class="pl-k">end</span>
+<span class="pl-k">end</span>)</pre></div>
+<p>这个也判断了 cmd 是否存在，但是和上面的不一样，上面的 cmd 不存在会返回一个字符串，下面这个则不返回，直接 error 。其实这种和第一种效果是一样的，第一种 cmd 不存在也会报错的。</p>
+<blockquote>
+<p><a href="https://github.com/cloudwu/skynet/blob/master/examples/simpledb.lua">https://github.com/cloudwu/skynet/blob/master/examples/simpledb.lua</a></p>
+</blockquote>
+<div class="highlight highlight-source-lua"><pre class="notranslate">	<span class="pl-smi">skynet</span>.<span class="pl-c1">dispatch</span>(<span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">session</span>, <span class="pl-smi">address</span>, <span class="pl-smi">cmd</span>, ...)
+		<span class="pl-k">local</span> <span class="pl-smi">f</span> <span class="pl-k">=</span> <span class="pl-smi">command</span>[<span class="pl-smi">cmd</span>]
+		<span class="pl-k">if</span> <span class="pl-smi">f</span> <span class="pl-k">then</span>
+			<span class="pl-smi">skynet</span>.<span class="pl-c1">ret</span>(<span class="pl-smi">skynet</span>.<span class="pl-c1">pack</span>(<span class="pl-c1">f</span>(<span class="pl-c1">...</span>)))
+		<span class="pl-k">else</span>
+			<span class="pl-c1">error</span>(<span class="pl-c1">string.format</span>(<span class="pl-s"><span class="pl-pds">"</span>Unknown command %s<span class="pl-pds">"</span></span>, <span class="pl-c1">tostring</span>(<span class="pl-smi">cmd</span>)))
+		<span class="pl-k">end</span>
+	<span class="pl-k">end</span>)</pre></div>
+<p>举了这么多例子，我是在想一个问题，能不能封装一个接口来做这件事情？怎么封装接口更合适？</p>
+<p>回想之前使用 skynet.call 时，好像是目标服务如果没有返回消息，也就是没有使用 skynet.ret 时，会导致本服务卡住。现在无法找到这样的例子复现了。目前测试的情况是，目标服务报错，无论是手动 error，还是其他自动报错，比如第一个例子 cmd 不存在会报 "xxx is not callable (a nil value)" 。同时本服务会在 yield_call 中报错 "call failed" 。</p>
+<p>当没有报错，且没有使用 skynet.ret 返回消息时，本服务会有个日志 "Maybe forgot response session 4 from :01000010" 。</p>
+<p>上面的写法中还有一个区别的地方， multicastd.lua 中给 cmd 处理接口传入的 source ，那么封装接口的时候是否需要把 source 传入呢？我个人认为需要用到 source 的地方还是很少的，特别是写玩法逻辑这些。因此我更偏向于使用第一种写法。</p>
+<p>NORET 那种写法我认为是过去的写法，具体可以看这个提交： <a class="commit-link" href="https://github.com/cloudwu/skynet/commit/16d8f4c7747789a1adfc331aaaf9f2c8d2690911#diff-04b2be7c9db589731e4653ef8705ee349b85b54a6ebd27572659601830a7a12dL461-L477">cloudwu/skynet@<tt>16d8f4c</tt>#diff-04b2be7c9db589731e4653ef8705ee349b85b54a6ebd27572659601830a7a12dL461-L477</a> 。这个提交中把 skyent.ret 接口修改了，也就是 skynet.send 过来的消息是会丢掉的，测试了下，逻辑会进入到 <code class="notranslate">c.trash</code> 把数据丢掉，也就不需要区分 skynet.call 和 skynet.send 的 cmd 函数了，非要说区别也就是对 cmd 函数返回值多 pack 了一次，我个人的观点是这个可以忽略不记，起码 cmd 函数实现起来不用担心调用者是否是用 send 还是 call 过来的。</p>
+<p>综上所述，我封装了一个接口：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">skynet</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet<span class="pl-pds">"</span></span>
+
+<span class="pl-k">local</span> <span class="pl-smi">M</span> <span class="pl-k">=</span> {}
+
+<span class="pl-k">function</span> <span class="pl-en">M</span>.<span class="pl-en">dispatch</span>(<span class="pl-smi">CMD</span>)
+    <span class="pl-smi">skynet</span>.<span class="pl-c1">dispatch</span>(<span class="pl-s"><span class="pl-pds">"</span>lua<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">_</span>, <span class="pl-smi">_</span>, <span class="pl-smi">cmd</span>, ...)
+        <span class="pl-k">local</span> <span class="pl-smi">f</span> <span class="pl-k">=</span> <span class="pl-smi">CMD</span>[<span class="pl-smi">cmd</span>]
+        <span class="pl-k">if</span> <span class="pl-k">not</span> <span class="pl-smi">f</span> <span class="pl-k">then</span>
+            <span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">"</span>Unknown command:<span class="pl-pds">"</span></span>, <span class="pl-smi">cmd</span>)
+        <span class="pl-k">end</span>
+        <span class="pl-smi">skynet</span>.<span class="pl-c1">ret</span>(<span class="pl-smi">skynet</span>.<span class="pl-c1">pack</span>(<span class="pl-c1">f</span>(<span class="pl-c1">...</span>)))
+    <span class="pl-k">end</span>)
+<span class="pl-k">end</span>
+
+<span class="pl-k">return</span> <span class="pl-smi">M</span></pre></div>
+<p>对于已知的错误使用 error 更好理解，其他未知的错误就让它自己报错就行。</p>
+<p>使用起来也统一了，从多行代码改成一行就行：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">cmd_api</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>cmd_api<span class="pl-pds">"</span></span>
+
+<span class="pl-k">local</span> <span class="pl-smi">CMD</span> <span class="pl-k">=</span> {}
+
+<span class="pl-smi">skynet</span>.<span class="pl-c1">start</span>(<span class="pl-k">function</span>()
+    <span class="pl-smi">cmd_api</span>.<span class="pl-c1">dispatch</span>(<span class="pl-smi">CMD</span>)
+<span class="pl-k">end</span>)</pre></div>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/97#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
