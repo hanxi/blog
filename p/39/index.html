@@ -34,17 +34,16 @@
 <p><a href="https://kuricat.com/gist/snap-install-too-slow-zmbjy" rel="nofollow">https://kuricat.com/gist/snap-install-too-slow-zmbjy</a><br>
 <a href="https://blog.shunwww.cn/2019/02/19/yuque/proxy-snap/" rel="nofollow">https://blog.shunwww.cn/2019/02/19/yuque/proxy-snap/</a></p>
 </blockquote>
-<pre lang="bash" class="notranslate"><code class="notranslate"># 开始设置代理
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 开始设置代理</span>
 $ sudo systemctl edit snapd
 加上：
 [Service]
-Environment="http_proxy=http://127.0.0.1:port"
-Environment="https_proxy=http://127.0.0.1:port"
+Environment=<span class="pl-s"><span class="pl-pds">"</span>http_proxy=http://127.0.0.1:port<span class="pl-pds">"</span></span>
+Environment=<span class="pl-s"><span class="pl-pds">"</span>https_proxy=http://127.0.0.1:port<span class="pl-pds">"</span></span>
 
-#保存退出。
+<span class="pl-c"><span class="pl-c">#</span>保存退出。</span>
 $ sudo systemctl daemon-reload
-$ sudo systemctl restart snapd
-</code></pre>
+$ sudo systemctl restart snapd</pre></div>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/39#new_comment_field"> 点击进入评论 ... </a>

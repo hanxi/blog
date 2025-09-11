@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">skynet 的游戏工程目录结构</div>
+            <div id="content" class="markdown-body">
+                <h2>服务和接口</h2>
+<p>参考 skynet 自带的服务，接口放在 lualib/ 目录，服务实现放在 service/ 目录。在此基础上再加一点限制，顶层的 lualib/ 和 service/ 目录只用来实现通用服务，也就是任意进程都可能需要加载的服务，类似于 skynet 自带的那些服务。</p>
+<p>比如实现了一个自定义的 logger 服务，这个服务是每个进程都需要加载的。因此目录结构为：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">lualib/log
+├── bucket
+│   ├── console.lua
+│   ├── file.lua
+│   ├── init.lua
+│   └── service.lua
+├── formatter.lua
+├── init.lua
+├── logger.lua
+├── log_level.lua
+└── util.lua
+service/logger
+├── bucket.lua
+├── checker.lua
+├── cmd.lua
+├── global.lua
+├── main.lua
+└── start.lua</pre></div>
+<p>还有一些约定，库的入口文件为 init.lua ，这样使用者只需要 <code class="notranslate">local log = require "log"</code> 即可访问到 <code class="notranslate">log/init.lua</code> 文件，这是 Lua 默认的规范，目录下的其他文件就不做规定，按模块的复杂度区分就行。如果模块的接口足够简单，只需要一个文件即可的情况下，那就不需要目录。</p>
+<p>服务的入口文件我定为 main.lua 文件，因为服务就像一个独立的程序，因此参考 C 语言的入口函数为 main 一样。服务目录下的文件只允许本服务访问，在 <code class="notranslate">package.path</code> 上做了点手脚实现的：<br>
+这段代码是 skynet 官方默认的 loader.lua 里的。</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">if</span> <span class="pl-smi">service_path</span> <span class="pl-k">then</span>
+ <span class="pl-smi">service_path</span> <span class="pl-k">=</span> <span class="pl-c1">string.gsub</span>(<span class="pl-smi">service_path</span>, <span class="pl-s"><span class="pl-pds">"</span>?<span class="pl-pds">"</span></span>, <span class="pl-smi">SERVICE_NAME</span>)
+ <span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-smi">service_path</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>?.lua;<span class="pl-pds">" </span></span><span class="pl-k">..</span> <span class="pl-c1">package.path</span>
+ <span class="pl-smi">SERVICE_PATH</span> <span class="pl-k">=</span> <span class="pl-smi">service_path</span>
+<span class="pl-k">else</span>
+ <span class="pl-k">local</span> <span class="pl-smi">p</span> <span class="pl-k">=</span> <span class="pl-c1">string.match</span>(<span class="pl-smi">pattern</span>, <span class="pl-s"><span class="pl-pds">"</span>(.*/).+$<span class="pl-pds">"</span></span>)
+ <span class="pl-smi">SERVICE_PATH</span> <span class="pl-k">=</span> <span class="pl-smi">p</span>
+<span class="pl-k">end</span></pre></div>
+<p>那如果进程独有的库放哪里呢？我设定的是放在 start 服务的 lualib 目录里，在配置中这样可以实现：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 进程独有的库</span>
+<span class="pl-smi">lua_path</span> <span class="pl-k">=</span> <span class="pl-smi">lua_path</span> <span class="pl-k">..</span> <span class="pl-smi">root</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>service/<span class="pl-pds">" </span></span><span class="pl-k">..</span> <span class="pl-smi">start</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?.lua;<span class="pl-pds">"</span></span>
+<span class="pl-smi">lua_path</span> <span class="pl-k">=</span> <span class="pl-smi">lua_path</span> <span class="pl-k">..</span> <span class="pl-smi">root</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>service/<span class="pl-pds">" </span></span><span class="pl-k">..</span> <span class="pl-smi">start</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?/init.lua;<span class="pl-pds">"</span></span></pre></div>
+<p>那服务独有的库放哪里？我设定的是放服务的 main.lua 同级目录下的 lualib 目录里。</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 服务独有的库</span>
+<span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-c1">package.path</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_PATH</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_NAME</span><span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?.lua;<span class="pl-pds">"</span></span>
+<span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-c1">package.path</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_PATH</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_NAME</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?/init.lua;<span class="pl-pds">"</span></span></pre></div>
+<p>上面说了通用服务是放 service 顶层目录里的，那进程独有的服务放哪里呢？那就放进程启动文件的同级目录下：<br>
+比如下面的例子：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">service/
+├── cluster_discovery.lua       # 顶级服务：cluster 的服务发现功能
+├── game                        # game 进程
+│   ├── login                   # 登录服务
+│   │   ├── client.lua
+│   │   ├── global.lua
+│   │   ├── login_request.lua
+│   │   └── main.lua            # 登录服务的入口
+│   ├── lualib                  # 进程独有的库
+│   │   └── roleagent_api.lua
+│   ├── main.lua                # game 启动入口
+│   ├── roleagent               # 玩家服务
+│   │   ├── client.lua
+│   │   ├── global.lua
+│   │   ├── main.lua            # 玩家服务入口
+│   │   ├── modules             # 逻辑模块
+│   │   │   └── role
+│   │   │       ├── init.lua
+│   │   │       └── request.lua
+│   │   └── rolemgr.lua
+│   ├── roleagentmgr.lua        # 玩家管理服务
+│   └── watchdog.lua            # 玩家网络入口
+├── logger                      # 日志服务
+│   ├── bucket.lua
+│   ├── checker.lua
+│   ├── cmd.lua
+│   ├── global.lua
+│   ├── main.lua                # 日志服务入口
+│   └── start.lua
+├── mongo_conn.lua              # 数据库代理服务
+├── mongo_index.lua             # 数据库索引服务
+├── robot                       # 机器人进程
+│   ├── main.lua
+│   └── robotagent              # 单个机器人
+│       └── main.lua
+└── sproto_loader.lua           # 协议加载服务</pre></div>
+<h2>服务里的文件名</h2>
+<p>从上面的例子中可以看出，服务里有些名字是相同的，这里有些规定的。</p>
+<h3>global.lua</h3>
+<p>用于存放全局变量的定义，就是服务内随都可以访问和修改，比如下面这个：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">global</span> <span class="pl-k">=</span> {}
+
+<span class="pl-smi">global</span>.<span class="pl-e">watchdog_service</span> <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+<span class="pl-smi">global</span>.<span class="pl-e">roleagentmgr_service</span> <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+
+<span class="pl-k">return</span> <span class="pl-smi">global</span></pre></div>
+<h3>cmd.lua</h3>
+<p>这个文件是放服务的 rpc 接口的处理入口，用于其他服务 skynet.send 和 skynet.call 的。关于这个接口的封装在另一个文章里写到过：<a href="https://blog.hanxi.cc/p/97/" rel="nofollow">https://blog.hanxi.cc/p/97/</a></p>
+<h2>玩家服务</h2>
+<p>玩家服务将是一个逻辑庞大的服务，会有一堆的客户端协议处理，比如玩家的背包，装备，好友，邮件等等模块的逻辑实现都会在玩家服务上。首先客户端协议文件的定义放在<br>
+proto 目录，base.sproto 只放协议头，login.sproto 就是 登录服务用的协议，roleagent 目录下的协议就是玩家服务用的，当一个服务的协议过多时，就需要放一个目录统一管理，这样的好处是，协议注册可以比较方便的实现自动注册。比如扫描服务同名的目录。</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">proto/
+├── base.sproto
+├── login.sproto
+└── roleagent
+    ├── bag.sproto
+    ├── item.sproto
+    ├── mail.sproto
+    └── role.sproto</pre></div>
+<p>玩家服务里放了一个 modules 目录，对应协议的 proto/roleagent 目录。<code class="notranslate">modules/*/init.lua</code><br>
+作为模块的入口文件，<code class="notranslate">modules/*/request.lua</code><br>
+作为模块的协议入口文件，模块的目录名字跟协议的文件名字一一对应。这样做的好处就是内聚性更好，request.lua 文件不能 require<br>
+其他的 request.lua ，只能 require <code class="notranslate">modules/*/init.lua</code> 这些文件，有点像网页开发里的 route<br>
+路由模块。模块目录下的其他文件就不做要求，模块复杂的就可以拆分更多的文件，不复杂就一个 init.lua 即可。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/99#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
