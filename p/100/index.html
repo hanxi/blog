@@ -1,0 +1,380 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">Skynet 定时器模块的封装：从简单实现到高性能设计</div>
+            <div id="content" class="markdown-body">
+                <blockquote>
+<p>在 Skynet 框架中，定时器是服务开发中最常用的功能之一。无论是延迟执行任务、周期性心跳上报，还是技能冷却、倒计时逻辑，都离不开定时机制。本文将带你从最基础的 <code class="notranslate">skynet.timeout</code> 封装出发，逐步演进到一个高效、可扩展、支持取消与唤醒的通用定时器模块设计。</p>
+</blockquote>
+<hr>
+<h2>一、基本需求：我们需要什么样的定时器？</h2>
+<p>在实际开发中，常见的定时器功能需求通常包括：</p>
+<ul>
+<li><strong>延迟执行</strong>：几秒后执行某个函数</li>
+<li><strong>周期执行</strong>：每隔几秒重复执行一段逻辑（如心跳）</li>
+<li><strong>支持取消</strong>：允许在任务执行前中途取消</li>
+<li><strong>可唤醒</strong>：某些场景下需要提前触发（如事件驱动的心跳刷新）</li>
+</ul>
+<p>Skynet 提供了原生接口 <code class="notranslate">skynet.timeout(ti, func)</code>，其中 <code class="notranslate">ti</code> 的单位是 <strong>10 毫秒</strong>。我们可以基于它做一层简单的封装。</p>
+<hr>
+<h2>二、最简单的封装方案</h2>
+<h3>1. 秒级延迟执行</h3>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">timeout</span>(<span class="pl-smi">sec</span>, <span class="pl-smi">func</span>)
+    <span class="pl-k">return</span> <span class="pl-smi">skynet</span>.<span class="pl-c1">timeout</span>(<span class="pl-smi">sec</span> <span class="pl-k">*</span> <span class="pl-c1">100</span>, <span class="pl-smi">func</span>) <span class="pl-c"><span class="pl-c">--</span> 转换为 10ms 单位</span>
+<span class="pl-k">end</span></pre></div>
+<blockquote>
+<p>✅ 简单直接，适合一次性任务。</p>
+</blockquote>
+<hr>
+<h3>2. 支持取消的定时器</h3>
+<h4>官方推荐方式：利用闭包 upvalue</h4>
+<p>Skynet 官方文档给出了一个巧妙的实现：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">cancelable_timeout</span>(<span class="pl-smi">ti</span>, <span class="pl-smi">func</span>)
+    <span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">cb</span>()
+        <span class="pl-k">if</span> <span class="pl-smi">func</span> <span class="pl-k">then</span>
+            <span class="pl-c1">func</span>()
+        <span class="pl-k">end</span>
+    <span class="pl-k">end</span>
+    <span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">cancel</span>()
+        <span class="pl-smi">func</span> <span class="pl-k">=</span> <span class="pl-c1">nil</span> <span class="pl-c"><span class="pl-c">--</span> 利用 upvalue 特性取消执行</span>
+    <span class="pl-k">end</span>
+    <span class="pl-smi">skynet</span>.<span class="pl-c1">timeout</span>(<span class="pl-smi">ti</span> <span class="pl-k">*</span> <span class="pl-c1">100</span>, <span class="pl-smi">cb</span>)
+    <span class="pl-k">return</span> <span class="pl-smi">cancel</span>
+<span class="pl-k">end</span>
+
+<span class="pl-c"><span class="pl-c">--</span> 使用示例</span>
+<span class="pl-k">local</span> <span class="pl-smi">cancel</span> <span class="pl-k">=</span> <span class="pl-c1">cancelable_timeout</span>(<span class="pl-c1">5</span>, <span class="pl-smi">dosomething</span>)
+<span class="pl-c1">cancel</span>() <span class="pl-c"><span class="pl-c">--</span> 取消执行</span></pre></div>
+<blockquote>
+<p>✅ 实现轻巧<br>
+❌ 返回的是函数，不便于统一管理和扩展</p>
+</blockquote>
+<h4>更适合封装的方式：使用 ID 映射表</h4>
+<p>我们可以用一个全局表来管理所有待执行的回调，并通过 ID 控制生命周期：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">M</span> <span class="pl-k">=</span> {}
+
+<span class="pl-k">local</span> <span class="pl-smi">timers</span> <span class="pl-k">=</span> {}
+<span class="pl-k">local</span> <span class="pl-smi">id_inc</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>
+
+<span class="pl-k">function</span> <span class="pl-en">M</span>.<span class="pl-en">new_cancelable_timeout</span>(<span class="pl-smi">sec</span>, <span class="pl-smi">func</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">id</span> <span class="pl-k">=</span> <span class="pl-smi">id_inc</span> <span class="pl-k">+</span> <span class="pl-c1">1</span>
+    <span class="pl-smi">id_inc</span> <span class="pl-k">=</span> <span class="pl-smi">id</span>
+    <span class="pl-smi">timers</span>[<span class="pl-smi">id</span>] <span class="pl-k">=</span> <span class="pl-smi">func</span>
+
+    <span class="pl-smi">skynet</span>.<span class="pl-c1">timeout</span>(<span class="pl-smi">sec</span> <span class="pl-k">*</span> <span class="pl-c1">100</span>, <span class="pl-k">function</span>()
+        <span class="pl-k">if</span> <span class="pl-smi">timers</span>[<span class="pl-smi">id</span>] <span class="pl-k">then</span>
+            <span class="pl-c1">func</span>()
+        <span class="pl-k">end</span>
+        <span class="pl-smi">timers</span>[<span class="pl-smi">id</span>] <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+    <span class="pl-k">end</span>)
+
+    <span class="pl-k">return</span> <span class="pl-smi">id</span>
+<span class="pl-k">end</span>
+
+<span class="pl-k">function</span> <span class="pl-en">M</span>.<span class="pl-en">cancel</span>(<span class="pl-smi">id</span>)
+    <span class="pl-smi">timers</span>[<span class="pl-smi">id</span>] <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+<span class="pl-k">end</span></pre></div>
+<blockquote>
+<p>✅ 易于集成进模块系统<br>
+❌ 每个定时器都会调用一次 <code class="notranslate">skynet.timeout</code>，存在性能隐患</p>
+</blockquote>
+<hr>
+<h3>3. 循环定时器的实现</h3>
+<p>周期性任务可以通过递归注册实现：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">timeout_repeat</span>(<span class="pl-smi">sec</span>, <span class="pl-smi">func</span>)
+    <span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">loop</span>()
+        <span class="pl-c1">func</span>()
+        <span class="pl-smi">skynet</span>.<span class="pl-c1">timeout</span>(<span class="pl-smi">sec</span> <span class="pl-k">*</span> <span class="pl-c1">100</span>, <span class="pl-smi">loop</span>)
+    <span class="pl-k">end</span>
+    <span class="pl-smi">skynet</span>.<span class="pl-c1">timeout</span>(<span class="pl-smi">sec</span> <span class="pl-k">*</span> <span class="pl-c1">100</span>, <span class="pl-smi">loop</span>)
+<span class="pl-k">end</span></pre></div>
+<blockquote>
+<p>❌ 问题明显：每个循环任务都会占用一个 <code class="notranslate">timeout</code> 消息通道，在高并发场景下容易造成消息堆积。</p>
+</blockquote>
+<hr>
+<h2>三、性能瓶颈分析</h2>
+<p>当一个服务中存在大量玩家或定时任务时（例如每个玩家都有多个 Buff 定时器），频繁调用 <code class="notranslate">skynet.timeout</code> 会导致：</p>
+<ul>
+<li>每个定时器产生一条内部消息</li>
+<li>服务消息队列压力增大</li>
+<li>定时精度下降，尤其在卡顿时可能出现延迟累积</li>
+</ul>
+<p>根据 <a href="https://github.com/cloudwu/skynet/wiki/LuaAPI">Skynet 官方建议</a>：</p>
+<blockquote>
+<p>“如果你的服务想大量使用定时器，可以考虑一个更好的方法：即在一个 service 里，尽量只使用一个 <code class="notranslate">skynet.timeout</code>，用它来驱动自己的定时事件模块。”</p>
+</blockquote>
+<p>这启发我们设计一个 <strong>集中式定时器管理模块</strong>，仅依赖 <strong>单个主定时器</strong> 驱动所有任务。</p>
+<p>当然可以！以下是对这句话的优化版本，语气更自然、专业，同时巧妙地将其作为“轻量级嵌入式广告”融入文中，既表达了真实评价，又保留了推广属性，适合技术博客语境：</p>
+<hr>
+<blockquote>
+<p>💡 <strong>小插曲：关于旧实现的说明</strong><br>
+其实我之前在蓝桥云课上做过一个类似的定时器封装课程：<a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">《Skynet 游戏服务器开发实战》</a>，里面也实现过基于时间轮的定时器模块。不过那套方案已经是几年前的设计，架构略显过时，<strong>因此不特别推荐</strong>。</p>
+<p>如果你出于参考或怀旧目的想看看早期思路，可以用这个专属优惠码购买：<strong><code class="notranslate">2CZ2UA5u</code></strong>。权当是技术演进的一个脚注吧 😄</p>
+</blockquote>
+<hr>
+<h2>四、优化方案：基于最小堆的高效定时器模块</h2>
+<h3>1. 设计目标</h3>
+<ul>
+<li>✅ 仅使用一个 <code class="notranslate">skynet.timeout</code> 驱动所有定时任务</li>
+<li>✅ 支持一次性、周期性、立即执行等多种模式</li>
+<li>✅ 支持取消、唤醒（wakeup）操作</li>
+<li>✅ 高性能、低延迟、支持补帧</li>
+<li>✅ 自动初始化 + 服务关闭时清理资源</li>
+</ul>
+<hr>
+<h3>2. 接口设计</h3>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">timer_obj</span> <span class="pl-k">=</span> <span class="pl-smi">timer</span>.<span class="pl-c1">timeout</span>(<span class="pl-smi">sec</span>, <span class="pl-smi">func</span>)           <span class="pl-c"><span class="pl-c">--</span> 延迟执行一次</span>
+<span class="pl-k">local</span> <span class="pl-smi">timer_obj</span> <span class="pl-k">=</span> <span class="pl-smi">timer</span>.<span class="pl-c1">repeat_immediately</span>(<span class="pl-smi">sec</span>, <span class="pl-smi">func</span>) <span class="pl-c"><span class="pl-c">--</span> 立即执行 + 周期循环</span>
+<span class="pl-k">local</span> <span class="pl-smi">timer_obj</span> <span class="pl-k">=</span> <span class="pl-smi">timer</span>.<span class="pl-c1">repeat_delayed</span>(<span class="pl-smi">sec</span>, <span class="pl-smi">func</span>)     <span class="pl-c"><span class="pl-c">--</span> 延迟后周期执行</span>
+<span class="pl-smi">timer</span>.<span class="pl-c1">shutdown</span>()                                     <span class="pl-c"><span class="pl-c">--</span> 服务退出时调用</span></pre></div>
+<blockquote>
+<p>🎯 返回值为 <strong>定时器对象（TimerObj）</strong>，支持链式调用：</p>
+</blockquote>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">t</span> <span class="pl-k">=</span> <span class="pl-smi">timer</span>.<span class="pl-c1">repeat_immediately</span>(<span class="pl-c1">10</span>, <span class="pl-smi">heartbeat</span>)
+<span class="pl-en">t</span>:<span class="pl-c1">cancel</span>() <span class="pl-c"><span class="pl-c">--</span> 取消</span>
+<span class="pl-en">t</span>:<span class="pl-c1">wakeup</span>() <span class="pl-c"><span class="pl-c">--</span> 提前触发</span></pre></div>
+<hr>
+<h3>3. 定时器对象定义</h3>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">---</span><span class="pl-k">@class</span> <span class="pl-c1">TimerObj</span></span>
+<span class="pl-k">local</span> <span class="pl-smi">timer_mt</span> <span class="pl-k">=</span> {}
+<span class="pl-smi">timer_mt</span>.<span class="pl-e">__index</span> <span class="pl-k">=</span> <span class="pl-smi">timer_mt</span>
+
+<span class="pl-c"><span class="pl-c">--</span> 取消定时器</span>
+<span class="pl-k">function</span> <span class="pl-en">timer_mt</span>:<span class="pl-en">cancel</span>()
+    <span class="pl-c"><span class="pl-c">--</span> 实现见下文</span>
+<span class="pl-k">end</span>
+
+<span class="pl-c"><span class="pl-c">--</span> 强制提前触发（用于事件驱动刷新）</span>
+<span class="pl-k">function</span> <span class="pl-en">timer_mt</span>:<span class="pl-en">wakeup</span>()
+    <span class="pl-c"><span class="pl-c">--</span> 实现见下文</span>
+<span class="pl-k">end</span></pre></div>
+<hr>
+<h3>4. 内部结构设计</h3>
+<p>我们采用 <strong>最小堆（Min Heap）</strong> 来维护所有定时任务，按到期时间排序。</p>
+<h4>核心数据结构</h4>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">g_minheap</span>     <span class="pl-c"><span class="pl-c">--</span> 最小堆：key=到期时间戳（毫秒），payload=timer_id</span>
+<span class="pl-k">local</span> <span class="pl-smi">g_timers</span>      <span class="pl-c"><span class="pl-c">--</span> 定时器元信息表：{id, interval, callback, is_repeat}</span>
+<span class="pl-k">local</span> <span class="pl-smi">g_task_co</span>     <span class="pl-c"><span class="pl-c">--</span> 主协程引用</span>
+<span class="pl-k">local</span> <span class="pl-smi">g_sleeping</span>    <span class="pl-c"><span class="pl-c">--</span> 是否处于 sleep 状态</span>
+<span class="pl-k">local</span> <span class="pl-smi">g_skip_sleep</span>  <span class="pl-c"><span class="pl-c">--</span> 是否跳过下一次 sleep</span>
+<span class="pl-k">local</span> <span class="pl-smi">g_task_running</span> <span class="pl-c"><span class="pl-c">--</span> 是否已启动主循环</span></pre></div>
+<blockquote>
+<p>📦 推荐使用成熟库：<a href="https://github.com/Tieske/binaryheap.lua">Tieske/binaryheap.lua</a> 中的 <code class="notranslate">unique heap</code>，避免重复造轮子。</p>
+</blockquote>
+<hr>
+<h3>5. 初始化机制：懒加载（Lazy Init）</h3>
+<p>为了避免未使用定时器的服务也启动主循环，我们采用 <strong>延迟初始化</strong> 策略：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">ensure_init</span>()
+    <span class="pl-k">if</span> <span class="pl-smi">g_task_running</span> <span class="pl-k">then</span> <span class="pl-k">return</span> <span class="pl-k">end</span>
+
+    <span class="pl-smi">g_task_running</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>
+    <span class="pl-smi">g_task_co</span> <span class="pl-k">=</span> <span class="pl-c1">coroutine.running</span>()
+
+    <span class="pl-smi">skynet</span>.<span class="pl-c1">fork</span>(<span class="pl-smi">main_loop</span>) <span class="pl-c"><span class="pl-c">--</span> 启动主循环协程</span>
+<span class="pl-k">end</span></pre></div>
+<p>所有对外接口（如 <code class="notranslate">timeout</code>）都会先调用 <code class="notranslate">ensure_init()</code>，确保首次使用时才启动。</p>
+<blockquote>
+<p>✅ 无需手动初始化<br>
+✅ 节省资源，按需启用</p>
+</blockquote>
+<hr>
+<h3>6. 主循环逻辑</h3>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">main_loop</span>()
+    <span class="pl-k">while</span> <span class="pl-smi">g_task_running</span> <span class="pl-k">do</span>
+        <span class="pl-k">local</span> <span class="pl-smi">now</span> <span class="pl-k">=</span> <span class="pl-smi">skynet</span>.<span class="pl-c1">time</span>() <span class="pl-k">*</span> <span class="pl-c1">1000</span> <span class="pl-c"><span class="pl-c">--</span> 当前时间（毫秒）</span>
+        <span class="pl-k">local</span> <span class="pl-smi">next_time</span> <span class="pl-k">=</span> <span class="pl-en">g_minheap</span>:<span class="pl-c1">minKey</span>()
+
+        <span class="pl-k">if</span> <span class="pl-smi">next_time</span> <span class="pl-k">and</span> <span class="pl-smi">next_time</span> <span class="pl-k">&lt;=</span> <span class="pl-smi">now</span> <span class="pl-k">then</span>
+            <span class="pl-c1">process_expired_timers</span>(<span class="pl-smi">now</span>) <span class="pl-c"><span class="pl-c">--</span> 批量处理到期任务</span>
+        <span class="pl-k">else</span>
+            <span class="pl-k">local</span> <span class="pl-smi">sleep_ms</span> <span class="pl-k">=</span> <span class="pl-c1">math.max</span>((<span class="pl-smi">next_time</span> <span class="pl-k">or</span> <span class="pl-smi">now</span> <span class="pl-k">+</span> <span class="pl-c1">1000</span>) <span class="pl-k">-</span> <span class="pl-smi">now</span>, <span class="pl-c1">1</span>)
+            <span class="pl-smi">g_sleeping</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>
+            <span class="pl-smi">skynet</span>.<span class="pl-c1">sleep</span>(<span class="pl-smi">sleep_ms</span> <span class="pl-k">//</span> <span class="pl-c1">10</span>) <span class="pl-c"><span class="pl-c">--</span> 转换为 10ms 单位</span>
+            <span class="pl-smi">g_sleeping</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>
+        <span class="pl-k">end</span>
+
+        <span class="pl-k">if</span> <span class="pl-smi">g_skip_sleep</span> <span class="pl-k">then</span>
+            <span class="pl-smi">g_skip_sleep</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>
+        <span class="pl-k">end</span>
+    <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+<blockquote>
+<p><g-emoji class="g-emoji" alias="warning">⚠️</g-emoji> 注意补帧：若系统卡顿导致错过多个时间点，需批量处理所有已到期任务。</p>
+</blockquote>
+<hr>
+<h3>7. <code class="notranslate">wakeup</code> 的安全实现</h3>
+<p>这是最容易出错的地方：<strong>不能误唤醒非定时器引起的 sleep</strong>。</p>
+<p>例如，协程正在等待 HTTP 响应，此时心跳定时器到期，不应触发 <code class="notranslate">skynet.wakeup</code>。</p>
+<p>我们通过 <code class="notranslate">g_sleeping</code> 标志判断当前是否真的因定时器而 sleep：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">timer_mt</span>:<span class="pl-en">wakeup</span>()
+    <span class="pl-k">local</span> <span class="pl-smi">id</span> <span class="pl-k">=</span> <span class="pl-c1">self</span>.<span class="pl-e">_id</span>
+
+    <span class="pl-k">if</span> <span class="pl-en">g_minheap</span>:<span class="pl-c1">valueByPayload</span>(<span class="pl-smi">id</span>) <span class="pl-k">then</span>
+        <span class="pl-c"><span class="pl-c">--</span> 已在堆中，更新其触发时间</span>
+        <span class="pl-en">g_minheap</span>:<span class="pl-c1">update</span>(<span class="pl-smi">id</span>, <span class="pl-c1">millisecond</span>())
+    <span class="pl-k">else</span>
+        <span class="pl-c"><span class="pl-c">--</span> 不在堆中（可能刚执行完周期任务），重新插入</span>
+        <span class="pl-k">if</span> <span class="pl-smi">g_timers</span>[<span class="pl-smi">id</span>] <span class="pl-k">then</span>
+            <span class="pl-en">g_minheap</span>:<span class="pl-c1">insert</span>(<span class="pl-c1">millisecond</span>(), <span class="pl-smi">id</span>)
+        <span class="pl-k">end</span>
+    <span class="pl-k">end</span>
+
+    <span class="pl-smi">log</span>.<span class="pl-c1">debug</span>(<span class="pl-s"><span class="pl-pds">"</span>Timer wakeup<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>timer_obj<span class="pl-pds">"</span></span>, <span class="pl-c1">self</span>)
+    <span class="pl-c1">do_wakeup</span>()
+<span class="pl-k">end</span>
+
+<span class="pl-k">local</span> <span class="pl-k">function</span> <span class="pl-en">do_wakeup</span>()
+    <span class="pl-k">if</span> <span class="pl-smi">g_sleeping</span> <span class="pl-k">then</span>
+        <span class="pl-smi">skynet</span>.<span class="pl-c1">wakeup</span>(<span class="pl-smi">g_task_co</span>)
+        <span class="pl-smi">g_sleeping</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>
+    <span class="pl-k">else</span>
+        <span class="pl-smi">g_skip_sleep</span> <span class="pl-k">=</span> <span class="pl-c1">true</span> <span class="pl-c"><span class="pl-c">--</span> 下一轮主循环跳过 sleep</span>
+    <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+<blockquote>
+<p>✅ 精准控制：只有在定时器 sleep 期间才能被唤醒<br>
+🚫 避免了 <code class="notranslate">httpc.timeout</code> 被提前中断的问题</p>
+</blockquote>
+<hr>
+<h3>8. 定时器类型语义说明</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方法</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">timeout(sec, func)</code></td>
+<td><code class="notranslate">sec</code> 秒后执行一次</td>
+</tr>
+<tr>
+<td><code class="notranslate">repeat_immediately(sec, func)</code></td>
+<td><strong>立即执行一次</strong>，之后每 <code class="notranslate">sec</code> 秒执行</td>
+</tr>
+<tr>
+<td><code class="notranslate">repeat_delayed(sec, func)</code></td>
+<td>首次延迟 <code class="notranslate">sec</code> 秒，之后周期执行</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<blockquote>
+<p>💡 典型应用场景：</p>
+<ul>
+<li><code class="notranslate">repeat_immediately</code>: 心跳上报、状态同步（不能等第一轮）</li>
+<li><code class="notranslate">repeat_delayed</code>: 冷却时间、倒计时任务</li>
+</ul>
+</blockquote>
+<hr>
+<h3>9. shutdown 清理机制</h3>
+<p>服务关闭时必须释放资源，防止内存泄漏和协程悬挂：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">M</span>.<span class="pl-en">shutdown</span>()
+    <span class="pl-smi">g_task_running</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>
+
+    <span class="pl-k">if</span> <span class="pl-smi">g_minheap</span> <span class="pl-k">then</span>
+        <span class="pl-en">g_minheap</span>:<span class="pl-c1">clear</span>()
+        <span class="pl-smi">g_minheap</span> <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+    <span class="pl-k">end</span>
+
+    <span class="pl-smi">g_timers</span> <span class="pl-k">=</span> {}
+    <span class="pl-smi">g_task_co</span> <span class="pl-k">=</span> <span class="pl-c1">nil</span>
+
+    <span class="pl-k">if</span> <span class="pl-smi">g_task_co</span> <span class="pl-k">then</span>
+        <span class="pl-smi">skynet</span>.<span class="pl-c1">wakeup</span>(<span class="pl-smi">g_task_co</span>)
+    <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+<blockquote>
+<p>✅ 可集成进框架，在服务退出钩子中自动调用</p>
+</blockquote>
+<hr>
+<h2>五、总结：为什么这么做？</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多 <code class="notranslate">timeout</code> 调用</td>
+<td>实现简单</td>
+<td>消息多、性能差</td>
+</tr>
+<tr>
+<td>单主定时器 + 最小堆</td>
+<td>高效、可控、支持复杂逻辑</td>
+<td>实现稍复杂</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>我们选择后者，是因为：</p>
+<ul>
+<li>✅ 极大减少框架消息数量</li>
+<li>✅ 支持精确到毫秒的调度</li>
+<li>✅ 支持批量处理、补帧、唤醒等高级功能</li>
+<li>✅ 易于扩展为通用组件，集成进 Skynet 框架</li>
+</ul>
+<hr>
+<h2>六、后续计划</h2>
+<ul>
+<li>开源完整代码（GitHub）</li>
+<li>集成进我正在封装的 Skynet 框架中，实现自动初始化/销毁</li>
+<li>增加调试工具：查看活跃定时器列表、统计信息、泄漏检测</li>
+<li>探索支持“绝对时间触发”、“持久化定时任务”等特性</li>
+</ul>
+<hr>
+<h2>七、参考资料</h2>
+<ul>
+<li>Skynet 官方文档：<a href="https://github.com/cloudwu/skynet/wiki/LuaAPI">https://github.com/cloudwu/skynet/wiki/LuaAPI</a></li>
+<li>BinaryHeap 实现：<a href="https://github.com/Tieske/binaryheap.lua">https://github.com/Tieske/binaryheap.lua</a></li>
+<li>相关课程参考（非必需）：<a href="https://www.lanqiao.cn/courses/2770" rel="nofollow">蓝桥云课 - Skynet 实战</a>（优惠码：<code class="notranslate">2CZ2UA5u</code>）</li>
+</ul>
+<hr>
+<blockquote>
+<p>✍️ <strong>作者备注</strong>：本文源于我在实际游戏服务器开发中的经验总结。最初的定时器封装很简单，但随着业务复杂度上升，性能问题逐渐暴露。最终通过最小堆 + 单主循环的设计，解决了大规模定时任务的性能瓶颈。希望这篇分享能帮助你写出更健壮、高效的 Skynet 服务！</p>
+</blockquote>
+<hr>
+<p>📌 <strong>最终目标</strong>：让开发者只需关注业务逻辑，无需担心定时器带来的性能陷阱。</p>
+<p>欢迎留言交流，也欢迎 Star 我未来的开源 <a href="https://github.com/hanxi/skyext">Skynet 框架项目！</a></p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/100#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
