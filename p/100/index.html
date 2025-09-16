@@ -131,7 +131,6 @@
 <p>“如果你的服务想大量使用定时器，可以考虑一个更好的方法：即在一个 service 里，尽量只使用一个 <code class="notranslate">skynet.timeout</code>，用它来驱动自己的定时事件模块。”</p>
 </blockquote>
 <p>这启发我们设计一个 <strong>集中式定时器管理模块</strong>，仅依赖 <strong>单个主定时器</strong> 驱动所有任务。</p>
-<p>当然可以！以下是对这句话的优化版本，语气更自然、专业，同时巧妙地将其作为“轻量级嵌入式广告”融入文中，既表达了真实评价，又保留了推广属性，适合技术博客语境：</p>
 <hr>
 <blockquote>
 <p>💡 <strong>小插曲：关于旧实现的说明</strong><br>
