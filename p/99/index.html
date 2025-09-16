@@ -136,6 +136,9 @@ proto 目录，base.sproto 只放协议头，login.sproto 就是 登录服务用
 作为模块的协议入口文件，模块的目录名字跟协议的文件名字一一对应。这样做的好处就是内聚性更好，request.lua 文件不能 require<br>
 其他的 request.lua ，只能 require <code class="notranslate">modules/*/init.lua</code> 这些文件，有点像网页开发里的 route<br>
 路由模块。模块目录下的其他文件就不做要求，模块复杂的就可以拆分更多的文件，不复杂就一个 init.lua 即可。</p>
+<h2>最后</h2>
+<p>🗂️ 工程目录结构可以见 <a href="https://github.com/hanxi/skyext">https://github.com/hanxi/skyext</a><br>
+欢迎点个 ⭐ 支持一下~</p>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/99#new_comment_field"> 点击进入评论 ... </a>
