@@ -313,6 +313,20 @@
 <blockquote>
 <p>✅ 可集成进框架，在服务退出钩子中自动调用</p>
 </blockquote>
+<h3>10. 新增一个随机延迟执行的周期性定时器</h3>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">---</span> 创建一个首次随机的延迟执行的周期性定时器</span>
+<span class="pl-c"><span class="pl-c">--</span> @<span class="pl-k">param</span> name 定时器名称</span>
+<span class="pl-c"><span class="pl-c">--</span> @<span class="pl-k">param</span> sec 执行间隔，单位是秒</span>
+<span class="pl-c"><span class="pl-c">--</span> @<span class="pl-k">param</span> func 定时器回调函数</span>
+<span class="pl-c"><span class="pl-c">--</span> @<span class="pl-k">param</span> times 执行次数，如果不提供，则始终周期性执行</span>
+<span class="pl-k">function</span> <span class="pl-en">M</span>.<span class="pl-en">repeat_random_delayed</span>(<span class="pl-smi">name</span>, <span class="pl-smi">sec</span>, <span class="pl-smi">func</span>, <span class="pl-smi">times</span>)
+    <span class="pl-c1">ensure_init</span>()
+    <span class="pl-k">local</span> <span class="pl-smi">first</span> <span class="pl-k">=</span> <span class="pl-c1">mrandom</span>(<span class="pl-c1">1</span>, <span class="pl-smi">sec</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">timer_obj</span> <span class="pl-k">=</span> <span class="pl-c1">new_timer_obj</span>(<span class="pl-smi">name</span>, <span class="pl-smi">sec</span>, <span class="pl-smi">func</span>, <span class="pl-smi">first</span>, <span class="pl-smi">times</span>)
+    <span class="pl-c1">insert_timer</span>(<span class="pl-smi">timer_obj</span>)
+    <span class="pl-k">return</span> <span class="pl-smi">timer_obj</span>
+<span class="pl-k">end</span></pre></div>
+<p>为什么会有这个接口呢？因为我在接入 <a href="https://github.com/hanxi/sproto-orm">sproto-orm</a> 之后，数据在内存中是需要定时把脏数据写入 MongoDB 的，如果多个玩家数据在同一时刻被加载，那么后续定时落地的时机也会是同时，加这个接口就是为了把这个同时打散，让落地定时器更均匀分布，不至于压力集中。</p>
 <hr>
 <h2>五、总结：为什么这么做？</h2>
 <markdown-accessiblity-table><table role="table">
