@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">Neovim 中配置 sproto 语法高亮</div>
+            <div id="content" class="markdown-body">
+                <p>之前给 <a href="https://github.com/nvim-treesitter/nvim-treesitter/pull/8068" data-hovercard-type="pull_request" data-hovercard-url="/nvim-treesitter/nvim-treesitter/pull/8068/hovercard">nvim-treesittert</a> 提交了个 sproto 语法高亮的功能。现在 <a href="https://github.com/LazyVim/LazyVim">LazyVim</a> 也更新 nvim-treesitter 版本了，终于可以使用了。</p>
+<p>配置方法很简单，先让 neovim 识别 sproto 文件（这个如果要让 neovim 自动识别有点难，得提pr到vim，vim合并后，才能提pr到neovim，路程太慢了）。所以只能自己配置了：</p>
+<p>在 <code class="notranslate">lua/config/options.lua</code> 文件中加上下面的代码就能识别 sprot 文件：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-smi">vim</span>.<span class="pl-e">filetype</span>.<span class="pl-c1">add</span>({
+    <span class="pl-smi">extension</span> <span class="pl-k">=</span> {
+        <span class="pl-smi">sproto</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>sproto<span class="pl-pds">"</span></span>,
+    },
+})</pre></div>
+<p>lazyvim 插件配置，新建文件： <code class="notranslate">lua/plugins/treesitter.lua</code> ：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">return</span> {
+    <span class="pl-s"><span class="pl-pds">"</span>nvim-treesitter/nvim-treesitter<span class="pl-pds">"</span></span>,
+    <span class="pl-smi">highlight</span> <span class="pl-k">=</span> { <span class="pl-smi">enable</span> <span class="pl-k">=</span> <span class="pl-c1">true</span> },
+    <span class="pl-smi">indent</span> <span class="pl-k">=</span> { <span class="pl-smi">enable</span> <span class="pl-k">=</span> <span class="pl-c1">true</span> },
+    <span class="pl-smi">opts</span> <span class="pl-k">=</span> {
+        <span class="pl-smi">ensure_installed</span> <span class="pl-k">=</span> {
+            <span class="pl-s"><span class="pl-pds">"</span>sproto<span class="pl-pds">"</span></span>,
+        },
+    },
+}</pre></div>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/102#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
