@@ -1,0 +1,243 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">Skynet 游戏登录流程设计</div>
+            <div id="content" class="markdown-body">
+                <h2>概述</h2>
+<p>本文档描述了基于 WebSocket 的游戏客户端架构，包括网络连接、账号认证和游戏服登录的完整流程。</p>
+<h2>网络架构</h2>
+<h3>架构概览</h3>
+<p>整个系统采用三层架构设计：</p>
+<pre class="notranslate"><code class="notranslate">┌─────────────────┐    WebSocket     ┌─────────────────┐      TCP        ┌─────────────────┐
+│   sconn-client  │ ───────────────► │     goscon      │ ──────────────► │     skyext      │
+│  (Game Client)  │                  │   (Gateway)     │                 │  (Game Server)  │
+└─────────────────┘                  └─────────────────┘                 └─────────────────┘
+</code></pre>
+<h3>组件说明</h3>
+<ul>
+<li><strong><a href="https://github.com/hanxi/sconn-client">sconn-client</a></strong>: TypeScript 游戏客户端，负责与用户交互和网络通信</li>
+<li><strong><a href="https://github.com/hanxi/goscon">goscon</a></strong>: 游戏服务器网关，负责协议转换（WebSocket ↔ TCP）</li>
+<li><strong><a href="https://github.com/hanxi/skyext">skyext</a></strong>: 游戏服务器，处理游戏逻辑和数据存储</li>
+</ul>
+<h3>通信协议</h3>
+<p>所有组件间的通信均使用 <strong>sproto RPC</strong> 协议进行数据交换。</p>
+<h2>登录流程</h2>
+<h3>流程概览</h3>
+<p>登录过程分为两个主要阶段：</p>
+<ol>
+<li><strong>账号登录</strong> - 通过第三方平台或本地账号获取认证令牌</li>
+<li><strong>游戏服登录</strong> - 使用令牌连接游戏服务器</li>
+</ol>
+<h3>完整登录架构图</h3>
+<pre class="notranslate"><code class="notranslate">┌─────────────┐                    ┌─────────────┐
+│   Client    │                    │  GamePass   │
+│(phaser-game)│                    │(Auth Center)│
+└──────┬──────┘                    └──────┬──────┘
+       │                                  │
+       │ 1. HTTP Account Login            │
+       │ ──────────────────────────────►  │
+       │                                  │
+       │ 2. Return jwt-token              │
+       │ ◄──────────────────────────────  │
+       │                                  │
+       │                                  │
+┌──────▼──────┐    WebSocket/sproto      ┌─────────────┐      TCP/sproto     ┌─────────────┐
+│   Client    │ ─────────────────────►   │   goscon    │ ──────────────────► │   skyext    │
+│             │ 3. Game Login(jwt-token) │             │ 4. Forward Request  │             │
+│             │ ◄─────────────────────   │             │ ◄────────────────── │             │
+└─────────────┘    5. Login Response     └─────────────┘    Login Response   └─────────────┘
+</code></pre>
+<h3>账号登录详细流程</h3>
+<h4>第三方登录（GitHub 示例）</h4>
+<pre class="notranslate"><code class="notranslate">┌─────────────┐                 ┌─────────────┐                 ┌─────────────┐
+│   Client    │                 │  GamePass   │                 │   GitHub    │
+└──────┬──────┘                 └──────┬──────┘                 └──────┬──────┘
+       │                               │                               │
+       │ 1. Click Login Link           │                               │
+       │ GET /auth/github              │                               │
+       │ ────────────────────────────► │                               │
+       │                               │                               │
+       │ 2. Redirect to GitHub OAuth   │                               │
+       │ ◄──────────────────────────── │ 3. OAuth Authorization        │
+       │                               │ ────────────────────────────► │
+       │                               │                               │
+       │ 4. User Authorization         │                               │
+       │ ───────────────────────────────────────────────────────────── │
+       │                               │                               │
+       │                               │ 5. Authorization Code         │
+       │                               │ ◄──────────────────────────── │
+       │                               │                               │
+       │ 6. Redirect to Client         │                               │
+       │    with jwt-token             │                               │
+       │ ◄──────────────────────────── │                               │
+       │                               │                               │
+</code></pre>
+<p><strong>登录 URL 格式：</strong></p>
+<pre class="notranslate"><code class="notranslate">http://localhost:3180/auth/github?callback_url=http://localhost:8080
+</code></pre>
+<p><strong>成功回调 URL 格式：</strong></p>
+<pre class="notranslate"><code class="notranslate">http://localhost:8080?access_token=jwt-token
+</code></pre>
+<h3>游戏服登录详细流程</h3>
+<h4>时序图</h4>
+<pre class="notranslate"><code class="notranslate">Client          goscon          skyext
+  │                │               │
+  │ 1. WebSocket   │               │
+  │   Connection   │               │
+  │ ─────────────► │               │
+  │                │               │
+  │ 2. Send Login  │ 3. Convert to │
+  │   Request      │   TCP Forward │
+  │ ─────────────► │ ────────────► │
+  │                │               │
+  │                │ 4. Verify     │
+  │                │   Token &amp;     │
+  │                │   Process     │
+  │                │               │
+  │                │ 5. Return     │
+  │ 6. Convert to  │   Login       │
+  │   WebSocket    │   Result      │
+  │ ◄───────────── │ ◄──────────── │
+  │                │               │
+</code></pre>
+<h4>登录协议定义</h4>
+<pre lang="sproto" class="notranslate"><code class="notranslate">.context {
+    rid 0 : integer         # role id 用于跳过选角色步骤直接登录角色
+    proto_checksum 1 : string # 协议文件 checksum
+}
+
+# 登录协议
+login 101 {
+    request {
+        token 0 : string    # JWT token，包含账号信息
+        ctx 1 : context     # 上下文信息
+    }
+    response {
+        code 0 : integer    # 响应码 (0: 成功, 其他: 错误码)
+        account 1 : string  # 账号标识
+        gamenode 2 : string # 需要连接的游戏节点标识
+    }
+}
+</code></pre>
+<h4>响应码说明</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>响应码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>登录成功</td>
+</tr>
+<tr>
+<td>1001</td>
+<td>Token 无效</td>
+</tr>
+<tr>
+<td>1002</td>
+<td>Token 过期</td>
+</tr>
+<tr>
+<td>1003</td>
+<td>服务器维护中</td>
+</tr>
+<tr>
+<td>1004</td>
+<td>角色不存在</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>后续通信</h2>
+<p>成功登录游戏服后，客户端与服务器之间的所有通信都遵循 sproto RPC 协议规范：</p>
+<ul>
+<li><strong>请求格式</strong>: 使用 sproto 定义的消息结构</li>
+<li><strong>响应格式</strong>: 对应的 sproto 响应消息</li>
+<li><strong>传输层</strong>: WebSocket (Client ↔ goscon) + TCP (goscon ↔ skyext)</li>
+</ul>
+<h2>相关项目链接</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>组件</th>
+<th>描述</th>
+<th>仓库地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>skyext</strong></td>
+<td>游戏服务器</td>
+<td><a href="https://github.com/hanxi/skyext">https://github.com/hanxi/skyext</a></td>
+</tr>
+<tr>
+<td><strong>sconn-client</strong></td>
+<td>TypeScript 客户端</td>
+<td><a href="https://github.com/hanxi/sconn-client">https://github.com/hanxi/sconn-client</a></td>
+</tr>
+<tr>
+<td><strong>goscon</strong></td>
+<td>网关服务</td>
+<td><a href="https://github.com/hanxi/goscon">https://github.com/hanxi/goscon</a></td>
+</tr>
+<tr>
+<td><strong>gamepass</strong></td>
+<td>账号中心</td>
+<td><a href="https://github.com/hanxi/gamepass">https://github.com/hanxi/gamepass</a></td>
+</tr>
+<tr>
+<td><strong>client</strong></td>
+<td>Phaser 游戏客户端</td>
+<td><a href="https://github.com/hanxi/phaser-game">https://github.com/hanxi/phaser-game</a></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>技术栈</h2>
+<ul>
+<li><strong>前端</strong>: TypeScript + Phaser.js</li>
+<li><strong>通信协议</strong>: sproto RPC</li>
+<li><strong>网络传输</strong>: WebSocket + TCP</li>
+<li><strong>认证</strong>: JWT Token</li>
+<li><strong>第三方登录</strong>: OAuth 2.0 (GitHub 等平台)</li>
+</ul>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/103#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
