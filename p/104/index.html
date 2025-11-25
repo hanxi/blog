@@ -30,12 +30,90 @@
         <div id="container">
             <div id="title">Skynet 跨平台编译折腾记</div>
             <div id="content" class="markdown-body">
-                <p>Skynet 跨平台编译折腾了几次，这里主要记录下流水账。skynet 官方是只支持 linux,freebsd,macosx三个平台的，一直都没支持 windows，这里说的跨平台编译主要也是 windows 平台。</p>
+                <p>Skynet 跨平台编译折腾了几次，这里主要记录下流水账。skynet 官方是只支持 linux,freebsd,macosx 三个平台的，一直都没支持 windows，这里说的跨平台编译主要也是 windows 平台。</p>
 <p>很久以前在 android 上编译过，很简单，termux 里安装 gcc 基本就能编译成功，区别只是 arm 和 x86 的区别，因为基建都有人封装好，skynet 也没没有依赖硬件是 x86 还是 arm的，这类跨平台编译可以归纳为 linux 类跨平台编译。</p>
-<p>macosx 很早就支持了的，支持的原因可能就是因为是 dsd 一个体系的，关键是支持 kqueue ，所以在 macosx 下编译就是顺手的事。</p>
+<p>macosx 很早就支持了的，支持的原因可能就是因为是 bsd 一个体系的，关键是支持 kqueue ，所以在 macosx 下编译就是顺手的事。</p>
 <p>windows 就不同了，除了 posix 的差异，比如 pthread，关键还是 epoll 事件的支持。pthread 基建很全，无论是 mingw 还是 vs 环境，都有人封装好 pthread 库了，能直接使用。skynet 的另一个类似版本 <a href="https://github.com/cloudwu/hive">hive</a> 是支持 select 的，因此有人想到的方案是使用 select 模拟 epoll 来实现 windows 版本，就是这个 <a href="https://github.com/dpull/skynet-mingw">dpull/skynet-mingw</a> 。在这个之前还见过有人侵入式修改的版本，可能就是因为需要侵入修改，就没人使用吧，找不到链接了。</p>
 <p>后面又有了这个 vs 版本 <a href="https://github.com/cloudfreexiao/skynet/tree/windows">cloudfreexiao/skynet/tree/windows</a> ，这个版本的区别是能在 vs 里编译，epoll 不是用的 select 实现的，而是直接使用的 <a href="https://github.com/piscisaureus/wepoll">wepoll</a> 这个库。因为vs 新版本支持了 clang 和 cmake，因此我就试试用 cmake 来编译 skynet ，这样就能很方便命令行编译和 vs 环境编译，只需要一份 cmake 配置即可，因此有了 <a href="https://github.com/hanxi/skynet-cmake">skynet-cmake</a> 。</p>
-<p>按理说有了 skynet-cmake 之后，应该没必要再折腾了吧。但是上周又有人在我的 qq 群里聊到 windows 版本的问题，嫌弃 cmake ，学了 make 还得学 cmake 。</p>
+<p>按理说有了 skynet-cmake 之后，应该没必要再折腾了吧。但是上周又有人在我的 qq 群里聊到 windows 版本的问题，嫌弃 cmake ，学了 make 还得学 cmake 。因此我又折腾了一个版本，只使用 make，同样保持和 cmake 一样做到零侵入修改，只修改 makefile 和 platform.mk 引入 mingw.mk 即可，其实不引入也行，只是不引入得用 <code class="notranslate">make -f mingw.mk</code> ，引入只是为了直接使用 <code class="notranslate">make mingw</code> 来编译，当然引入了 3rd/compat-mingw ，由于是新增目录，不会有冲突，而且只在 mingw 生效。已经提了个 PR : <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="3660154782" data-permission-text="Title is private" data-url="https://github.com/cloudwu/skynet/issues/2108" data-hovercard-type="pull_request" data-hovercard-url="/cloudwu/skynet/pull/2108/hovercard" href="https://github.com/cloudwu/skynet/pull/2108">cloudwu/skynet#2108</a> ，我是希望能合并进去的，这样应该不会再有人问为啥没有 skynet.exe 了吧。也想过侵入是修改 makefile 和 platform.mk ，而不是像现在这样独立一个 mingw.mk ，由于改动太大，windows 平台得编译 dll 的奇葩情况，独立一个 mingw.mk 是改动最小的方案了。</p>
+<p>windows 平台编译主要需要注意的地方就是：</p>
+<ul>
+<li>lua 需要编译成 dll ，否则是无法加载动态库的，这也是为什么 lua 官方的 makefile 里 lua.exe 是动态链接 lua54.dll 的原因。</li>
+<li>pthread 需要静态链接进去，否则找不到 pthread.dll 。</li>
+<li>skynet 最好也是编译成 dll ，这样 c 服务或者 lua 库也是引用的 skynet.dll ，lua54.dll 也不要静态打包 到 skynet.dll ，防止出现 2 个lua 虚拟机的问题，导致 lua 的 c 库莫名其秒的不可用。</li>
+</ul>
+<p>在 debian13 下只需要安装下面这些依赖就能轻松编译出 linux 版本和 windows 版本的 skynet 了。</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 安装所有必需的包</span>
+apt-get update <span class="pl-k">&amp;&amp;</span> apt-get install -y --no-install-recommends \
+    <span class="pl-c"><span class="pl-c">#</span> 编译工具链</span>
+    build-essential \
+    make \
+    pkg-config \
+    \
+    <span class="pl-c"><span class="pl-c">#</span> MinGW-w64 (支持32位和64位)</span>
+    mingw-w64 \
+    mingw-w64-tools \
+    mingw-w64-i686-dev \
+    mingw-w64-x86-64-dev \
+    \
+    <span class="pl-c"><span class="pl-c">#</span> 可选依赖</span>
+    autoconf \
+    automake \
+    libtool \
+    \
+    <span class="pl-k">&amp;&amp;</span> apt-get clean \
+    <span class="pl-k">&amp;&amp;</span> rm -rf /var/lib/apt/lists/<span class="pl-k">*</span> /tmp/<span class="pl-k">*</span> /var/tmp/<span class="pl-k">*</span></pre></div>
+<p>还想偷懒就直接用这个 docker 吧 ： <a href="https://github.com/hanxi/skynet-builder">https://github.com/hanxi/skynet-builder</a> 。</p>
+<p>最后，跟 dpull/skynet-mingw 一样，是有已知缺陷的，比如 console 服务不可用：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">PS C:\work\skynet\skynet\skynet&gt; .\skynet.exe .\examples\config
+[:01000002] LAUNCH snlua bootstrap
+[:01000003] LAUNCH snlua launcher
+[:01000004] LAUNCH snlua cmaster
+[:01000004] master listen socket 0.0.0.0:2013
+[:01000005] LAUNCH snlua cslave
+[:01000005] slave connect to master 127.0.0.1:2013
+[:01000004] connect from 127.0.0.1:49225 4
+[:01000006] LAUNCH harbor 1 16777221
+[:01000004] Harbor 1 (fd=4) report 127.0.0.1:2526
+[:01000005] Waiting for 0 harbors
+[:01000005] Shakehand ready
+[:01000007] LAUNCH snlua datacenterd
+[:01000008] LAUNCH snlua service_mgr
+[:01000009] LAUNCH snlua main
+[:00000000] error: A message from [ :01000009 ] to [ :01000009 ] maybe in an endless loop (version = 87)
+[:01000009] Server start
+[:0100000a] LAUNCH snlua protoloader
+[:0100000b] LAUNCH snlua console
+[:0100000c] LAUNCH snlua debug_console 8000
+[:0100000b] lua call [0 to :100000b : 0 msgsz = 56] error : ./lualib/skynet.lua:988: ./lualib/skynet.lua:452: ./lualib/skynet\socket.lua:365: assertion failed!
+stack traceback:
+        [C]: in function 'assert'
+        ./lualib/skynet\socket.lua:365: in function 'skynet.socket.readline'
+        ./service/console.lua:16: in upvalue 'f'
+        ./lualib/skynet.lua:375: in function &lt;./lualib/skynet.lua:374&gt;
+stack traceback:
+        [C]: in function 'assert'
+        ./lualib/skynet.lua:988: in function 'skynet.dispatch_message'
+[:0100000c] Start debug console at 127.0.0.1:8000
+[:0100000d] LAUNCH snlua simpledb
+[:0100000e] LAUNCH snlua watchdog
+[:0100000f] LAUNCH snlua gate
+[:0100000f] Listen on 0.0.0.0:8888
+[:01000009] Watchdog listen on 0.0.0.0:8888
+[:01000009] KILL self
+[:01000002] KILL self</pre></div>
+<p>客户端运行效果：</p>
+<div class="highlight highlight-text-adblock"><pre class="notranslate">PS C:\work\skynet\skynet\skynet&gt; .\3rd\lua\lua.exe .\examples\client.lua
+Request:        1
+Request:        2
+RESPONSE        1
+msg     Welcome to skynet, I will send heartbeat every 5 sec.
+RESPONSE        2
+hello
+Request:        3
+RESPONSE        3
+result  world
+REQUEST heartbeat</pre></div>
             </div>
             <div id="comment">
                 <a href="https://github.com/hanxi/blog/issues/104#new_comment_field"> 点击进入评论 ... </a>
