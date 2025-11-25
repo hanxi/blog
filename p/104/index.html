@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">Skynet 跨平台编译折腾记</div>
+            <div id="content" class="markdown-body">
+                <p>Skynet 跨平台编译折腾了几次，这里主要记录下流水账。skynet 官方是只支持 linux,freebsd,macosx三个平台的，一直都没支持 windows，这里说的跨平台编译主要也是 windows 平台。</p>
+<p>很久以前在 android 上编译过，很简单，termux 里安装 gcc 基本就能编译成功，区别只是 arm 和 x86 的区别，因为基建都有人封装好，skynet 也没没有依赖硬件是 x86 还是 arm的，这类跨平台编译可以归纳为 linux 类跨平台编译。</p>
+<p>macosx 很早就支持了的，支持的原因可能就是因为是 dsd 一个体系的，关键是支持 kqueue ，所以在 macosx 下编译就是顺手的事。</p>
+<p>windows 就不同了，除了 posix 的差异，比如 pthread，关键还是 epoll 事件的支持。pthread 基建很全，无论是 mingw 还是 vs 环境，都有人封装好 pthread 库了，能直接使用。skynet 的另一个类似版本 <a href="https://github.com/cloudwu/hive">hive</a> 是支持 select 的，因此有人想到的方案是使用 select 模拟 epoll 来实现 windows 版本，就是这个 <a href="https://github.com/dpull/skynet-mingw">dpull/skynet-mingw</a> 。在这个之前还见过有人侵入式修改的版本，可能就是因为需要侵入修改，就没人使用吧，找不到链接了。</p>
+<p>后面又有了这个 vs 版本 <a href="https://github.com/cloudfreexiao/skynet/tree/windows">cloudfreexiao/skynet/tree/windows</a> ，这个版本的区别是能在 vs 里编译，epoll 不是用的 select 实现的，而是直接使用的 <a href="https://github.com/piscisaureus/wepoll">wepoll</a> 这个库。因为vs 新版本支持了 clang 和 cmake，因此我就试试用 cmake 来编译 skynet ，这样就能很方便命令行编译和 vs 环境编译，只需要一份 cmake 配置即可，因此有了 <a href="https://github.com/hanxi/skynet-cmake">skynet-cmake</a> 。</p>
+<p>按理说有了 skynet-cmake 之后，应该没必要再折腾了吧。但是上周又有人在我的 qq 群里聊到 windows 版本的问题，嫌弃 cmake ，学了 make 还得学 cmake 。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/104#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
