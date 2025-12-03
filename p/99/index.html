@@ -136,6 +136,85 @@ proto 目录，base.sproto 只放协议头，login.sproto 就是 登录服务用
 作为模块的协议入口文件，模块的目录名字跟协议的文件名字一一对应。这样做的好处就是内聚性更好，request.lua 文件不能 require<br>
 其他的 request.lua ，只能 require <code class="notranslate">modules/*/init.lua</code> 这些文件，有点像网页开发里的 route<br>
 路由模块。模块目录下的其他文件就不做要求，模块复杂的就可以拆分更多的文件，不复杂就一个 init.lua 即可。</p>
+<hr>
+<h2>工程目录结构优化</h2>
+<p>上一个版本的工程目录结构是进程和服务混在一起的。这次做了一次优化，进程目录迁移到 app 目录下，并且 app<br>
+目录下的服务是只能本进程创建的。service 目录用来放通用服务，也就是任意进程都可以创建的服务。</p>
+<p>现在的目录结构是这样的：</p>
+<pre class="notranslate"><code class="notranslate">.
+├── 3rd
+├── app
+│   ├── account
+│   ├── robot
+│   └── role
+├── bin
+├── build
+│   └── proto
+├── doc
+├── etc
+├── logs
+├── luaclib
+├── lualib
+├── lualib-src
+├── Makefile
+├── proto
+│   ├── base.sproto
+│   ├── login.sproto
+│   └── roleagent
+├── README.md
+├── schema
+│   ├── bag.sproto
+│   ├── mail.sproto
+│   └── role.sproto
+├── service
+│   ├── cluster_discovery.lua
+│   ├── logger
+│   ├── mongo_conn.lua
+│   ├── mongo_index.lua
+│   └── sproto_loader.lua
+├── skynet
+├── test
+└── tools
+</code></pre>
+<p>app 里一个目录是一个进程，里面的 main.lua 作为进程入口。比如 account 是账号进程节点，conf 配置则这样写：</p>
+<pre class="notranslate"><code class="notranslate">start = "account" -- main script account/main.lua
+</code></pre>
+<p>role 节点则这样配：</p>
+<pre class="notranslate"><code class="notranslate">start = "role" -- main script role/main.lua
+</code></pre>
+<h3>实现</h3>
+<p>通过修改 luaservice 配置来实现。</p>
+<pre class="notranslate"><code class="notranslate">root = "./"
+
+luaservice = root .. "app/".. start .. "/?.lua;"
+luaservice = luaservice .. root .. "app/?/main.lua;"
+luaservice = luaservice .. root .. "app/" .. start .. "/?/main.lua;"
+luaservice = luaservice .. root .. "service/?.lua;"
+luaservice = luaservice .. root .. "service/?/main.lua;"
+luaservice = luaservice .. root .. "skynet/service/?.lua;"
+</code></pre>
+<p>根据上面配置的 lua 服务搜索路径，app/role/main.lua 启动的进程，优先搜索 app/role/xxx.lua 里的服务，比如<br>
+app/role/watchdog.lua 和 app/role/roleagentmgr.lua 这两个服务只能在 role 节点使用。</p>
+<p>而 service 目录下的服务是可以任意节点加载的，比如 service/logger/main.lua 和 service/mongo_conn.lua 。</p>
+<p>为啥用 main.lua 而不是 init.lua 呢？init.lua 是 require 默认使用的搜索规则。在服务层面用 main.lua 更合适，main.lua<br>
+作为服务的启动入口，就像 C 语言里的 main 函数一样。同样又能和 require 区分开来。</p>
+<p>require 搜索路径也做了限制，在最外层的 lualib 是任意服务都能使用的，在 app 内部的 lualib 只能本进程内使用。</p>
+<pre class="notranslate"><code class="notranslate">lua_path = root .. "?.lua;"
+lua_path = lua_path .. root .. "lualib/?.lua;"
+lua_path = lua_path .. root .. "lualib/?/init.lua;"
+lua_path = lua_path .. root .. "skynet/lualib/?.lua;"
+</code></pre>
+<p>是通过 preload.lua 中实现的：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 服务独有的库</span>
+<span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-c1">package.path</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_PATH</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_NAME</span><span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?.lua;<span class="pl-pds">"</span></span>
+<span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-c1">package.path</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_PATH</span> <span class="pl-k">..</span> <span class="pl-smi">SERVICE_NAME</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?/init.lua;<span class="pl-pds">"</span></span>
+
+<span class="pl-c"><span class="pl-c">--</span> 进程独有的库</span>
+<span class="pl-k">local</span> <span class="pl-smi">skynet</span> <span class="pl-k">=</span> <span class="pl-c1">require</span> <span class="pl-s"><span class="pl-pds">"</span>skynet<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> <span class="pl-smi">root</span> <span class="pl-k">=</span> <span class="pl-smi">skynet</span>.<span class="pl-c1">getenv</span>(<span class="pl-s"><span class="pl-pds">"</span>root<span class="pl-pds">"</span></span>)
+<span class="pl-k">local</span> <span class="pl-smi">start</span> <span class="pl-k">=</span> <span class="pl-smi">skynet</span>.<span class="pl-c1">getenv</span>(<span class="pl-s"><span class="pl-pds">"</span>start<span class="pl-pds">"</span></span>)
+<span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-c1">package.path</span> <span class="pl-k">..</span> <span class="pl-smi">root</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>app/<span class="pl-pds">" </span></span><span class="pl-k">..</span> <span class="pl-smi">start</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?.lua;<span class="pl-pds">"</span></span>
+<span class="pl-c1">package.path</span> <span class="pl-k">=</span> <span class="pl-c1">package.path</span> <span class="pl-k">..</span> <span class="pl-smi">root</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>app/<span class="pl-pds">" </span></span><span class="pl-k">..</span> <span class="pl-smi">start</span> <span class="pl-k">..</span> <span class="pl-s"><span class="pl-pds">"</span>/lualib/?/init.lua;<span class="pl-pds">"</span></span></pre></div>
 <h2>最后</h2>
 <p>🗂️ 工程目录结构可以见 <a href="https://github.com/hanxi/skyext">https://github.com/hanxi/skyext</a><br>
 欢迎点个 ⭐ 支持一下~</p>
