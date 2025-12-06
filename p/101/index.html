@@ -206,6 +206,29 @@
 <p>🔐 关键点：使用 <code class="notranslate">to_lightuserdata</code>（见 <a href="https://github.com/cloudwu/skynet/pull/2075" data-hovercard-type="pull_request" data-hovercard-url="/cloudwu/skynet/pull/2075/hovercard">Skynet PR #2075</a>）传递指针而非拷贝数据，减少内存开销。必须使用 <code class="notranslate">skynet.call</code> 阻塞调用，防止源数据被提前释放。</p>
 </blockquote>
 <hr>
+<p><strong>更正</strong><br>
+调用方有 tail call 导致 lightuserdata 会提前 gc ，需要打破 tail call ：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">coll_mt</span>:<span class="pl-en">safe_insert</span>(<span class="pl-smi">doc</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">conn_obj</span> <span class="pl-k">=</span> <span class="pl-c1">self</span>.<span class="pl-en">db</span>:<span class="pl-c1">_route</span>()
+    <span class="pl-smi">log</span>.<span class="pl-c1">debug</span>(<span class="pl-s"><span class="pl-pds">"</span>safe_insert doc:<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>doc<span class="pl-pds">"</span></span>, <span class="pl-smi">doc</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">bson_obj</span> <span class="pl-k">=</span> <span class="pl-c1">bson_encode</span>(<span class="pl-smi">doc</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">ok</span>, <span class="pl-smi">err</span>, <span class="pl-smi">r</span> <span class="pl-k">=</span> <span class="pl-en">conn_obj</span>:<span class="pl-c1">call</span>(<span class="pl-s"><span class="pl-pds">"</span>raw_safe_insert<span class="pl-pds">"</span></span>, <span class="pl-c1">self</span>.<span class="pl-e">coll</span>, <span class="pl-c1">to_lightuserdata</span>(<span class="pl-smi">bson_obj</span>))
+    <span class="pl-k">return</span> <span class="pl-smi">ok</span>, <span class="pl-smi">err</span>, <span class="pl-smi">r</span>
+<span class="pl-k">end</span>
+
+<span class="pl-k">function</span> <span class="pl-en">coll_mt</span>:<span class="pl-en">safe_update</span>(<span class="pl-smi">query</span>, <span class="pl-smi">update</span>, <span class="pl-smi">upsert</span>, <span class="pl-smi">multi</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">conn_obj</span> <span class="pl-k">=</span> <span class="pl-c1">self</span>.<span class="pl-en">db</span>:<span class="pl-c1">_route</span>()
+    <span class="pl-smi">log</span>.<span class="pl-c1">debug</span>(<span class="pl-s"><span class="pl-pds">"</span>safe_update<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>query<span class="pl-pds">"</span></span>, <span class="pl-smi">query</span>, <span class="pl-s"><span class="pl-pds">"</span>update<span class="pl-pds">"</span></span>, <span class="pl-smi">update</span>, <span class="pl-s"><span class="pl-pds">"</span>upsert<span class="pl-pds">"</span></span>, <span class="pl-smi">upsert</span>, <span class="pl-s"><span class="pl-pds">"</span>multi<span class="pl-pds">"</span></span>, <span class="pl-smi">multi</span>)
+    <span class="pl-k">local</span> <span class="pl-smi">bson_obj</span> <span class="pl-k">=</span> <span class="pl-c1">bson_encode</span>({
+        <span class="pl-smi">q</span> <span class="pl-k">=</span> <span class="pl-smi">query</span>,
+        <span class="pl-smi">u</span> <span class="pl-k">=</span> <span class="pl-smi">update</span>,
+        <span class="pl-smi">upsert</span> <span class="pl-k">=</span> <span class="pl-smi">upsert</span>,
+        <span class="pl-smi">multi</span> <span class="pl-k">=</span> <span class="pl-smi">multi</span>,
+    })
+    <span class="pl-k">local</span> <span class="pl-smi">ok</span>, <span class="pl-smi">err</span>, <span class="pl-smi">r</span> <span class="pl-k">=</span> <span class="pl-en">conn_obj</span>:<span class="pl-c1">call</span>(<span class="pl-s"><span class="pl-pds">"</span>raw_safe_update<span class="pl-pds">"</span></span>, <span class="pl-c1">self</span>.<span class="pl-e">coll</span>, <span class="pl-c1">to_lightuserdata</span>(<span class="pl-smi">bson_obj</span>))
+    <span class="pl-k">return</span> <span class="pl-smi">ok</span>, <span class="pl-smi">err</span>, <span class="pl-smi">r</span>
+<span class="pl-k">end</span></pre></div>
+<hr>
 <h3>4. 模块统一入口</h3>
 <p>暴露简洁接口供外部调用：</p>
 <div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">function</span> <span class="pl-en">M</span>.<span class="pl-en">get_collection</span>(<span class="pl-smi">name</span>, <span class="pl-smi">coll</span>)
