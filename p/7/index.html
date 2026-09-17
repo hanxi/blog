@@ -41,7 +41,7 @@
 <ul>
 <li>把 dialog 设置为置顶</li>
 </ul>
-<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-en">gtk_window_set_keep_above</span>(GTK_WINDOW(dialog), true);</pre></div>
+<div class="highlight highlight-source-c++"><pre class="notranslate"><span class="pl-en">gtk_window_set_keep_above</span>(<span class="pl-c1">GTK_WINDOW</span>(dialog), true);</pre></div>
 <ul>
 <li>设置 dialog 失去焦点时就销毁</li>
 </ul>
@@ -52,7 +52,7 @@
 }
 
 ...
-<span class="pl-en">g_signal_connect</span>(dialog, <span class="pl-s"><span class="pl-pds">"</span>focus-out-event<span class="pl-pds">"</span></span>, G_CALLBACK(dialogFocusOutCallback), NULL);
+<span class="pl-en">g_signal_connect</span>(dialog, <span class="pl-s"><span class="pl-pds">"</span>focus-out-event<span class="pl-pds">"</span></span>, <span class="pl-c1">G_CALLBACK</span>(dialogFocusOutCallback), NULL);
 </pre></div>
 <p>我也是试过去找到 dialog 的父窗口，然后设置模态等等，使 dialog 为子窗口。可是没能成功的实现。现在我的这种实现也能满足基本的需求，代码在这里：<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="85717463" data-permission-text="Title is private" data-url="https://github.com/cocos2d/cocos2d-x/issues/12220" data-hovercard-type="pull_request" data-hovercard-url="/cocos2d/cocos2d-x/pull/12220/hovercard" href="https://github.com/cocos2d/cocos2d-x/pull/12220">cocos2d/cocos2d-x#12220</a></p>
             </div>

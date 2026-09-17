@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="Stylesheet" type="text/css" href="/css/style.css">
+        <link rel="Stylesheet" type="text/css" href="/css/tango.css">
+        <link rel="Stylesheet" type="text/css" href="/css/github-markdown.css">
+        <title>涵曦 ~ 博客</title>
+        <script src="/config.js"></script>
+        <script src="/util.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139883805-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-139883805-2');
+        </script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="post-nav">
+                <a href="/">首页</a>
+                <a href="/about.html">关于</a>
+                <a href="/sitemap.html">所有文章</a>
+            </div>
+        </div>
+        <div id="container">
+            <div id="title">我为何又要开发一个音乐服务器</div>
+            <div id="content" class="markdown-body">
+                <p>起因是我开发的 xiaomusic 最初只是给我的小爱音箱使用的，架构设计没想好，导致功能越加越多之后，代码也越丑越长，经历了几轮重构还是无法解决扩展不方便的问题。因为一开始就是为小爱音箱设计的，难以改变。在 Vibe Coding 日趋成熟的时候，我就想着能不能不手写一行代码来重新开发一个可扩展的音乐服务器。</p>
+<p>于是在年初的时候就开始着手设计架构了，最初想了个名字叫 mimusic ，原因是有 xiaogpt 和 migpt 项目，我就想着 xiaomusic -&gt; mimusic 吧，后面服务器整体功能稳定后还是觉得得有个特色的名字，就改名为 songloft 了，毕竟这个音乐服务器不再只是为小爱音箱设计的了。</p>
+<p>架构设计设计的前提是：跨平台，可插件扩展。跨平台的意思是方便一次性打包出各种平台运行的包，而且是静态编译无依赖的。虽然 xiaomusic 选的 python 也能做到这个，但是没有 go 方便，go 的跨平台编译工具链很成熟，只要不使用 cgo 就能很简单的跨平台编译。因此服务器开发语言选择了 go 。选完语言还得选数据库，用过 xiaomusic 的人应该都知道 xiaomusic 是没有使用数据库的，数据都是存的 json 文件管理的。这是我要做的是一个可扩展的音乐服务器，选数据库能给后续开发方便一点，虽然也只是一些简单的数据增删改查。因为主打的是个人音乐服务器，数据库选了 <a href="https://pkg.go.dev/modernc.org/sqlite" rel="nofollow">SQLite</a> 就够了，帮用户省点内存。</p>
+<p>可插件扩展这个绕了一点弯路，最初的插件框架用的是 <a href="https://github.com/knqyf263/go-plugin">knqyf263/go-plugin</a> 这个库实现的，插件采用 wasm 来开发。选这个库是想着主语言是 go ，插件也用 go 开发会不会更统一。后面遇到的问题就是没有异步导致插件容易假死，主程序和插件交互复杂，插件开发难度大。第一个音箱插件就是这样开发的，定时器还得底层自己维护，经历了这个坑之后，总结了一个经验，如果插件是和主程序交互频繁的，就不要使用 wasm ，不要以为运行速度很快，实际测试下来内存消耗很大，也没见有多快。也可能是 go-plugin 用的是 CGO-free 的 <a href="https://github.com/tetratelabs/wazero">tetratelabs/wazero</a> 的原因，没用 cgo 的 wasm 库。</p>
+<p>后面开发了一个洛雪音源插件，需要运行 js 代码，于是主程序添加了 <a href="https://pkg.go.dev/modernc.org/quickjs" rel="nofollow">quickjs</a> 来支持 js 代码运行，还是因为想跨平台方便，选的库还是 CGO-free 的。 洛雪插件跑起来后，就萌生了一个新的插件框架，使用 js 来开发插件是不是更快？于是就重新实现了一套插件框架，最开始方便种子用户迁移无感，两套插件框架是共存的，后面 js 插件框架逐渐稳定之后我就把 wasm 插件框架清理掉了，也就是改名 songloft 的时候清理的。</p>
+<p>有了服务器，就需要有个像样的客户端，开发客户端也走了点弯路。也是想着要跨平台，最初想的是提供 web 端就够了，就用了 web 前端开发那一套，从 vite + vue + Daisy UI 开发了个雏形，后面觉得样式怎么调都不好看又把 UI 换成了 Nuxt UI 。样式不会调是我的能力不行，不能怪 UI 框架，也可能是那时候语料不行，AI 开发 Nuxt UI 更厉害吧，估计现在没什么差别了吧。</p>
+<p>web 端有个问题，手机播放音乐后台会经常被干掉，于是又想着要不要再开发一个 APP , 是用 webview 套壳呢？还是原生开发呢？我一个人开发的话，纯原生不太现实，虽然是 AI 搞，一个平台一套工程问题只会更多问题。综合对比后，我选了 Flutter 来开发，之前还去 V2EX 发了一个帖子 <a href="https://www.v2ex.com/t/1201168" rel="nofollow">https://www.v2ex.com/t/1201168</a> 说这个事情。</p>
+<p>到这里，技术栈基本稳定了，后端 Go 前端 Flutter 。刚开始的时候只开源了 Flutter 客户端，然后经常会有人来问服务器是否开源，由于我当时也是没想好，所以回复也是不确定。不过最终我在改名 songloft 的时候觉得事情准备好了，功能基本稳定了，于是就开源了。其实从用户的角度来想，一个大而全的个人音乐服务器开源会让用户觉得这个产品更稳定，毕竟作者如果不维护了，也可能会出现其他人来维护，这样用户迁移成本会低一点。</p>
+<p>说到用户迁移问题，我开发音箱插件考虑了这一点的，音箱插件基本稳定之后我才关停 xiaomusic 项目的。因为现在的音箱插件比 xiaomusic 更好用了。比如一个目录就是一个歌单的这个设计就是沿用了 xiaomusic 的设计的。</p>
+<p>也经常会有人来问我能不能加多用户功能，我到现在都没决定加不加。加多用户不难，但是如果我觉得一旦加上了多用户，会不会有人拿去架设公开的音乐服务器呢？如果假设后拿去卖会不会导致 songloft 项目受到牵连呢？可能未来还是朝着单用户的方向发展，最多会加设备管理和设备的权限控制。</p>
+<p>再说说 js 插件，实现 js 插件框架的时候，是参考了 <a href="https://github.com/cloudwu/skynet">skynet</a> 的 actor service 设计的。一个插件作为一个 actor ，插件之间是可以收发消息的。插件之间不仅仅是用 http 收发消息，会提供内部接口来传递消息。然后随着插件越来余越多，提供的功能也就越来越强大，比如 websocket 能力， TCP/UDP 接口的能力。最开始是只有服务器的插件的，到现在还增加了客户端的插件接口。感叹一下 js 技术栈确实太丰富了，npm 的包分发太强了，插件工具链用的是 pnpm 单仓库多包分发，现在 sdk 已经很完善了，能一句话让 AI 开发出一个插件。由于担心洛雪插件可能导致侵权问题，我就把洛雪插件从官方插件商店下架了，开源仓库也关闭了，但是我保留了一个提示词仓库，如果有人想要可以直接一句话用 AI 开发出来，见 <a href="https://github.com/hanxi/songloft-plugin-lxmusic">hanxi/songloft-plugin-lxmusic</a> ，只提供提示词。</p>
+<p>为了用户不安装 ffmpeg 也能正常使用，我还维护了一个 go 库 <a href="https://github.com/hanxi/tag">hanxi/tag</a> 来解决歌曲元数据提取问题，这样对于小内存设备比较友好，比如路由器一类的。而且为了减少 docker 镜像大小，特意维护了一个精简版本的 ffmpeg 编译包 <a href="https://github.com/hanxi/ffmpeg-builder">hanxi/ffmpeg-builder</a> ，只编译出 songloft 用到的功能 。</p>
+<p>为了统计有多少用户在使用 songloft ，我接入了我写的 <a href="https://github.com/hanxi/tracely">hanxi/tracely</a> ，一个轻量级的错误收集和用户活跃统计。这个不算是强制的，也没收集用户敏感信息的，如果有用户实在担心，可以 fork 仓库用 CI 自己编译一下就不会有统计信息上报了。了解活跃用户数量对于产品作者是有一个正向反馈的，对于一个没人使用的产品可能就没必要维护了。</p>
+<p>目前 songloft 社区也越来越庞大了，除了有人写插件，还有人搞 Windows scoop 包体分发，有人搞飞牛包体分发，还有人写了专门的个 TV 客户端。感谢广大网友的鼎力支持，提 issue 也是一种贡献。希望这个产品能活久一点。</p>
+<hr>
+<p>好久没写博客了，纯手写的流水账。</p>
+            </div>
+            <div id="comment">
+                <a href="https://github.com/hanxi/blog/issues/106#new_comment_field"> 点击进入评论 ... </a>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </body>
+    <script type="text/javascript">
+        setFooter();
+    </script>
+ 
+</html>
